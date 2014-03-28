@@ -1,0 +1,73 @@
+AnchorLayout:
+    anchor_x: 'left'
+    anchor_y: 'top'
+
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint: (1.0, None)
+        size: (1, 39)
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: (1.0, None)
+            size: (1, 39)
+            canvas:
+                Color:
+                    rgb: 0.84, 0.84, 0.84
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+
+            Image:
+                source: 'atlas://data/images/defaulttheme/checkbox_on'
+                size_hint: (None, 1.0)
+                size: (186, 1)
+            ToggleButton:
+                text: '3D'
+                group: 'viewDirection'
+                size_hint: (None, 1.0)
+                size: (40, 1)
+            ToggleButton:
+                text: 'Right'
+                group: 'viewDirection'
+                size_hint: (None, 1.0)
+                size: (40, 1)
+            ToggleButton:
+                text: 'Front'
+                group: 'viewDirection'
+                size_hint: (None, 1.0)
+                size: (40, 1)
+            ToggleButton:
+                text: 'Top'
+                group: 'viewDirection'
+                size_hint: (None, 1.0)
+                size: (40, 1)
+            Widget:
+                #Spacing
+            Label:
+                text: 'View Settings'
+                color: (0, 0, 0, 1)
+                size_hint: (None, 1.0)
+                size: (120, 1)
+            Spinner:
+                text: 'Normal'
+                values: ('Normal', 'Special')
+                size_hint: (None, 1.0)
+                size: (94, 1)
+            Button:
+                text: 'Settings'
+                size_hint: (None, 1.0)
+                size: (89, 1)
+            Button:
+                text: 'Help'
+                size_hint: (None, 1.0)
+                size: (89, 1)
+        Widget:
+            canvas:
+                Color:
+                    rgb: (1, 1, 1)
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            size_hint: (1.0, None)
+            size: (1, 1)
