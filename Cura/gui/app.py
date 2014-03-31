@@ -43,7 +43,6 @@ Builder.load_string("""
             valign: 'middle'
 """)
 
-
 class IconToggleButton(ToggleButtonBehavior, Button):
     button_text = StringProperty()
     icon = StringProperty()
@@ -53,6 +52,10 @@ class IconToggleButton(ToggleButtonBehavior, Button):
         self.icon = kwargs['icon']
         kwargs['text'] = ''
         super(IconToggleButton, self).__init__(**kwargs)
+
+
+class TransformWidget(Widget):
+    pass
 
 
 class Renderer(Widget):
@@ -109,7 +112,7 @@ class CuraApp(App):
 
     def build(self):
         pass
-        mainLayout = FloatLayout()
+        '''mainLayout = FloatLayout()
 
         renderer = Renderer(size_hint=(1.0, 1.0), pos_hint={'x': 0, 'y': 0})
         mainLayout.add_widget(renderer)
@@ -154,9 +157,9 @@ class CuraApp(App):
         b.pos_hint = {'x': 0, 'y': 0}
         mainLayout.add_widget(b)
 
-        #self.maximize()
+        #self.maximize()'''
 
-        return mainLayout
+        #return mainLayout
 
     def open_settings(self, *largs):
         pass #Stop the settings panel from showing on F1

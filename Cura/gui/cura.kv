@@ -42,6 +42,7 @@ AnchorLayout:
                 group: 'viewDirection'
                 size_hint: (None, 1.0)
                 size: (40, 1)
+
             Widget:
                 #Spacing
             Label:
@@ -71,3 +72,71 @@ AnchorLayout:
                     pos: self.pos
             size_hint: (1.0, None)
             size: (1, 1)
+
+    AnchorLayout:
+        anchor_x: 'center'
+        anchor_y: 'top'
+        TransformWidget:
+            size_hint: (0.2, None)
+
+#Model transformation widget
+<TransformWidget>:
+    BoxLayout:
+        orientation: 'vertical'
+        size: self.parent.size
+        pos: self.parent.pos
+
+        Label:
+            text: "Transform model"
+            size_hint_y: 0.25
+            canvas.before:
+                Color:
+                    rgb: (0.3, 0.3, 0.3)
+                Rectangle:
+                    size:self.size
+                    pos: self.pos
+
+        GridLayout:
+            cols: 3
+            canvas.before:
+                Color:
+                    rgb: (0.8, 0.8, 0.8)
+                Rectangle:
+                    size:self.size
+                    pos: self.pos
+            ToggleButton:
+                text: "1"
+                group: 'transformation'
+                #TODO: Fix the button label presses. This is a dirty hack
+                on_press:
+                    button1Label.text = "1"
+                    button2Label.text = ""
+                    button3Label.text = ""
+
+            ToggleButton:
+                text: "2"
+                group: 'transformation'
+                on_press:
+                    button1Label.text = ""
+                    button2Label.text = "2"
+                    button3Label.text = ""
+            ToggleButton:
+                text: "3"
+                group: 'transformation'
+                on_press:
+                    button1Label.text = ""
+                    button2Label.text = ""
+                    button3Label.text = "3"
+
+        GridLayout:
+            cols: 3
+            size_hint_y: 0.2
+            Label:
+                id: button1Label
+                text: ""
+            Label:
+                id: button2Label
+                text: ""
+            Label:
+                id: button3Label
+                text: ""
