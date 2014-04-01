@@ -129,12 +129,9 @@ class view3DWidget(Widget):
         self.canvas['diffuse_light'] = (1.0, 1.0, 0.8)
         self.canvas['ambient_light'] = (0.1, 0.1, 0.1)
 
-    def _onClampPitch(self, instance, value):
-        return 0
-
     def on_touch_move(self, touch):
         self.setYaw(self._rotate_yaw.angle + touch.dsx * 360.0)
-        self.setPitch(self._rotate_pitch.angle + touch.dsy * 360.0)
+        self.setPitch(self._rotate_pitch.angle - touch.dsy * 360.0)
 
     def on_touch_up(self, touch):
         if touch.is_mouse_scrolling:

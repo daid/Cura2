@@ -3,6 +3,7 @@ __author__ = 'Jaime van Kessel'
 from kivy.graphics import BindTexture
 from kivy.graphics import Mesh
 from kivy.graphics import UpdateNormalMatrix
+from kivy.core.image import Image
 from kivy.resources import resource_find
 
 from Cura.gui.view3D.renderer import Renderer
@@ -20,10 +21,12 @@ class MachineRenderer(Renderer):
         self._machine_depth = 0
         self._mesh_path = resource_find('meshes/ultimaker_platform.stl') #Todo; hardcoded now.
         self._platform_mesh = None
-        self._platform_texture = None
+        self._platform_image = Image('checkerboard.png')
+        self._platform_image.texture.wrap = 'repeat'
+        self._platform_image.texture.mag_filter = 'nearest'
+        self._platform_image.texture.min_filter = 'linear'
 
     def _update(self, instructions):
-        instructions.add(BindTexture(source='checkerboard.png'))
         instructions.add(UpdateNormalMatrix())
         vertex_data = []
         indices = []
@@ -39,6 +42,7 @@ class MachineRenderer(Renderer):
                 indices=indices,
                 fmt=[('v_pos', 3, 'float'), ('v_tc0', 2, 'float')],
                 mode='triangle_fan',
+                texture=self._platform_image.texture
             ))
 
     def render(self):

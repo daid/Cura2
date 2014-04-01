@@ -19,6 +19,8 @@ from kivy.graphics.transformation import Matrix
 from kivy.graphics.opengl import *
 from kivy.graphics import *
 
+import sys
+
 from Cura.gui.view3D.renderer import Renderer
 from Cura.scene.printer3DScene import Printer3DScene
 from Cura.machine.fdmprinter import FDMPrinter
@@ -42,7 +44,6 @@ Builder.load_string("""
             text_size: self.size
             valign: 'middle'
 """)
-
 
 class IconToggleButton(ToggleButtonBehavior, Button):
     button_text = StringProperty()
@@ -69,6 +70,9 @@ class TestRenderer(Renderer):
             ))
 
 
+class TransformWidget(Widget):
+    pass
+
 class CuraApp(App):
     def __init__(self):
         super(CuraApp, self).__init__()
@@ -78,56 +82,8 @@ class CuraApp(App):
         self._view.setScene(self._scene)
 
     def build(self):
-        pass
-        mainLayout = FloatLayout()
-
-        view3d = self._view
-        view3d.addRenderer(TestRenderer())
-        mainLayout.add_widget(view3d)
-
-        settingGroupsWidget = BoxLayout(orientation='vertical', size_hint=(None, None))
-        for name in ['Resolution', 'Material', 'Support advice', 'Waterproof', 'Infill', 'Retraction', 'Fan/Cool', 'Skirt/Brim/Raft', 'Plugins', 'Load profile']:
-            settingGroup = IconToggleButton(text=name, group='SettingGroup', icon='atlas://data/images/defaulttheme/checkbox_on')
-            settingGroupsWidget.add_widget(settingGroup)
-        settingGroupsWidget.size = (220, 40 * len(settingGroupsWidget.children))
-
-        viewDirectionWidget = BoxLayout(orientation='horizontal')
-        button3d = Button(text='3D')
-        button3d.font_size = 9
-        buttonRight = Button(text='Right')
-        buttonRight.font_size = 9
-        buttonFront = Button(text='Front')
-        buttonFront.font_size = 9
-        buttonTop = Button(text='Top')
-        buttonTop.font_size = 9
-        viewDirectionWidget.add_widget(button3d)
-        viewDirectionWidget.add_widget(buttonRight)
-        viewDirectionWidget.add_widget(buttonFront)
-        viewDirectionWidget.add_widget(buttonTop)
-        viewDirectionWidget.size = (40*4, 40)
-        viewDirectionWidget.size_hint = (None, None)
-
-        viewMode = Button(text='view mode', padding=(0,0))
-        viewMode.font_size = 9
-        viewMode.size = (40, 40)
-        viewMode.size_hint = (None, None)
-
-        b = StackLayout(orientation='lr-bt', spacing=25)
-        b.add_widget(viewDirectionWidget)
-        b.add_widget(viewMode)
-        b.size_hint = (1.0, 1.0)
-        b.pos_hint = {'x': 0, 'y': 0}
-        mainLayout.add_widget(b)
-
-        b = StackLayout(orientation='lr-tb', spacing=25)
-        b.add_widget(settingGroupsWidget)
-        b.size_hint = (1.0, 1.0)
-        b.pos_hint = {'x': 0, 'y': 0}
-        mainLayout.add_widget(b)
-
+        self.root.add_widget(self._view, len(self.root.children))
         #self.maximize()
-
-        return mainLayout
 
     def open_settings(self, *largs):
         pass #Stop the settings panel from showing on F1
