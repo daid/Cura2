@@ -1,8 +1,13 @@
 __author__ = 'Jaime van Kessel'
 
+from kivy.graphics import BindTexture
+from kivy.graphics import Mesh
+from kivy.graphics import UpdateNormalMatrix
 from kivy.resources import resource_find
+
 from Cura.gui.view3D.renderer import Renderer
 from Cura.meshLoaders import meshLoader
+
 
 class MachineRenderer(Renderer):
     """
@@ -17,14 +22,33 @@ class MachineRenderer(Renderer):
         self._platform_mesh = None
         self._platform_texture = None
 
+    def _update(self, instructions):
+        instructions.add(BindTexture(source='checkerboard.png'))
+        instructions.add(UpdateNormalMatrix())
+        vertex_data = []
+        indices = []
+        #polys = self.machine.getShape()
+        polys = [
+            [[-100.0, -100.0], [100.0, -100.0], [100.0, 100.0], [-100.0, 100.0]]
+        ]
+        for p in polys[0]:
+            vertex_data += [p[0], p[1], 0.05, p[0]/20.0, p[1]/20.0]
+        indices = range(0, len(polys[0]))
+        instructions.add(Mesh(
+                vertices=vertex_data,
+                indices=indices,
+                fmt=[('v_pos', 3, 'float'), ('v_tc0', 2, 'float')],
+                mode='triangle_fan',
+            ))
+
     def render(self):
-        super(MachineRenderer,self).render()
+        super(MachineRenderer, self).render()
         if self._machine is not None:
             #Draw machine
             glEnable(GL_CULL_FACE)
             glEnable(GL_BLEND)
             #size = [self._machine_width,self._machine_depth,self._machine_height]
-            if(self._platform_mesh is None):
+            if self._platform_mesh is None:
                 self._platform_mesh = meshLoader.loadMesh(self._mesh_path)
             #if(self._test_mesh is None):
             #    self._test_mesh = meshLoader.loadPrintableObject(self._test_mesh_path)

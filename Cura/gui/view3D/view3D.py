@@ -1,4 +1,26 @@
 __author__ = 'Jaime van Kessel'
+
+from kivy.app import App
+from kivy.clock import Clock
+from kivy.uix.widget import Widget
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.image import Image
+from kivy.uix.layout import Layout
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.togglebutton import ToggleButtonBehavior
+from kivy.uix.anchorlayout import AnchorLayout
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.stacklayout import StackLayout
+from kivy.uix.actionbar import ActionBar
+from kivy.graphics import Color, Ellipse, Line, Rectangle
+from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty, StringProperty, ListProperty, OptionProperty
+from kivy.lang import Builder
+from kivy.resources import resource_find
+from kivy.graphics.transformation import Matrix
+from kivy.graphics.opengl import *
+from kivy.graphics import *
+
 from Cura.machine.machine import Machine
 from Cura.scene.scene import Scene
 from Cura.gui.view3D.renderer import Renderer
@@ -8,152 +30,70 @@ from Cura.gui.view3D.selectionRenderer import SelectionRenderer
 import numpy
 
 
-class View3D(object):
+class view3DWidget(Widget):
     """
     view3D is a view panel that has an associated scene which are drawn by the renderers of the view.
     """
-    def __init__(self):
-        self._scene = None #A view 3D has a scene responsible for data storage of what is in the 3D world.
-        self._renderer_list = [] #The view holds a set of renderers, such as machine renderer or object renderer.
-        self._machine = None # Reference to the machine
-        self._panel = None # Reference to the wxPython OpenGL panel
-        #self._zoom = numpy.array([self._machine.getSettingValueByNameFloat('machine_width'),self._machine.getSettingValueByNameFloat('machine_height'),self._machine.getSettingValueByNameFloat('machine_depth')]) * 3
-        self._yaw = 10
-        self._pitch = 60
-        self._zoom = 600
 
-        self._min_yaw = None
-        self._max_yaw = None
-        self._min_pitch = 10
-        self._max_pitch = 170
+    _translate_zoom = Translate(0, 0, -300.0)
+    _rotate_pitch = Rotate(-60, 1, 0, 0)
+    _rotate_yaw = Rotate(30, 0, 0, 1)
+    _translate_viewpoint = Translate(0, 0, 0)
+
+    def __init__(self):
+        self.canvas = RenderContext(compute_normal_mat=True)
+        self.canvas.shader.source = resource_find('simple.glsl')
+        super(view3DWidget, self).__init__(size_hint=(1.0, 1.0), pos_hint={'x': 0, 'y': 0})
+
+        self._scene = None  #A view 3D has a scene responsible for data storage of what is in the 3D world.
+        self._renderer_list = []  #The view holds a set of renderers, such as machine renderer or object renderer.
+        self._machine = None  # Reference to the machine
+
+        self._min_pitch = -170
+        self._max_pitch = -10
         self._min_zoom = 1.0
         self._max_zoom = None
-        self._object_shader = None
-        machineRenderer = MachineRenderer()
+
         self._viewport = None
         self._model_matrix = None
         self._proj_matrix = None
-        self._view_target = numpy.array([0,0,0], numpy.float32)
+
+        machineRenderer = MachineRenderer()
         self.addRenderer(machineRenderer)
         self._focus_obj = None
         self._mouse_3D_pos = None
 
-    def queueRefresh(self):
-        self._panel.queueRefresh()
-
-    def setYaw(self,yaw):
-        if self._min_yaw is None or self._min_yaw < yaw:
-            if self._max_yaw is None or self._max_yaw > yaw:
-                self._yaw = yaw
-            else:
-                self._yaw = self._max_yaw
-        else:
-            self._yaw = self._min_yaw
-        self.queueRefresh()
-
-    def getFocusObj(self):
-        return self._focus_obj
-
-    def getYaw(self):
-        return self._yaw
-
-    def getPitch(self):
-        return self._pitch
-
-    def setPitch(self, pitch):
-        if self._min_pitch is None or self._min_pitch < pitch:
-            if self._max_pitch is None or self._max_pitch > pitch:
-                self._pitch = pitch
-            else:
-                self._pitch = self._max_pitch
-        else:
-            self._pitch = self._min_pitch
-        self.queueRefresh()
-
-    def getZoom(self):
-        return self._zoom
-
-    def setZoom(self, zoom):
-        if self._min_zoom is None or self._min_zoom < zoom:
-            if self._max_zoom is None or self._max_zoom > zoom:
-                self._zoom = zoom
-            else:
-                self._zoom = self._max_zoom
-        else:
-            self._zoom = self._min_zoom
-        self.queueRefresh()
-
-    def render(self): #todo: Unsure about name.
-        self._init3DView()
-        self._viewport = glGetIntegerv(GL_VIEWPORT)
-        self._model_matrix = glGetDoublev(GL_MODELVIEW_MATRIX)
-        self._proj_matrix = glGetDoublev(GL_PROJECTION_MATRIX)
-        glClearColor(1,1,1,1)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)
-
-        #Hack for the selection of objects. Draw all objects as white objects.
-        n = 0
-        for renderer in self._renderer_list:
-            if isinstance(renderer,SelectionRenderer):
-                renderer.enable()
-                renderer.render()
-                renderer.disable()
-
-        mouse_x, mouse_y = self._panel.getToolList()[0].getMousePos()
-        if mouse_x > -1: # mouse has not passed over the opengl window.
-            glFlush()
-            n = glReadPixels(mouse_x, self._panel.GetSize().GetHeight() - 1 - mouse_y, 1, 1, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8)[0][0] >> 8
-            if n < len(self._scene.getObjects()):
-                self._focus_obj = self._scene.getObjects()[n]
-            else:
-                self._focus_obj = None
-            f = glReadPixels(mouse_x, self._panel.GetSize().GetHeight() - 1 - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)[0][0]
-
-            #self.GetTopLevelParent().SetTitle(hex(n) + " " + str(f))
-            self._mouse_3D_pos = unproject(mouse_x, self._viewport[1] + self._viewport[3] - mouse_y, f, self._model_matrix, self._proj_matrix, self._viewport)
-            self._mouse_3D_pos -= self._view_target
-
-        self._init3DView()
-        for renderer in self._renderer_list:
-            renderer.render() #call all render functions
-
-    def getMouse3DPos(self):
-        return self._mouse_3D_pos
+        self.bind(size=self.onSize)
+        self.update_renderer()
 
     def addRenderer(self, renderer, prepend = False):
-        if isinstance(renderer,Renderer):
-            if(prepend):
-                self._renderer_list.insert(0,renderer)
-            else:
-                self._renderer_list.append(renderer)
+        assert(isinstance(renderer, Renderer))
+        if prepend:
+            self._renderer_list.insert(0, renderer)
+        else:
+            self._renderer_list.append(renderer)
+        renderer.scene = self._scene
+        renderer.machine = self._machine
+        self.update_renderer()
 
     def setScene(self,scene):
         assert(issubclass(type(scene), Scene))
         self._scene = scene
         for render in self._renderer_list:
-            render.setScene(scene)
+            render.scene = scene
 
     def getScene(self):
         return self._scene
 
-    def getViewTarget(self):
-        return self._view_target
-
     def setMachine(self,machine):
-        if isinstance(machine,Machine):
-            self._machine = machine
-            self._max_zoom = numpy.max(machine.getSize()) * 3
-            for renderer in self._renderer_list:
-                renderer.setMachine(machine)
+        assert(isinstance(machine,Machine))
+        self._machine = machine
+        self._max_zoom = numpy.max(machine.getSize()) * 3
+        for renderer in self._renderer_list:
+            renderer.machine = machine
 
     def getMachine(self):
         return self._machine
-
-    def setPanel(self, panel):
-        """
-            Set the reference to the wxPython GLPanel that is used to draw this view.
-        """
-        self._panel = panel
 
     def getMouseRay(self, x, y):
         if self._viewport is None:
@@ -164,44 +104,55 @@ class View3D(object):
         p1 -= self._view_target
         return p0, p1
 
-    def _init3DView(self):
-        '''
-        Setup the basics of the 3D view
-        '''
-        view_port_width = self._panel.GetSize().GetWidth()
-        view_port_height = self._panel.GetSize().GetHeight()
+    def update_renderer(self):
+        self.canvas.clear()
+        with self.canvas:
+            #Set the basic rendering
+            Callback(self.setup_gl_context)
+            ClearColor(0.8, 0.8, 0.8, 1.0)
+            ClearBuffers()
+            PushMatrix()
+            self.canvas.add(self._translate_zoom)
+            self.canvas.add(self._rotate_pitch)
+            self.canvas.add(self._rotate_yaw)
+            self.canvas.add(self._translate_viewpoint)
+            for renderer in self._renderer_list:
+                renderer.addInstructionsTo(self.canvas)
+            PopMatrix()
+            Callback(self.reset_gl_context)
 
-        glViewport(0, 0, view_port_width, view_port_height)
-        glLoadIdentity()
+    def onSize(self, instance, value):
+        asp = self.width / float(self.height)
+        proj = Matrix()
+        proj.perspective(45, asp, 1.0, 1000.0)
+        self.canvas['projection_mat'] = proj
+        self.canvas['diffuse_light'] = (1.0, 1.0, 0.8)
+        self.canvas['ambient_light'] = (0.1, 0.1, 0.1)
 
-        glLightfv(GL_LIGHT0, GL_POSITION, [0.2, 0.2, 1.0, 0.0])
+    def _onClampPitch(self, instance, value):
+        return 0
 
-        glDisable(GL_RESCALE_NORMAL)
-        glDisable(GL_LIGHTING)
-        glDisable(GL_LIGHT0)
+    def on_touch_move(self, touch):
+        self.setYaw(self._rotate_yaw.angle + touch.dsx * 360.0)
+        self.setPitch(self._rotate_pitch.angle + touch.dsy * 360.0)
+
+    def on_touch_up(self, touch):
+        if touch.is_mouse_scrolling:
+            if touch.button == 'scrolldown':
+                self._translate_zoom.z += 1
+            if touch.button == 'scrollup':
+                self._translate_zoom.z -= 1
+
+    def setPitch(self, value):
+        self._rotate_pitch.angle = max(min(value, self._max_pitch), self._min_pitch)
+
+    def setYaw(self, value):
+        self._rotate_yaw.angle = value
+
+    def setup_gl_context(self, *args):
         glEnable(GL_DEPTH_TEST)
-        glDisable(GL_CULL_FACE)
-        glDisable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glViewport(self.pos[0], self.pos[1], self.width, self.height)
 
-        glClearColor(0.8, 0.8, 0.8, 1.0)
-        glClearStencil(0)
-        glClearDepth(1.0)
-
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        aspect = float(view_port_width) / float(view_port_height)
-        machine_size = numpy.array([1000,0,0])
-        if self._machine is not None:
-            machine_size = numpy.array([self._machine.getSettingValueByNameFloat('machine_width'),self._machine.getSettingValueByNameFloat('machine_height'),self._machine.getSettingValueByNameFloat('machine_depth')])
-
-        gluPerspective(45.0, aspect, 1.0, numpy.max(machine_size) * 4)
-
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)
-
-        glTranslate(0,0,-self._zoom)
-        glRotate(-self._pitch, 1,0,0)
-        glRotate(self._yaw, 0,0,1)
-        glTranslate(-self._view_target[0],-self._view_target[1],-self._view_target[2])
+    def reset_gl_context(self, *args):
+        glDisable(GL_DEPTH_TEST)
+        glViewport(0, 0, self.get_root_window().width, self.get_root_window().height)

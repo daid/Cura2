@@ -1,8 +1,3 @@
-from Cura.scene.printer3DScene import Printer3DScene
-from Cura.machine.fdmprinter import FDMPrinter
-from Cura.gui.view3D.printerView3D import PrinterView3D
-
-import sys
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
@@ -23,6 +18,11 @@ from kivy.resources import resource_find
 from kivy.graphics.transformation import Matrix
 from kivy.graphics.opengl import *
 from kivy.graphics import *
+
+from Cura.gui.view3D.renderer import Renderer
+from Cura.scene.printer3DScene import Printer3DScene
+from Cura.machine.fdmprinter import FDMPrinter
+from Cura.gui.view3D.printerView3D import PrinterView3D
 
 Builder.load_string("""
 <IconToggleButton>:
@@ -55,45 +55,19 @@ class IconToggleButton(ToggleButtonBehavior, Button):
         super(IconToggleButton, self).__init__(**kwargs)
 
 
-class Renderer(Widget):
-    def __init__(self, **kwargs):
-        self.canvas = RenderContext(compute_normal_mat=True)
-        self.canvas.shader.source = resource_find('simple.glsl')
-        super(Renderer, self).__init__(**kwargs)
-        with self.canvas:
-            self.cb = Callback(self.setup_gl_context)
-            ClearColor(0.8,0.8,0.8,1.0)
-            ClearBuffers()
-            PushMatrix()
-            Color(1, 1, 1, 1)
-            Translate(0, 0, -3)
-            self.rot = Rotate(180, 0, 1, 0)
-            UpdateNormalMatrix()
-            Mesh(
+class TestRenderer(Renderer):
+    def __init__(self):
+        super(TestRenderer, self).__init__()
+
+    def _update(self, instructions):
+        instructions.add(UpdateNormalMatrix())
+        instructions.add(Mesh(
                 vertices=[0.0, 0.0, 0.0, 2.0,0.0,0.0, 0.0,2.0,0.0, 0.0,0.0,2.0],
                 indices=[0,1,2,0,1,3],
                 fmt=[('v_pos', 3, 'float')],
                 mode='triangles',
-            )
-            PopMatrix()
-            self.cb = Callback(self.reset_gl_context)
-        Clock.schedule_interval(self.update_glsl, 1 / 60.)
+            ))
 
-    def setup_gl_context(self, *args):
-        glEnable(GL_DEPTH_TEST)
-        glViewport(self.pos[0], self.pos[1], self.width, self.height)
-
-    def reset_gl_context(self, *args):
-        glDisable(GL_DEPTH_TEST)
-        glViewport(0, 0, self.get_root_window().width, self.get_root_window().height)
-
-    def update_glsl(self, *args):
-        asp = self.width / float(self.height)
-        proj = Matrix().view_clip(-asp, asp, -1, 1, 1, 100, 1)
-        self.canvas['projection_mat'] = proj
-        self.canvas['diffuse_light'] = (1.0, 1.0, 0.8)
-        self.canvas['ambient_light'] = (0.1, 0.1, 0.1)
-        self.rot.angle += 1
 
 class CuraApp(App):
     def __init__(self):
@@ -105,54 +79,55 @@ class CuraApp(App):
 
     def build(self):
         pass
-        # mainLayout = FloatLayout()
-        #
-        # renderer = Renderer(size_hint=(1.0, 1.0), pos_hint={'x': 0, 'y': 0})
-        # mainLayout.add_widget(renderer)
-        #
-        # settingGroupsWidget = BoxLayout(orientation='vertical', size_hint=(None, None))
-        # for name in ['Resolution', 'Material', 'Support advice', 'Waterproof', 'Infill', 'Retraction', 'Fan/Cool', 'Skirt/Brim/Raft', 'Plugins', 'Load profile']:
-        #     settingGroup = IconToggleButton(text=name, group='SettingGroup', icon='atlas://data/images/defaulttheme/checkbox_on')
-        #     settingGroupsWidget.add_widget(settingGroup)
-        # settingGroupsWidget.size = (220, 40 * len(settingGroupsWidget.children))
-        #
-        # viewDirectionWidget = BoxLayout(orientation='horizontal')
-        # button3d = Button(text='3D')
-        # button3d.font_size = 9
-        # buttonRight = Button(text='Right')
-        # buttonRight.font_size = 9
-        # buttonFront = Button(text='Front')
-        # buttonFront.font_size = 9
-        # buttonTop = Button(text='Top')
-        # buttonTop.font_size = 9
-        # viewDirectionWidget.add_widget(button3d)
-        # viewDirectionWidget.add_widget(buttonRight)
-        # viewDirectionWidget.add_widget(buttonFront)
-        # viewDirectionWidget.add_widget(buttonTop)
-        # viewDirectionWidget.size = (40*4, 40)
-        # viewDirectionWidget.size_hint = (None, None)
-        #
-        # viewMode = Button(text='view mode', padding=(0,0))
-        # viewMode.font_size = 9
-        # viewMode.size = (40, 40)
-        # viewMode.size_hint = (None, None)
-        #
-        # b = StackLayout(orientation='lr-bt', spacing=25)
-        # b.add_widget(viewDirectionWidget)
-        # b.add_widget(viewMode)
-        # b.size_hint = (1.0, 1.0)
-        # b.pos_hint = {'x': 0, 'y': 0}
-        # mainLayout.add_widget(b)
-        #
-        # b = StackLayout(orientation='lr-tb', spacing=25)
-        # b.add_widget(settingGroupsWidget)
-        # b.size_hint = (1.0, 1.0)
-        # b.pos_hint = {'x': 0, 'y': 0}
-        # mainLayout.add_widget(b)
-        #
-        # #self.maximize()
-        #
-        # return mainLayout
+        mainLayout = FloatLayout()
+
+        view3d = self._view
+        view3d.addRenderer(TestRenderer())
+        mainLayout.add_widget(view3d)
+
+        settingGroupsWidget = BoxLayout(orientation='vertical', size_hint=(None, None))
+        for name in ['Resolution', 'Material', 'Support advice', 'Waterproof', 'Infill', 'Retraction', 'Fan/Cool', 'Skirt/Brim/Raft', 'Plugins', 'Load profile']:
+            settingGroup = IconToggleButton(text=name, group='SettingGroup', icon='atlas://data/images/defaulttheme/checkbox_on')
+            settingGroupsWidget.add_widget(settingGroup)
+        settingGroupsWidget.size = (220, 40 * len(settingGroupsWidget.children))
+
+        viewDirectionWidget = BoxLayout(orientation='horizontal')
+        button3d = Button(text='3D')
+        button3d.font_size = 9
+        buttonRight = Button(text='Right')
+        buttonRight.font_size = 9
+        buttonFront = Button(text='Front')
+        buttonFront.font_size = 9
+        buttonTop = Button(text='Top')
+        buttonTop.font_size = 9
+        viewDirectionWidget.add_widget(button3d)
+        viewDirectionWidget.add_widget(buttonRight)
+        viewDirectionWidget.add_widget(buttonFront)
+        viewDirectionWidget.add_widget(buttonTop)
+        viewDirectionWidget.size = (40*4, 40)
+        viewDirectionWidget.size_hint = (None, None)
+
+        viewMode = Button(text='view mode', padding=(0,0))
+        viewMode.font_size = 9
+        viewMode.size = (40, 40)
+        viewMode.size_hint = (None, None)
+
+        b = StackLayout(orientation='lr-bt', spacing=25)
+        b.add_widget(viewDirectionWidget)
+        b.add_widget(viewMode)
+        b.size_hint = (1.0, 1.0)
+        b.pos_hint = {'x': 0, 'y': 0}
+        mainLayout.add_widget(b)
+
+        b = StackLayout(orientation='lr-tb', spacing=25)
+        b.add_widget(settingGroupsWidget)
+        b.size_hint = (1.0, 1.0)
+        b.pos_hint = {'x': 0, 'y': 0}
+        mainLayout.add_widget(b)
+
+        #self.maximize()
+
+        return mainLayout
 
     def open_settings(self, *largs):
         pass #Stop the settings panel from showing on F1
