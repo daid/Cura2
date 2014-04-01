@@ -1,3 +1,5 @@
+from kivy.graphics.opengl import GL_CULL_FACE
+
 __author__ = 'Jaime van Kessel'
 
 from kivy.app import App
@@ -136,9 +138,9 @@ class view3DWidget(Widget):
     def on_touch_up(self, touch):
         if touch.is_mouse_scrolling:
             if touch.button == 'scrolldown':
-                self._translate_zoom.z += 1
+                self._translate_zoom.z /= 1.1
             if touch.button == 'scrollup':
-                self._translate_zoom.z -= 1
+                self._translate_zoom.z *= 1.1
 
     def setPitch(self, value):
         self._rotate_pitch.angle = max(min(value, self._max_pitch), self._min_pitch)
@@ -148,8 +150,10 @@ class view3DWidget(Widget):
 
     def setup_gl_context(self, *args):
         glEnable(GL_DEPTH_TEST)
+        glEnable(GL_CULL_FACE)
         glViewport(self.pos[0], self.pos[1], self.width, self.height)
 
     def reset_gl_context(self, *args):
         glDisable(GL_DEPTH_TEST)
+        glDisable(GL_CULL_FACE)
         glViewport(0, 0, self.get_root_window().width, self.get_root_window().height)

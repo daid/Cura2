@@ -12,6 +12,6 @@ class PrinterView3D(view3DWidget):
 
         self.addRenderer(MachineRenderer())
         printable_object_renderer = PrintableObjectRenderer()
-        self.addRenderer(printable_object_renderer,True)
+        self.addRenderer(printable_object_renderer, True)
         selection_renderer = SelectionRenderer()
         self.addRenderer(selection_renderer)

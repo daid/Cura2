@@ -21,6 +21,9 @@ Config.set('input', 'mouse', 'mouse,disable_multitouch')
 #Disable escape key for exit
 Config.set('kivy', 'exit_on_escape', '0')
 
+from kivy.resources import resource_add_path
+resource_add_path(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources'))
+
 
 def main():
     """

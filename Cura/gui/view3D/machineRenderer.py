@@ -21,29 +21,54 @@ class MachineRenderer(Renderer):
         self._machine_depth = 0
         self._mesh_path = resource_find('meshes/ultimaker_platform.stl') #Todo; hardcoded now.
         self._platform_mesh = None
-        self._platform_image = Image('checkerboard.png')
+        self._platform_image = Image('checkerboard.png', mipmap=True)
         self._platform_image.texture.wrap = 'repeat'
         self._platform_image.texture.mag_filter = 'nearest'
-        self._platform_image.texture.min_filter = 'linear'
+        self._platform_image.texture.min_filter = 'nearest_mipmap_linear'
 
     def _update(self, instructions):
         instructions.add(UpdateNormalMatrix())
-        vertex_data = []
-        indices = []
+
         #polys = self.machine.getShape()
         polys = [
             [[-100.0, -100.0], [100.0, -100.0], [100.0, 100.0], [-100.0, 100.0]]
         ]
+
+        vertex_data = []
+        indices = []
         for p in polys[0]:
             vertex_data += [p[0], p[1], 0.05, p[0]/20.0, p[1]/20.0]
-        indices = range(0, len(polys[0]))
+        cnt = len(polys[0])
+        for n in range(0, cnt - 2):
+            indices += [0, n+1, n+2]
         instructions.add(Mesh(
-                vertices=vertex_data,
-                indices=indices,
-                fmt=[('v_pos', 3, 'float'), ('v_tc0', 2, 'float')],
-                mode='triangle_fan',
-                texture=self._platform_image.texture
-            ))
+            vertices=vertex_data,
+            indices=indices,
+            fmt=[('v_pos', 3, 'float'), ('v_tc0', 2, 'float')],
+            mode='triangles',
+            texture=self._platform_image.texture
+        ))
+
+        vertex_data = []
+        indices = []
+        for p in polys[0]:
+            vertex_data += [p[0], p[1], 0.05, 0, 0]
+        for p in polys[0]:
+            vertex_data += [p[0], p[1], 200.0, 0, 0]
+        cnt = len(polys[0])
+        for n in range(0, cnt - 2):
+            indices += [0, n+1, n+2]
+            indices += [cnt, cnt+n+2, cnt+n+1]
+        for n in range(0, cnt):
+            indices += [(n+1)%cnt, n, cnt+n]
+            indices += [(n+1)%cnt, cnt+n, (cnt+(n+1)%cnt)]
+        instructions.add(Mesh(
+            vertices=vertex_data,
+            indices=indices,
+            fmt=[('v_pos', 3, 'float'), ('v_tc0', 2, 'float')],
+            mode='triangles',
+            texture=self._platform_image.texture
+        ))
 
     def render(self):
         super(MachineRenderer, self).render()
