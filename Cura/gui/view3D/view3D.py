@@ -2,22 +2,8 @@ from kivy.graphics.opengl import GL_CULL_FACE
 
 __author__ = 'Jaime van Kessel'
 
-from kivy.app import App
-from kivy.clock import Clock
 from kivy.uix.widget import Widget
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-from kivy.uix.image import Image
-from kivy.uix.layout import Layout
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.togglebutton import ToggleButtonBehavior
-from kivy.uix.anchorlayout import AnchorLayout
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.stacklayout import StackLayout
-from kivy.uix.actionbar import ActionBar
 from kivy.graphics import Color, Ellipse, Line, Rectangle
-from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty, StringProperty, ListProperty, OptionProperty
-from kivy.lang import Builder
 from kivy.resources import resource_find
 from kivy.graphics.transformation import Matrix
 from kivy.graphics.opengl import *
@@ -27,7 +13,6 @@ from Cura.machine.machine import Machine
 from Cura.scene.scene import Scene
 from Cura.gui.view3D.renderer import Renderer
 from Cura.gui.view3D.machineRenderer import MachineRenderer
-from Cura.gui.view3D.selectionRenderer import SelectionRenderer
 
 import numpy
 
@@ -44,7 +29,7 @@ class view3DWidget(Widget):
 
     def __init__(self):
         self.canvas = RenderContext(compute_normal_mat=True)
-        self.canvas.shader.source = resource_find('simple.glsl')
+        self.canvas.shader.source = resource_find('flat_texture.glsl')
         super(view3DWidget, self).__init__(size_hint=(1.0, 1.0), pos_hint={'x': 0, 'y': 0})
 
         self._scene = None  #A view 3D has a scene responsible for data storage of what is in the 3D world.
@@ -74,6 +59,7 @@ class view3DWidget(Widget):
             self._renderer_list.insert(0, renderer)
         else:
             self._renderer_list.append(renderer)
+        renderer.parent = self
         renderer.scene = self._scene
         renderer.machine = self._machine
         self.update_renderer()

@@ -2,6 +2,7 @@ __author__ = 'Jaime van Kessel'
 
 from Cura.machine import machine
 from Cura.machine.setting import Setting
+from Cura.machine.setting import SettingCategory
 
 class Printer3D(machine.Machine):
     """
@@ -9,8 +10,8 @@ class Printer3D(machine.Machine):
     """
     def __init__(self):
         super(Printer3D,self).__init__()
-        self.addSetting(Setting('build_area', 0, int))  # Todo: build area needs to be a 2d poly with height
-        self.addSetting(Setting('layer_height',0.2,float))
+        self.addSettingCategory(SettingCategory('resolution'))
+        self.addSetting('resolution', Setting('layer_height', 0.2, 'float'))
 
         self._disallowed_zones = []  # List of polys
 

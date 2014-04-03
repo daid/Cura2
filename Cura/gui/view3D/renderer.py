@@ -3,7 +3,10 @@ __author__ = 'Jaime van Kessel'
 from kivy.properties import BooleanProperty
 from kivy.properties import ObjectProperty
 from kivy.graphics import InstructionGroup
+from kivy.graphics import Callback
+from kivy.graphics.shader import Shader
 from kivy.event import EventDispatcher
+from kivy.resources import resource_find
 
 from Cura.scene.scene import Scene
 from Cura.machine.machine import Machine

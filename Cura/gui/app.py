@@ -55,20 +55,8 @@ class IconToggleButton(ToggleButtonBehavior, Button):
         kwargs['text'] = ''
         super(IconToggleButton, self).__init__(**kwargs)
 
-
-class TestRenderer(Renderer):
-    def __init__(self):
-        super(TestRenderer, self).__init__()
-
-    def _update(self, instructions):
-        instructions.add(UpdateNormalMatrix())
-        instructions.add(Mesh(
-                vertices=[0.0, 0.0, 0.0, 2.0,0.0,0.0, 0.0,2.0,0.0, 0.0,0.0,2.0],
-                indices=[0,1,2,0,1,3],
-                fmt=[('v_pos', 3, 'float')],
-                mode='triangles',
-            ))
-
+class TopBarWidget(BoxLayout):
+    pass
 
 class TransformWidget(Widget):
     pass
@@ -80,6 +68,7 @@ class CuraApp(App):
         self._scene = Printer3DScene()
         self._view = PrinterView3D()
         self._view.setScene(self._scene)
+        self._view.setMachine(self._machine)
 
     def build(self):
         self.root.add_widget(self._view, len(self.root.children))
