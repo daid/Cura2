@@ -61,6 +61,12 @@ class TopBarWidget(BoxLayout):
 class TransformWidget(Widget):
     pass
 
+class SettingsWidget(BoxLayout):
+    pass
+
+class SettingCategoryButton(Button):
+    pass
+
 class CuraApp(App):
     def __init__(self):
         super(CuraApp, self).__init__()
@@ -72,6 +78,10 @@ class CuraApp(App):
 
     def build(self):
         self.root.add_widget(self._view, len(self.root.children))
+        settingsCategoryLayout = self.root.ids.settings.ids.settingsCategoryLayout
+        for category in self._machine.getSettingCategories():
+            if category.isVisible():
+                settingsCategoryLayout.add_widget(SettingCategoryButton(text=category.getLabel()), len(settingsCategoryLayout.children))
         #self.maximize()
 
     def open_settings(self, *largs):

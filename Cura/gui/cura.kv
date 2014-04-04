@@ -1,14 +1,22 @@
-AnchorLayout:
-    anchor_x: 'left'
-    anchor_y: 'top'
-
-    TopBarWidget:
+FloatLayout:
+    AnchorLayout:
+        anchor_x: 'left'
+        anchor_y: 'top'
+        size_hint: (1.0, 1.0)
+        TopBarWidget:
 
     AnchorLayout:
         anchor_x: 'center'
         anchor_y: 'top'
+        size_hint: (1.0, 1.0)
         TransformWidget:
-            size_hint: (None, None)
+
+    AnchorLayout:
+        anchor_x: 'right'
+        anchor_y: 'center'
+        size_hint: (1.0, 1.0)
+        SettingsWidget:
+            id: settings
 
 <TopBarWidget>
     orientation: 'vertical'
@@ -74,7 +82,7 @@ AnchorLayout:
     Widget:
         canvas:
             Color:
-                rgb: (1, 1, 1)
+                rgb: (0.1, 0.1, 0.1)
             Rectangle:
                 size: self.size
                 pos: self.pos
@@ -83,6 +91,7 @@ AnchorLayout:
 
 #Model transformation widget
 <TransformWidget>:
+    size_hint: (None, None)
     size: (165, 80)
     BoxLayout:
         orientation: 'vertical'
@@ -145,3 +154,30 @@ AnchorLayout:
             Label:
                 id: button3Label
                 text: ""
+
+<SettingsWidget>:
+    orientation: 'vertical'
+    size_hint: (None, 1.0)
+    size: (180, 100)
+    Widget:
+        #Empty widget to space from the top.
+        size_hint: (1.0, None)
+        size: (180, 72)
+    Button:
+        size_hint: (1.0, None)
+        size: (180, 18)
+        text: "Print profile"
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint: (1.0, 1.0)
+        id: settingsCategoryLayout
+        Button:
+            size_hint: (1.0, None)
+            size: (180, 48)
+            text: "Save"
+        Widget:
+            #Empty widget to fill the rest of the space.
+
+<SettingCategoryButton>
+    size_hint: (1.0, None)
+    size: (180, 28)

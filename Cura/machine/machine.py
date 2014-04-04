@@ -26,7 +26,9 @@ class Machine(object):
         self._machine_shape = numpy.zeros((0, 2), numpy.float32)  # Polygon that forms the 'box' around the machine
 
     def addSettingCategory(self, category):
+        assert(self.getSettingCategory(category.getKey()) is None)
         self._setting_category_list.append(category)
+        self._setting_category_list.sort()
 
     def getSettingCategory(self, key):
         for c in self._setting_category_list:
@@ -34,7 +36,12 @@ class Machine(object):
                 return c
         return None
 
+    def getSettingCategories(self):
+        return self._setting_category_list
+
     def addSetting(self, parent_key, setting):
+        assert(self.getSettingCategory(setting.getKey()) is None)
+        assert(self.getSettingByKey(setting.getKey()) is None)
         category = self.getSettingCategory(parent_key)
         if category is not None:
             category.addSetting(setting)

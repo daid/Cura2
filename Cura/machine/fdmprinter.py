@@ -1,6 +1,8 @@
 __author__ = 'Jaime van Kessel'
 
 from Cura.machine import printer3D
+from Cura.machine.setting import Setting
+from Cura.machine.setting import SettingCategory
 import numpy
 
 class FDMPrinter(printer3D.Printer3D):
@@ -9,6 +11,12 @@ class FDMPrinter(printer3D.Printer3D):
     """
     def __init__(self):
         super(FDMPrinter,self).__init__()
+
+        self.addSetting('resolution', Setting('shell_thickness', 0.8, 'float'))
+        self.addSetting('resolution', Setting('sparse_infill_density', 20.0, 'float'))
+        self.addSettingCategory(SettingCategory('platform_adhesion', order=1))
+        self.addSetting('platform_adhesion', Setting('initial_layer_height', 0.3, 'float'))
+        self.addSetting('platform_adhesion', Setting('adhesion_type', 'None', ['None', 'Brim', 'Raft']))
 
         size = self.getSize()
         ret = numpy.array([[-size[0]/2,-size[1]/2],[size[0]/2,-size[1]/2],[size[0]/2, size[1]/2], [-size[0]/2, size[1]/2]], numpy.float32)

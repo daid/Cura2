@@ -13,6 +13,9 @@ class Printer3D(machine.Machine):
         self.addSettingCategory(SettingCategory('resolution'))
         self.addSetting('resolution', Setting('layer_height', 0.2, 'float'))
 
+        self.addSettingCategory(SettingCategory('support'))
+        self.addSetting('support', Setting('enable_support', False, 'bool'))
+
         self._disallowed_zones = []  # List of polys
 
     def getDisallowedZones(self):

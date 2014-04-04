@@ -5,11 +5,12 @@ import types
 
 
 class SettingCategory(object):
-    def __init__(self, key, icon=None):
+    def __init__(self, key, icon=None, order=0):
         self._key = key
         self._label = key
         self._tooltip = ''
         self._icon = icon
+        self._order = order
         self._visible = True
         self._settings = []
 
@@ -22,7 +23,7 @@ class SettingCategory(object):
         self._visible = visible
         return self
 
-    def getVisible(self):
+    def isVisible(self):
         return self._visible
 
     def addSetting(self, setting):
@@ -35,14 +36,17 @@ class SettingCategory(object):
                 return ret
         return None
 
-    def getName(self):
-        return self._name
+    def getLabel(self):
+        return self._label
 
     def getKey(self):
         return self._key
 
     def getIcon(self):
         return self._icon
+
+    def __lt__(self, other):
+        return self._order - other._order
 
 
 class Setting(object):

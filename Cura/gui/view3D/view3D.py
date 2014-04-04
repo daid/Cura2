@@ -1,5 +1,3 @@
-from kivy.graphics.opengl import GL_CULL_FACE
-
 __author__ = 'Jaime van Kessel'
 
 from kivy.uix.widget import Widget
@@ -118,15 +116,15 @@ class view3DWidget(Widget):
         self.canvas['ambient_light'] = (0.1, 0.1, 0.1)
 
     def on_touch_move(self, touch):
-        self.setYaw(self._rotate_yaw.angle + touch.dsx * 360.0)
-        self.setPitch(self._rotate_pitch.angle - touch.dsy * 360.0)
+        if touch.button == 'right':
+            self.setYaw(self._rotate_yaw.angle + touch.dsx * 360.0)
+            self.setPitch(self._rotate_pitch.angle - touch.dsy * 360.0)
 
     def on_touch_up(self, touch):
-        if touch.is_mouse_scrolling:
-            if touch.button == 'scrolldown':
-                self._translate_zoom.z /= 1.1
-            if touch.button == 'scrollup':
-                self._translate_zoom.z *= 1.1
+        if touch.button == 'scrolldown':
+            self._translate_zoom.z /= 1.1
+        if touch.button == 'scrollup':
+            self._translate_zoom.z *= 1.1
 
     def setPitch(self, value):
         self._rotate_pitch.angle = max(min(value, self._max_pitch), self._min_pitch)
