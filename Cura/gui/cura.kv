@@ -15,8 +15,8 @@ FloatLayout:
         anchor_x: 'right'
         anchor_y: 'center'
         size_hint: (1.0, 1.0)
-        SettingsWidget:
-            id: settings
+        SettingsCategoriesWidget:
+            id: settingsCategoriesDialog
 
 <TopBarWidget>
     orientation: 'vertical'
@@ -155,7 +155,7 @@ FloatLayout:
                 id: button3Label
                 text: ""
 
-<SettingsWidget>:
+<SettingsCategoriesWidget>:
     orientation: 'vertical'
     size_hint: (None, 1.0)
     size: (180, 100)
@@ -181,3 +181,4 @@ FloatLayout:
 <SettingCategoryButton>
     size_hint: (1.0, None)
     size: (180, 28)
+    on_release: app.open_settings_category(self)

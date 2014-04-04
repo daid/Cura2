@@ -61,11 +61,11 @@ class TopBarWidget(BoxLayout):
 class TransformWidget(Widget):
     pass
 
-class SettingsWidget(BoxLayout):
+class SettingsCategoriesWidget(BoxLayout):
     pass
 
 class SettingCategoryButton(Button):
-    pass
+    category = ObjectProperty(None)
 
 class CuraApp(App):
     def __init__(self):
@@ -78,11 +78,23 @@ class CuraApp(App):
 
     def build(self):
         self.root.add_widget(self._view, len(self.root.children))
-        settingsCategoryLayout = self.root.ids.settings.ids.settingsCategoryLayout
+        self.update_setting_categories()
+        #self.maximize()
+
+    def update_setting_categories(self):
+        settingsCategoryLayout = self.root.ids.settingsCategoriesDialog.ids.settingsCategoryLayout
+        remove_list = []
+        for c in settingsCategoryLayout.children:
+            if isinstance(c, SettingCategoryButton):
+                remove_list.append(c)
+        for c in remove_list:
+            settingsCategoryLayout.remove_widget(c)
         for category in self._machine.getSettingCategories():
             if category.isVisible():
-                settingsCategoryLayout.add_widget(SettingCategoryButton(text=category.getLabel()), len(settingsCategoryLayout.children))
-        #self.maximize()
+                settingsCategoryLayout.add_widget(SettingCategoryButton(text=category.getLabel(), category=category), len(settingsCategoryLayout.children))
+
+    def open_settings_category(self, categoryButton):
+        print categoryButton, categoryButton.category
 
     def open_settings(self, *largs):
         pass #Stop the settings panel from showing on F1
