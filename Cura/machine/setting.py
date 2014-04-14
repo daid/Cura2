@@ -48,6 +48,14 @@ class SettingCategory(object):
     def __lt__(self, other):
         return self._order - other._order
 
+    def getSettings(self):
+        settings = []
+        for s in self._settings:
+            if s.isVisible():
+                settings.append(s)
+                settings += s.getSettings()
+        return settings
+
 
 class Setting(object):
     """
@@ -91,7 +99,7 @@ class Setting(object):
         self._visible = visible
         return self
 
-    def getVisible(self):
+    def isVisible(self):
         return self._visible
 
     def setLabel(self, label, tooltip=''):
@@ -150,3 +158,11 @@ class Setting(object):
             if not condition():
                 return False
         return True
+
+    def getSettings(self):
+        settings = []
+        for s in self._child_settings:
+            if s.isVisible():
+                settings.append(s)
+                settings += s.getSettings()
+        return settings

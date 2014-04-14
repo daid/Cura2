@@ -18,6 +18,11 @@ FloatLayout:
         SettingsCategoriesWidget:
             id: settingsCategoriesDialog
 
+    RelativeLayout:
+        pos: (100, 100)
+        size_hint: (1.0, 1.0)
+        id: settingsDialogLayout
+
 <TopBarWidget>
     orientation: 'vertical'
     size_hint: (1.0, None)
@@ -178,7 +183,32 @@ FloatLayout:
         Widget:
             #Empty widget to fill the rest of the space.
 
+<SettingsDialog>
+    orientation: 'vertical'
+    size_hint: (None, 1.0)
+    size: (280, 100)
+    Button:
+        size_hint: (1.0, None)
+        size: (1, 18)
+        text: "X"
+    Widget:
+        #Spacing at the bottom
+
 <SettingCategoryButton>
     size_hint: (1.0, None)
     size: (180, 28)
     on_release: app.open_settings_category(self)
+
+<SettingWidget>
+    size_hint: (1.0, None)
+    size: (1, 28)
+    orientation: 'horizontal'
+    canvas:
+        Color:
+            rgb: (0.8, 0.8, 0.8)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    Label:
+        id: label
+        text: "SettingLabel"

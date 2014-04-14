@@ -110,15 +110,15 @@ class view3DWidget(Widget):
     def onSize(self, instance, value):
         asp = self.width / float(self.height)
         proj = Matrix()
-        proj.perspective(45, asp, 1.0, 1000.0)
+        proj.perspective(40, asp, 1.0, 1000.0)
         self.canvas['projection_mat'] = proj
         self.canvas['diffuse_light'] = (1.0, 1.0, 0.8)
         self.canvas['ambient_light'] = (0.1, 0.1, 0.1)
 
     def on_touch_move(self, touch):
         if touch.button == 'right':
-            self.setYaw(self._rotate_yaw.angle + touch.dsx * 360.0)
-            self.setPitch(self._rotate_pitch.angle - touch.dsy * 360.0)
+            self.setYaw(self._rotate_yaw.angle + touch.dsx * 360.0 * 3.0)
+            self.setPitch(self._rotate_pitch.angle - touch.dsy * 360.0 * 3.0)
 
     def on_touch_up(self, touch):
         if touch.button == 'scrolldown':
