@@ -49,6 +49,7 @@ class Machine(object):
         setting_parent = self.getSettingByKey(parent_key)
         if setting_parent is not None:
             setting_parent.addSetting(setting)
+            return
         print 'Parent category/setting [%s] not found for [%s]' % (parent_key, setting.getKey())
 
     def getShape(self):

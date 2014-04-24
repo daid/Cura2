@@ -10,20 +10,6 @@ __copyright__ = "Copyright (C) 2013 David Braam - Released under terms of the AG
 
 from optparse import OptionParser
 
-#Hack to fix the path (TEMP)
-import os
-os.environ['PATH'] = 'C:\\Software\\kivy\\gstreamer\\bin;' + os.environ['PATH']
-
-#Set some kivy configuration values before we load any other Kivy modules.
-from kivy.config import Config
-#Disable multi-touch emulation from the mouse
-Config.set('input', 'mouse', 'mouse,disable_multitouch')
-#Disable escape key for exit
-Config.set('kivy', 'exit_on_escape', '0')
-
-from kivy.resources import resource_add_path
-resource_add_path(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources'))
-
 
 def main():
     """
@@ -49,7 +35,7 @@ def main():
     (options, args) = parser.parse_args()
 
     from gui.app import CuraApp
-    CuraApp().run()
+    CuraApp().MainLoop()
 
 if __name__ == '__main__':
     main()

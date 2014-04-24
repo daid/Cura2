@@ -1,39 +1,43 @@
-__author__ = 'Jaime van Kessel'
-
-from kivy.properties import BooleanProperty
-from kivy.properties import ObjectProperty
-from kivy.graphics import InstructionGroup
-from kivy.graphics import Callback
-from kivy.graphics.shader import Shader
-from kivy.event import EventDispatcher
-from kivy.resources import resource_find
-
 from Cura.scene.scene import Scene
 from Cura.machine.machine import Machine
 
 
-class Renderer(EventDispatcher):
+class PropertyBase(object):
+    def __init__(self):
+        self._property__map = {}
+
+    def _propertyChanged(self):
+        pass
+
+
+class Property(object):
+    def __init__(self, value=None):
+        self.__default_value = value
+
+    def __get__(self, instance, instancetype=None):
+        if self in instance._property__map:
+            return instance._property__map[self]
+        return self.__default_value
+
+    def __set__(self, instance, value):
+        instance._property__map[self] = value
+        instance._propertyChanged()
+
+
+class Renderer(PropertyBase):
     """
     Abstract renderer class
     """
+    active = Property(True)
+    machine = Property(None)
+    scene = Property(None)
 
-    active = BooleanProperty(True)
-    machine = ObjectProperty(None)
-    scene = ObjectProperty(None)
     def __init__(self):
         super(Renderer, self).__init__()
-        self._instructions = InstructionGroup()
-        self.bind(active=lambda i, v: self.__update())
-        self.bind(machine=lambda i, v: self.__update())
-        self.bind(scene=lambda i, v: self.__update())
 
-    def __update(self):
-        self._instructions.clear()
-        if self.active:
-            self._update(self._instructions)
-
-    def addInstructionsTo(self, canvas):
-        canvas.add(self._instructions)
-
-    def _update(self, instructions):
+    def render(self):
         pass
+
+    def _propertyChanged(self):
+        pass
+        #TODO: Queue refresh

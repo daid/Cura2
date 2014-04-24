@@ -13,10 +13,16 @@ class FDMPrinter(printer3D.Printer3D):
         super(FDMPrinter,self).__init__()
 
         self.addSetting('resolution', Setting('shell_thickness', 0.8, 'float'))
+
+        self.addSetting('shell_thickness', Setting('top_bottom_thickness', 0.8, 'float'))
+        self.addSetting('top_bottom_thickness', Setting('top_thickness', 0.8, 'float'))
+        self.addSetting('top_bottom_thickness', Setting('bottom_thickness', 0.8, 'float'))
+
         self.addSetting('resolution', Setting('sparse_infill_density', 20.0, 'float'))
         self.addSettingCategory(SettingCategory('platform_adhesion', order=1))
         self.addSetting('platform_adhesion', Setting('initial_layer_height', 0.3, 'float'))
         self.addSetting('platform_adhesion', Setting('adhesion_type', 'None', ['None', 'Brim', 'Raft']))
+        self.addSetting('platform_adhesion', Setting('brim_line_count', 30, 'float'))
 
         self.addSettingCategory(SettingCategory('speed', order=2))
         self.addSetting('speed', Setting('speed_print', 50.0, 'float'))

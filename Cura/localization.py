@@ -3,13 +3,14 @@ __author__ = 'd.braam'
 import os
 import gettext
 
-from kivy.resources import resource_find
 
 
 def setup():
     languages = ['en']
 
-    locale_path = resource_find('locale')
+    #TODO: Resource path
+    locale_path = os.path.dirname(__file__)
+    print locale_path
     if locale_path is not None:
         locale_path = os.path.normpath(locale_path)
     translation = gettext.translation('Cura', locale_path, languages, fallback=True)

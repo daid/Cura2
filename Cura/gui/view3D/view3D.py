@@ -1,11 +1,4 @@
-__author__ = 'Jaime van Kessel'
-
-from kivy.uix.widget import Widget
-from kivy.graphics import Color, Ellipse, Line, Rectangle
-from kivy.resources import resource_find
-from kivy.graphics.transformation import Matrix
-from kivy.graphics.opengl import *
-from kivy.graphics import *
+import wx
 
 from Cura.machine.machine import Machine
 from Cura.scene.scene import Scene
@@ -15,21 +8,12 @@ from Cura.gui.view3D.machineRenderer import MachineRenderer
 import numpy
 
 
-class view3DWidget(Widget):
+class view3DWidget(wx.Panel):
     """
     view3D is a view panel that has an associated scene which are drawn by the renderers of the view.
     """
 
-    _translate_zoom = Translate(0, 0, -300.0)
-    _rotate_pitch = Rotate(-60, 1, 0, 0)
-    _rotate_yaw = Rotate(30, 0, 0, 1)
-    _translate_viewpoint = Translate(0, 0, 0)
-
     def __init__(self):
-        self.canvas = RenderContext(compute_normal_mat=True)
-        self.canvas.shader.source = resource_find('flat_texture.glsl')
-        super(view3DWidget, self).__init__(size_hint=(1.0, 1.0), pos_hint={'x': 0, 'y': 0})
-
         self._scene = None  #A view 3D has a scene responsible for data storage of what is in the 3D world.
         self._renderer_list = []  #The view holds a set of renderers, such as machine renderer or object renderer.
         self._machine = None  # Reference to the machine
@@ -48,7 +32,6 @@ class view3DWidget(Widget):
         self._focus_obj = None
         self._mouse_3D_pos = None
 
-        self.bind(size=self.onSize)
         self.update_renderer()
 
     def addRenderer(self, renderer, prepend = False):
@@ -91,21 +74,7 @@ class view3DWidget(Widget):
         return p0, p1
 
     def update_renderer(self):
-        self.canvas.clear()
-        with self.canvas:
-            #Set the basic rendering
-            Callback(self.setup_gl_context)
-            ClearColor(0.8, 0.8, 0.8, 1.0)
-            ClearBuffers()
-            PushMatrix()
-            self.canvas.add(self._translate_zoom)
-            self.canvas.add(self._rotate_pitch)
-            self.canvas.add(self._rotate_yaw)
-            self.canvas.add(self._translate_viewpoint)
-            for renderer in self._renderer_list:
-                renderer.addInstructionsTo(self.canvas)
-            PopMatrix()
-            Callback(self.reset_gl_context)
+        pass
 
     def onSize(self, instance, value):
         asp = self.width / float(self.height)
