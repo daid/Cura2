@@ -1,11 +1,13 @@
 import wx
 import os
 import sys
+import numpy
 
 from wx import glcanvas
 import OpenGL
-#OpenGL.ERROR_CHECKING = False
+#OpenGL.UNSIGNED_BYTE_IMAGES_AS_STRING = True
 from OpenGL.GL import *
+from OpenGL.GL.framebufferobjects import *
 
 """
 The OpenGLPanel is a tricky beast.
@@ -16,32 +18,113 @@ On Linux and MacOS we have the problem that we cannot draw normal widgets on top
     So we need to draw the OpenGL information to a background buffer, and render that buffer into a normal wxPanel.
 """
 
+if False:
+    class OpenGLPanelBase(glcanvas.GLCanvas):
+        def __init__(self, parent):
+            attribList = (glcanvas.WX_GL_RGBA, glcanvas.WX_GL_DOUBLEBUFFER, glcanvas.WX_GL_DEPTH_SIZE, 24, glcanvas.WX_GL_STENCIL_SIZE, 8, 0)
+            glcanvas.GLCanvas.__init__(self, parent, style=wx.WANTS_CHARS|wx.CLIP_CHILDREN, attribList = attribList)
+            self._context = glcanvas.GLContext(self)
 
-class OpenGLPanelBase(glcanvas.GLCanvas):
-    def __init__(self, parent):
-        attribList = (glcanvas.WX_GL_RGBA, glcanvas.WX_GL_DOUBLEBUFFER, glcanvas.WX_GL_DEPTH_SIZE, 24, glcanvas.WX_GL_STENCIL_SIZE, 8, 0)
-        glcanvas.GLCanvas.__init__(self, parent, style=wx.WANTS_CHARS|wx.CLIP_CHILDREN, attribList = attribList)
-        self._context = glcanvas.GLContext(self)
+            wx.EVT_PAINT(self, self.__onPaint)
+            wx.EVT_ERASE_BACKGROUND(self, self.__onEraseBackground)
 
-        wx.EVT_PAINT(self, self.__onPaint)
-        wx.EVT_ERASE_BACKGROUND(self, self.__onEraseBackground)
+        def __onEraseBackground(self, e):
+            pass
 
-    def __onEraseBackground(self, e):
-        pass
+        def __onPaint(self, e):
+            wx.PaintDC(self) # Make a PaintDC, else the paint event will be called again.
+            self.SetCurrent(self._context)
+            self._onRender()
+            glFlush()
+            self.SwapBuffers()
 
-    def __onPaint(self, e):
-        wx.PaintDC(self) # Make a PaintDC, else the paint event will be called again.
-        self.SetCurrent(self._context)
-        self._onRender()
-        glFlush()
-        self.SwapBuffers()
+        def _onRender(self):
+            pass
 
-    def _onRender(self):
-        pass
+        def _refresh(self):
+            self.Refresh()
+else:
+    class RenderGLPanel(glcanvas.GLCanvas):
+        def __init__(self, parent):
+            self._parent = parent
+            attribList = (glcanvas.WX_GL_RGBA, glcanvas.WX_GL_DOUBLEBUFFER, glcanvas.WX_GL_DEPTH_SIZE, 24, glcanvas.WX_GL_STENCIL_SIZE, 8, 0)
+            glcanvas.GLCanvas.__init__(self, parent.GetParent(), style=wx.WANTS_CHARS|wx.CLIP_CHILDREN, attribList = attribList)
+            self.SetSize((1, 1))
+            self._context = glcanvas.GLContext(self)
+            self._color_texture = None
+            self._bitmap = None
 
-    def _refresh(self):
-        self.Refresh()
+            wx.EVT_PAINT(self, self.__onPaint)
+            wx.EVT_ERASE_BACKGROUND(self, self.__onEraseBackground)
 
+        def __onEraseBackground(self, e):
+            pass
+
+        def __onPaint(self, e):
+            wx.PaintDC(self) # Make a PaintDC, else the paint event will be called again.
+
+            self.SetCurrent(self._context)
+            size = self._parent.GetSizeTuple()
+            if self._color_texture is None:
+                self._color_texture = glGenTextures(1)
+                glBindTexture(GL_TEXTURE_2D, self._color_texture)
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size[0], size[1], 0, GL_BGRA, GL_UNSIGNED_BYTE, None)
+                glBindTexture(GL_TEXTURE_2D, 0)
+
+                self._depth_texture = glGenTextures(1)
+                glBindTexture(GL_TEXTURE_2D, self._depth_texture)
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, size[0], size[1], 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, None)
+                glBindTexture(GL_TEXTURE_2D, 0)
+
+                self._fbo = glGenFramebuffers(1)
+                glBindFramebuffer(GL_FRAMEBUFFER, self._fbo)
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self._color_texture, 0)
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, self._depth_texture, 0)
+                glBindFramebuffer(GL_FRAMEBUFFER, 0)
+                self._fboSize = size
+
+            if self._fboSize != size:
+                glBindTexture(GL_TEXTURE_2D, self._color_texture)
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size[0], size[1], 0, GL_BGRA, GL_UNSIGNED_BYTE, None)
+                glBindTexture(GL_TEXTURE_2D, 0)
+
+                glBindTexture(GL_TEXTURE_2D, self._depth_texture)
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, size[0], size[1], 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, None)
+                glBindTexture(GL_TEXTURE_2D, 0)
+
+            glBindFramebuffer(GL_FRAMEBUFFER, self._fbo)
+            self._parent._onRender()
+            glFlush()
+            glBindFramebuffer(GL_FRAMEBUFFER, 0)
+            glBindTexture(GL_TEXTURE_2D, self._color_texture)
+            data = glGetTexImageub(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_BYTE)
+            self._bitmap = wx.BitmapFromBufferRGBA(size[0], size[1], data)
+            glBindTexture(GL_TEXTURE_2D, 0)
+            self.SwapBuffers()
+            self._parent.Refresh()
+
+    class OpenGLPanelBase(wx.Panel):
+        def __init__(self, parent):
+            super(OpenGLPanelBase, self).__init__(parent, style=wx.WANTS_CHARS|wx.CLIP_CHILDREN)
+            self._renderPanel = RenderGLPanel(self)
+
+            wx.EVT_PAINT(self, self.__onPaint)
+            wx.EVT_ERASE_BACKGROUND(self, self.__onEraseBackground)
+
+        def __onEraseBackground(self, e):
+            pass
+
+        def __onPaint(self, e):
+            dc = wx.BufferedPaintDC(self)
+            if self._renderPanel._bitmap is not None:
+                dc.DrawBitmap(self._renderPanel._bitmap, 0, 0)
+                self._renderPanel._bitmap = None
+
+        def _onRender(self):
+            pass
+
+        def _refresh(self):
+            self._renderPanel.Refresh()
 
 class OpenGLPanel(OpenGLPanelBase):
     def __init__(self, parent):

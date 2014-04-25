@@ -26,8 +26,8 @@ class View3D(object):
         self._zoom = 300
         self._viewTarget = [0.0, 0.0, 0.0]
 
-        self._min_pitch = -170
-        self._max_pitch = -10
+        self._min_pitch = 10
+        self._max_pitch = 170
         self._min_zoom = 1.0
         self._max_zoom = 400
 
@@ -78,6 +78,12 @@ class View3D(object):
         p1 -= self._view_target
         return p0, p1
 
+    def getPitch(self):
+        return self._pitch
+
+    def getYaw(self):
+        return self._yaw
+
     def setPitch(self, value):
         self._pitch = max(min(value, self._max_pitch), self._min_pitch)
 
@@ -114,6 +120,7 @@ class View3D(object):
         glLoadIdentity()
         aspect = float(size.GetWidth()) / float(size.GetHeight())
         gluPerspective(45.0, aspect, 1.0, self._max_zoom * 2)
+        glScale(1, -1, 1)
 
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()

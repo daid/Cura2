@@ -78,8 +78,8 @@ class MainOpenGLView(OpenGLPanel):
 
     def onMouseMotion(self, e):
         if e.Dragging():
-            self._app.getView()._yaw += e.GetX() - self._mouseX
-            self._app.getView()._pitch -= e.GetY() - self._mouseY
+            self._app.getView().setYaw(self._app.getView().getYaw() + e.GetX() - self._mouseX)
+            self._app.getView().setPitch(self._app.getView().getPitch() - e.GetY() + self._mouseY)
             self.queueRefresh()
         self._mouseX = e.GetX()
         self._mouseY = e.GetY()

@@ -19,6 +19,40 @@ import time
 
 from Cura.mesh.mesh import Mesh
 
+# import ctypes
+# import numpy
+#
+# STLLoaderDll = ctypes.CDLL('C:/Software/Cura2/dll/STLLoader/.bin/Release/STLLoader.dll')
+# openFile = STLLoaderDll.openFile
+# openFile.argtypes = [ctypes.c_char_p]
+# openFile.restype = ctypes.c_void_p
+# getMeshCount = STLLoaderDll.getMeshCount
+# getMeshCount.argtypes = [ctypes.c_void_p]
+# getMeshCount.restype = ctypes.c_int
+# getVolumeCount = STLLoaderDll.getVolumeCount
+# getVolumeCount.argtypes = [ctypes.c_void_p, ctypes.c_int]
+# getVolumeCount.restype = ctypes.c_int
+# getVertexCount = STLLoaderDll.getVertexCount
+# getVertexCount.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+# getVertexCount.restype = ctypes.c_int
+# storeVertexData = STLLoaderDll.storeVertexData
+# storeVertexData.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_void_p]
+# storeVertexData.restype = ctypes.c_int
+# closeFile = STLLoaderDll.closeFile
+# closeFile.argtypes = [ctypes.c_void_p]
+# closeFile.restype = None
+#
+# import time
+# t = time.time()
+# res = openFile('C:/Models/Knot-Thing.stl')
+# print getMeshCount(res)
+# print getVolumeCount(res, 0)
+# print getVertexCount(res, 0, 0)
+# vertexData = numpy.zeros((getVertexCount(res, 0, 0), 6), numpy.float32)
+# storeVertexData(res, 0, 0, vertexData.ctypes)
+# print vertexData
+# closeFile(res)
+# print time.time() - t
 
 def _loadAscii(volume, f):
     cnt = 0
