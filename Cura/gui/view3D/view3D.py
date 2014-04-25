@@ -1,27 +1,35 @@
-import wx
-
 from Cura.machine.machine import Machine
 from Cura.scene.scene import Scene
+from Cura.gui import openGLUtils
 from Cura.gui.view3D.renderer import Renderer
 from Cura.gui.view3D.machineRenderer import MachineRenderer
 
 import numpy
 
+from OpenGL.GL import *
+from OpenGL.GLU import *
 
-class view3DWidget(wx.Panel):
+
+class View3D(object):
     """
-    view3D is a view panel that has an associated scene which are drawn by the renderers of the view.
+    view3D handles 3D viewing of an OpenGL viewport. It has multiple renderers which are called to render different
+    objects in the 3D view.
     """
 
     def __init__(self):
-        self._scene = None  #A view 3D has a scene responsible for data storage of what is in the 3D world.
-        self._renderer_list = []  #The view holds a set of renderers, such as machine renderer or object renderer.
+        self._scene = None  # A view 3D has a scene responsible for data storage of what is in the 3D world.
+        self._renderer_list = []  # The view holds a set of renderers, such as machine renderer or object renderer.
         self._machine = None  # Reference to the machine
+
+        self._yaw = 30
+        self._pitch = 60
+        self._zoom = 300
+        self._viewTarget = [0.0, 0.0, 0.0]
 
         self._min_pitch = -170
         self._max_pitch = -10
         self._min_zoom = 1.0
-        self._max_zoom = None
+        self._max_zoom = 400
 
         self._viewport = None
         self._model_matrix = None
@@ -32,8 +40,6 @@ class view3DWidget(wx.Panel):
         self._focus_obj = None
         self._mouse_3D_pos = None
 
-        self.update_renderer()
-
     def addRenderer(self, renderer, prepend = False):
         assert(isinstance(renderer, Renderer))
         if prepend:
@@ -43,7 +49,6 @@ class view3DWidget(wx.Panel):
         renderer.parent = self
         renderer.scene = self._scene
         renderer.machine = self._machine
-        self.update_renderer()
 
     def setScene(self,scene):
         assert(issubclass(type(scene), Scene))
@@ -67,46 +72,58 @@ class view3DWidget(wx.Panel):
     def getMouseRay(self, x, y):
         if self._viewport is None:
             return numpy.array([0,0,0],numpy.float32), numpy.array([0,0,1],numpy.float32)
-        p0 = unproject(x, self._viewport[1] + self._viewport[3] - y, 0, self._model_matrix, self._proj_matrix, self._viewport)
-        p1 = unproject(x, self._viewport[1] + self._viewport[3] - y, 1, self._model_matrix, self._proj_matrix, self._viewport)
+        p0 = openGLUtils.unproject(x, self._viewport[1] + self._viewport[3] - y, 0, self._model_matrix, self._proj_matrix, self._viewport)
+        p1 = openGLUtils.unproject(x, self._viewport[1] + self._viewport[3] - y, 1, self._model_matrix, self._proj_matrix, self._viewport)
         p0 -= self._view_target
         p1 -= self._view_target
         return p0, p1
 
-    def update_renderer(self):
-        pass
-
-    def onSize(self, instance, value):
-        asp = self.width / float(self.height)
-        proj = Matrix()
-        proj.perspective(40, asp, 1.0, 1000.0)
-        self.canvas['projection_mat'] = proj
-        self.canvas['diffuse_light'] = (1.0, 1.0, 0.8)
-        self.canvas['ambient_light'] = (0.1, 0.1, 0.1)
-
-    def on_touch_move(self, touch):
-        if touch.button == 'right':
-            self.setYaw(self._rotate_yaw.angle + touch.dsx * 360.0 * 3.0)
-            self.setPitch(self._rotate_pitch.angle - touch.dsy * 360.0 * 3.0)
-
-    def on_touch_up(self, touch):
-        if touch.button == 'scrolldown':
-            self._translate_zoom.z /= 1.1
-        if touch.button == 'scrollup':
-            self._translate_zoom.z *= 1.1
-
     def setPitch(self, value):
-        self._rotate_pitch.angle = max(min(value, self._max_pitch), self._min_pitch)
+        self._pitch = max(min(value, self._max_pitch), self._min_pitch)
 
     def setYaw(self, value):
-        self._rotate_yaw.angle = value
+        self._yaw = value
 
-    def setup_gl_context(self, *args):
+    def render(self, panel):
+        self._init3DProjection(panel.GetSize())
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        for renderer in self._renderer_list:
+            if renderer.active:
+                renderer.render()
+
+    def _init3DProjection(self, size):
+        glViewport(0, 0, size.GetWidth(), size.GetHeight())
+        glLoadIdentity()
+
+        glLightfv(GL_LIGHT0, GL_POSITION, [0.2, 0.2, 1.0, 0.0])
+
+        glDisable(GL_RESCALE_NORMAL)
+        glDisable(GL_LIGHTING)
+        glDisable(GL_LIGHT0)
         glEnable(GL_DEPTH_TEST)
-        glEnable(GL_CULL_FACE)
-        glViewport(self.pos[0], self.pos[1], self.width, self.height)
-
-    def reset_gl_context(self, *args):
-        glDisable(GL_DEPTH_TEST)
         glDisable(GL_CULL_FACE)
-        glViewport(0, 0, self.get_root_window().width, self.get_root_window().height)
+        glDisable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+        glClearColor(0.8, 0.8, 0.8, 1.0)
+        glClearStencil(0)
+        glClearDepth(1.0)
+
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        aspect = float(size.GetWidth()) / float(size.GetHeight())
+        gluPerspective(45.0, aspect, 1.0, self._max_zoom * 2)
+
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)
+
+        glTranslate(0,0,-self._zoom)
+        glRotate(-self._pitch, 1,0,0)
+        glRotate(self._yaw, 0,0,1)
+        glTranslate(-self._viewTarget[0], -self._viewTarget[1], -self._viewTarget[2])
+
+        self._viewport = glGetIntegerv(GL_VIEWPORT)
+        self._modelMatrix = glGetDoublev(GL_MODELVIEW_MATRIX)
+        self._projMatrix = glGetDoublev(GL_PROJECTION_MATRIX)

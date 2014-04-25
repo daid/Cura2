@@ -21,6 +21,7 @@ class CuraApp(wx.App):
         self._machine = FDMPrinter()
         self._scene = Printer3DScene()
         self._view = PrinterView3D()
+
         self._view.setScene(self._scene)
         self._view.setMachine(self._machine)
 
@@ -30,3 +31,6 @@ class CuraApp(wx.App):
 
     def getMachine(self):
         return self._machine
+
+    def getView(self):
+        return self._view

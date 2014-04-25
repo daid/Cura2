@@ -22,41 +22,22 @@ def saveSupportedExtensions():
     return ['.amf', '.stl']
 
 
-def loadPrintableObject(filename):
+def loadMeshes(filename):
     """
-    loadPrintableObject loads 1 or more printableObjects from a file.
-    STL files are a single printableObject with a single mesh, these are most common.
-    OBJ files usually contain a single mesh, but they can contain multiple meshes
-    AMF can contain whole scenes of objects with each object having multiple meshes.
-    DAE files are a mess, but they can contain scenes of objects as well as grouped meshes
+    Loads mesh from file. Only the first found mesh is returned.
     """
     ext = os.path.splitext(filename)[1].lower()
     if ext == '.stl':
-        return stl.loadScene(filename)
+        return stl.loadMeshes(filename)
     if ext == '.obj':
-        return obj.loadScene(filename)
+        return obj.loadMeshes(filename)
     if ext == '.dae':
-        return dae.loadScene(filename)
+        return dae.loadMeshes(filename)
     if ext == '.amf':
-        return amf.loadScene(filename)
+        return amf.loadMeshes(filename)
     print 'Error: Unknown model extension: %s' % (ext)
     return []
 
-def loadMesh(filename):
-    '''
-    Loads mesh from file. Only the first found mesh is returned.
-    '''
-    ext = os.path.splitext(filename)[1].lower()
-    if ext == '.stl':
-        return stl.loadMesh(filename)
-    if ext == '.obj':
-        return obj.loadMesh(filename)
-    if ext == '.dae':
-        return dae.loadMesh(filename)
-    if ext == '.amf':
-        return amf.loadMesh(filename)
-    print 'Error: Unknown model extension: %s' % (ext)
-    return []
 
 def saveMeshes(filename, objects):
     """

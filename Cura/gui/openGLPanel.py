@@ -4,7 +4,7 @@ import sys
 
 from wx import glcanvas
 import OpenGL
-OpenGL.ERROR_CHECKING = False
+#OpenGL.ERROR_CHECKING = False
 from OpenGL.GL import *
 
 """
@@ -20,7 +20,7 @@ On Linux and MacOS we have the problem that we cannot draw normal widgets on top
 class OpenGLPanelBase(glcanvas.GLCanvas):
     def __init__(self, parent):
         attribList = (glcanvas.WX_GL_RGBA, glcanvas.WX_GL_DOUBLEBUFFER, glcanvas.WX_GL_DEPTH_SIZE, 24, glcanvas.WX_GL_STENCIL_SIZE, 8, 0)
-        glcanvas.GLCanvas.__init__(self, parent, style=wx.WANTS_CHARS, attribList = attribList)
+        glcanvas.GLCanvas.__init__(self, parent, style=wx.WANTS_CHARS|wx.CLIP_CHILDREN, attribList = attribList)
         self._context = glcanvas.GLContext(self)
 
         wx.EVT_PAINT(self, self.__onPaint)
@@ -54,6 +54,7 @@ class OpenGLPanel(OpenGLPanelBase):
         wx.EVT_IDLE(self, self._onIdle)
 
     def _onSize(self, e):
+        self.Layout()
         self._refresh()
 
     def _onIdle(self, e):

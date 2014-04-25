@@ -4,7 +4,7 @@ from Cura.scene.displayableObject import DisplayableObject
 import time
 import math
 import os
-from Cura.meshLoaders.mesh import Mesh
+from Cura.mesh.mesh import Mesh
 
 import numpy
 numpy.seterr(all='ignore')

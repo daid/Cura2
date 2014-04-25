@@ -1,7 +1,12 @@
 __author__ = 'Jaime van Kessel'
 
 from Cura.gui.view3D.renderer import Renderer
-from Cura.meshLoaders import meshLoader
+from Cura.resources import getMesh
+from Cura.gui import openGLUtils
+
+import OpenGL
+#OpenGL.ERROR_CHECKING = False
+from OpenGL.GL import *
 
 
 class MachineRenderer(Renderer):
@@ -10,50 +15,32 @@ class MachineRenderer(Renderer):
     """
     def __init__(self):
         super(MachineRenderer,self).__init__()
-        self._machine_width = 0
-        self._machine_height = 0
-        self._machine_depth = 0
         self._platform_mesh = None
 
-    def _update(self, instructions):
+    def render(self):
         if self.machine is None:
             return
 
-        instructions.add(UpdateNormalMatrix())
-        machine_shape = self.machine.getShape()
-        height = self.machine.getSettingValueByKeyFloat('machine_height')
+        w = self.machine.getSettingValueByKeyFloat('machine_width')
+        d = self.machine.getSettingValueByKeyFloat('machine_depth')
+        h = self.machine.getSettingValueByKeyFloat('machine_height')
+        shape = self.machine.getShape()
 
-        vertex_data = []
-        indices = []
-        for p in machine_shape:
-            vertex_data += [p[0], p[1], 0.05, p[0]/20.0, p[1]/20.0]
-        cnt = len(machine_shape)
-        for n in range(0, cnt - 2):
-            indices += [0, n+1, n+2]
-        instructions.add(Mesh(
-            vertices=vertex_data,
-            indices=indices,
-            fmt=[('v_pos', 3, 'float'), ('v_tc0', 2, 'float')],
-            mode='triangles',
-            texture=self._platform_image.texture
-        ))
+        glColor3f(0, 0, 0)
+        glBegin(GL_TRIANGLE_FAN)
+        for point in shape:
+            glVertex3f(point[0], point[1], 0.01)
+        glEnd()
 
-        vertex_data = []
-        indices = []
-        for p in machine_shape:
-            vertex_data += [p[0], p[1], 0.05, 0, 0]
-        for p in machine_shape:
-            vertex_data += [p[0], p[1], height, 0, 0]
-        cnt = len(machine_shape)
-        for n in range(0, cnt - 2):
-            indices += [cnt, cnt+n+2, cnt+n+1]
-        for n in range(0, cnt):
-            indices += [(n+1)%cnt, n, cnt+n]
-            indices += [(n+1)%cnt, cnt+n, (cnt+(n+1)%cnt)]
-        instructions.add(Mesh(
-            vertices=vertex_data,
-            indices=indices,
-            fmt=[('v_pos', 3, 'float'), ('v_tc0', 2, 'float')],
-            mode='triangles',
-            texture=self._platform_image.texture
-        ))
+        mesh = getMesh('ultimaker_platform.stl')
+        glColor3f(1, 1, 1)
+        glEnable(GL_LIGHTING)
+        glEnable(GL_LIGHT0)
+        glEnable(GL_COLOR_MATERIAL)
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, [1,1,1,1])
+        glLightfv(GL_LIGHT0, GL_AMBIENT, [0,0,0,0])
+        glLightfv(GL_LIGHT0, GL_SPECULAR, [0,0,0,0])
+        for v in mesh.getVolumes():
+            if 'VertexRenderer' not in v.metaData:
+                v.metaData['VertexRenderer'] = openGLUtils.VertexRenderer(GL_TRIANGLES, v.vertexData)
+            v.metaData['VertexRenderer'].render()
