@@ -92,7 +92,7 @@ class NotificationPanel(wx.Panel):
         self._info = wx.StaticText(self, label='Small and informative information,\nwhich can span multiple lines.')
 
         f = self._title.GetFont()
-        self._title.SetFont(wx.Font(f.PointSize * 2, f.Family, f.Style, wx.FONTWEIGHT_BOLD, f.Underlined, f.FaceName))
+        self._title.SetFont(wx.Font(f.PointSize * 2, f.Family, f.Style, wx.FONTWEIGHT_BOLD, False, f.FaceName))
         self._title.SetForegroundColour((255, 255, 255))
         self._info.SetForegroundColour((255, 255, 255))
         sizer = wx.BoxSizer(wx.VERTICAL)
