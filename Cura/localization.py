@@ -3,6 +3,7 @@ import gettext
 
 from Cura.resources import getResourcePath
 
+
 def setup():
     languages = ['en']
 

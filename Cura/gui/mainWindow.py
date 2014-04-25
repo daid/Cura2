@@ -84,6 +84,7 @@ class MainOpenGLView(OpenGLPanel):
         self._mouseX = e.GetX()
         self._mouseY = e.GetY()
 
+
 class NotificationPanel(wx.Panel):
     def __init__(self, parent):
         super(NotificationPanel, self).__init__(parent, style=wx.SIMPLE_BORDER)

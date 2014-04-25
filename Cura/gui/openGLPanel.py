@@ -68,7 +68,7 @@ else:
             if self._color_texture is None:
                 self._color_texture = glGenTextures(1)
                 glBindTexture(GL_TEXTURE_2D, self._color_texture)
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size[0], size[1], 0, GL_BGRA, GL_UNSIGNED_BYTE, None)
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size[0], size[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, None)
                 glBindTexture(GL_TEXTURE_2D, 0)
 
                 self._depth_texture = glGenTextures(1)
@@ -85,7 +85,7 @@ else:
 
             if self._fboSize != size:
                 glBindTexture(GL_TEXTURE_2D, self._color_texture)
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size[0], size[1], 0, GL_BGRA, GL_UNSIGNED_BYTE, None)
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size[0], size[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, None)
                 glBindTexture(GL_TEXTURE_2D, 0)
 
                 glBindTexture(GL_TEXTURE_2D, self._depth_texture)
@@ -97,7 +97,7 @@ else:
             glFlush()
             glBindFramebuffer(GL_FRAMEBUFFER, 0)
             glBindTexture(GL_TEXTURE_2D, self._color_texture)
-            data = glGetTexImageub(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_BYTE)
+            data = glGetTexImageub(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE)
             self._bitmap = wx.BitmapFromBufferRGBA(size[0], size[1], data)
             glBindTexture(GL_TEXTURE_2D, 0)
             self.SwapBuffers()

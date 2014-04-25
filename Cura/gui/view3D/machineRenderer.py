@@ -26,7 +26,7 @@ class MachineRenderer(Renderer):
         h = self.machine.getSettingValueByKeyFloat('machine_height')
         shape = self.machine.getShape()
 
-        glColor3f(0, 0, 0)
+        glColor3f(1, 0, 0)
         glBegin(GL_TRIANGLE_FAN)
         for point in shape:
             glVertex3f(point[0], point[1], 0.01)
