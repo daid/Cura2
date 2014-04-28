@@ -84,6 +84,7 @@ else:
                 self._fboSize = size
 
             if self._fboSize != size:
+                self._fboSize = size
                 glBindTexture(GL_TEXTURE_2D, self._color_texture)
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size[0], size[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, None)
                 glBindTexture(GL_TEXTURE_2D, 0)
@@ -118,7 +119,6 @@ else:
             dc = wx.BufferedPaintDC(self)
             if self._renderPanel._bitmap is not None:
                 dc.DrawBitmap(self._renderPanel._bitmap, 0, 0)
-                self._renderPanel._bitmap = None
 
         def _onRender(self):
             pass

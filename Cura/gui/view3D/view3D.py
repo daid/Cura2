@@ -20,10 +20,12 @@ class View3D(object):
         self._scene = None  # A view 3D has a scene responsible for data storage of what is in the 3D world.
         self._renderer_list = []  # The view holds a set of renderers, such as machine renderer or object renderer.
         self._machine = None  # Reference to the machine
+        self._openGLWindow = None
 
         self._yaw = 30
         self._pitch = 60
         self._zoom = 300
+        self._projection = 'perspective'
         self._viewTarget = [0.0, 0.0, 0.0]
 
         self._min_pitch = 10
@@ -39,6 +41,29 @@ class View3D(object):
         self.addRenderer(machineRenderer)
         self._focus_obj = None
         self._mouse_3D_pos = None
+
+    def setViewDirection(self, direction):
+        if direction == '3D':
+            self._yaw = 30
+            self._pitch = 60
+            self._zoom = 300
+            self._projection = 'perspective'
+        elif direction == 'Right':
+            self._yaw = -90
+            self._pitch = 90
+            self._zoom = 300
+            self._projection = 'orthogonal'
+        elif direction == 'Front':
+            self._yaw = 0
+            self._pitch = 90
+            self._zoom = 300
+            self._projection = 'orthogonal'
+        elif direction == 'Top':
+            self._yaw = 0
+            self._pitch = 0
+            self._zoom = 300
+            self._projection = 'orthogonal'
+        self._openGLWindow.queueRefresh()
 
     def addRenderer(self, renderer, prepend = False):
         assert(isinstance(renderer, Renderer))
@@ -68,6 +93,9 @@ class View3D(object):
 
     def getMachine(self):
         return self._machine
+
+    def setOpenGLWindow(self, window):
+        self._openGLWindow = window
 
     def getMouseRay(self, x, y):
         if self._viewport is None:
@@ -119,7 +147,11 @@ class View3D(object):
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         aspect = float(size.GetWidth()) / float(size.GetHeight())
-        gluPerspective(45.0, aspect, 1.0, self._max_zoom * 2)
+        if self._projection == 'perspective':
+            gluPerspective(45.0, aspect, 1.0, self._max_zoom * 2)
+        else:
+            z = self._zoom / 2.0
+            glOrtho(-z * aspect, z * aspect, -z, z, 1.0, self._max_zoom * 2)
         glScale(1, -1, 1)
 
         glMatrixMode(GL_MODELVIEW)

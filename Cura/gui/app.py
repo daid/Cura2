@@ -32,5 +32,11 @@ class CuraApp(wx.App):
     def getMachine(self):
         return self._machine
 
+    def getScene(self):
+        return self._scene
+
     def getView(self):
         return self._view
+
+    def getMainWindow(self):
+        return self._mainWindow

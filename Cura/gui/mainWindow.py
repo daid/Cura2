@@ -1,7 +1,9 @@
 import wx
 
-from Cura.resources import getBitmap
 from Cura.gui.openGLPanel import OpenGLPanel
+from Cura.gui.profilePanel import ProfilePanel
+from Cura.gui.settingPanel import SettingPanel
+from Cura.gui.topBar import TopBar
 
 
 class FloatSizer(wx.PySizer):
@@ -23,48 +25,17 @@ class FloatSizer(wx.PySizer):
             if 'top' in data:
                 y = data['top']
             if 'right' in data:
-                x = size[0] - itemSize[0] - data['right']
+                if isinstance(data['right'], wx.Window):
+                    x = data['right'].GetPosition()[0] - itemSize[0]
+                else:
+                    x = size[0] - itemSize[0] - data['right']
             if 'bottom' in data:
-                y = size[1] - itemSize[1] - data['bottom']
+                if isinstance(data['bottom'], wx.Window):
+                    y = data['bottom'].GetPosition()[1] - itemSize[1]
+                else:
+                    y = size[1] - itemSize[1] - data['bottom']
+
             item.SetDimension((x, y), itemSize)
-
-
-class InnerTitleBar(wx.Panel):
-    def __init__(self, parent, caption):
-        self._caption = caption
-        super(InnerTitleBar, self).__init__(parent)
-        self.SetMinSize((-1, 18))
-
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.onEraseBackground)
-
-    def onEraseBackground(self, evt):
-        dc = evt.GetDC()
-        if not dc:
-            dc = wx.ClientDC(self)
-            rect = self.GetUpdateRegion().GetBox()
-            dc.SetClippingRect(rect)
-        dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT))
-        tw, th = dc.GetTextExtent(self._caption)
-        dc.DrawBitmap(getBitmap("InnerTitleBar.png"), 0, 0)
-        dc.DrawText(self._caption, (self.GetSize().GetWidth() - tw) / 2, (self.GetSize().GetHeight() - th) / 2)
-
-
-class PrintProfilePanel(wx.Panel):
-    def __init__(self, parent, app):
-        self._app = app
-        super(PrintProfilePanel, self).__init__(parent, style=wx.SIMPLE_BORDER)
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(InnerTitleBar(self, 'Print profile'), flag=wx.EXPAND)
-
-        for c in self._app.getMachine().getSettingCategories():
-            if c.isVisible():
-                sizer.Add(wx.Button(self, -1, c.getLabel()), flag=wx.EXPAND)
-        sizer.Add(wx.Button(self, -1, 'Plugins'), flag=wx.EXPAND)
-        sizer.Add(wx.Button(self, -1, 'Load profile'), flag=wx.EXPAND)
-        sizer.Add(wx.Button(self, -1, 'Save GCode'), flag=wx.EXPAND)
-        self.SetSizer(sizer)
 
 
 class MainOpenGLView(OpenGLPanel):
@@ -108,28 +79,24 @@ class MainWindow(wx.Frame):
         super(MainWindow, self).__init__(None, title='Cura - Pink Unicorn edition')
         self._app = app
 
-        self._topbar = wx.Panel(self)
+        self._topbar = TopBar(self, app)
         self._mainView = MainOpenGLView(self, app)
+        self._settingsPanel = None
+        self._app.getView().setOpenGLWindow(self._mainView)
 
         self._fileBrowser = wx.Panel(self._mainView)
         self._fileBrowser.SetSize((185, 400))
-        self._fileBrowser.SetPosition((0, 32))
         self._fileBrowser.SetBackgroundColour(wx.GREEN)
 
         self._transformTools = wx.Panel(self._mainView)
         self._transformTools.SetSize((165, 54))
-        self._transformTools.SetPosition((400, 0))
         self._transformTools.SetBackgroundColour(wx.BLUE)
 
-        self._printProfilePanel = PrintProfilePanel(self._mainView, app)
-        self._printProfilePanel.SetMinSize((180,-1))
+        self._printProfilePanel = ProfilePanel(self._mainView, app)
         self._printProfilePanel.Fit()
         self._printProfilePanel.SetPosition((600, 32))
 
         self._notification = NotificationPanel(self._mainView)
-
-        self._topbar.SetBackgroundColour(wx.RED)
-        self._topbar.SetMinSize((-1, 39))
 
         self._mainSizer = wx.BoxSizer(wx.VERTICAL)
         self._mainSizer.Add(self._topbar, 0, wx.EXPAND)
@@ -142,3 +109,17 @@ class MainWindow(wx.Frame):
         self._floatSizer.Add(self._transformTools, userData={'top': 0})
         self._floatSizer.Add(self._notification, userData={'bottom': 32})
         self._mainView.SetSizer(self._floatSizer)
+
+    def closeSettings(self):
+        if self._settingsPanel is not None:
+            self._floatSizer.Detach(self._settingsPanel)
+            self._settingsPanel.Destroy()
+            self._settingsPanel = None
+            self._mainView.Refresh()
+
+    def openSettingCategory(self, category):
+        self.closeSettings()
+
+        self._settingsPanel = SettingPanel(self._mainView, self._app, category)
+        self._floatSizer.Add(self._settingsPanel, userData={'right': self._printProfilePanel, 'top': 32})
+        self._mainView.Layout()
