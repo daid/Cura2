@@ -27,8 +27,12 @@ class ProfilePanel(wx.Panel):
                 if n % 4 == 0:
                     sizer.Add(wx.StaticLine(self), flag=wx.EXPAND)
 
-        sizer.Add(ProfileCategoryButton(self, 'Plugins'), flag=wx.EXPAND)
-        sizer.Add(ProfileCategoryButton(self, 'Load profile'), flag=wx.EXPAND)
+        self._pluginsButton = ProfileCategoryButton(self, 'Plugins')
+        self._loadProfileButton = ProfileCategoryButton(self, 'Load profile')
+        self._pluginsButton.Bind(wx.EVT_BUTTON, self.onPluginButton)
+        self._loadProfileButton.Bind(wx.EVT_BUTTON, self.onLoadProfileButton)
+        sizer.Add(self._pluginsButton, flag=wx.EXPAND)
+        sizer.Add(self._loadProfileButton, flag=wx.EXPAND)
         sizer.Add(wx.Button(self, label='Save GCode'), flag=wx.EXPAND)
         self.SetSizer(sizer)
 
@@ -39,7 +43,18 @@ class ProfilePanel(wx.Panel):
         for b in self._categoryButtons:
             if b != button:
                 b.SetValue(False)
+        self._pluginsButton.SetValue(False)
         if button is None:
             self._app.getMainWindow().closeSettings()
         else:
-            self._app.getMainWindow().openSettingCategory(button.category)
+            self._app.getMainWindow().openSettingCategory(button)
+
+    def onPluginButton(self, e):
+        for b in self._categoryButtons:
+            b.SetValue(False)
+        self._app.getMainWindow().closeSettings()
+        if self._pluginsButton.GetValue():
+            pass
+
+    def onLoadProfileButton(self, e):
+        self._loadProfileButton.SetValue(False)

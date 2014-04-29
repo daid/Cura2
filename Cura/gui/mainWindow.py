@@ -17,9 +17,16 @@ class FloatSizer(wx.PySizer):
         size = self.GetSize()
         for item in self.GetChildren():
             itemSize = item.CalcMin()
+            data = item.GetUserData()
+
+            if 'width' in data:
+                itemSize[0] = size[0] * data['width']
+            if 'height' in data:
+                itemSize[1] = size[1] * data['height']
+
             x = (size[0] - itemSize[0]) / 2
             y = (size[1] - itemSize[1]) / 2
-            data = item.GetUserData()
+
             if 'left' in data:
                 x = data['left']
             if 'top' in data:
@@ -43,6 +50,7 @@ class MainOpenGLView(OpenGLPanel):
         self._app = app
         super(MainOpenGLView, self).__init__(parent)
         self.Bind(wx.EVT_MOTION, self.onMouseMotion)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
 
     def onRender(self):
         self._app.getView().render(self)
@@ -51,9 +59,13 @@ class MainOpenGLView(OpenGLPanel):
         if e.Dragging():
             self._app.getView().setYaw(self._app.getView().getYaw() + e.GetX() - self._mouseX)
             self._app.getView().setPitch(self._app.getView().getPitch() - e.GetY() + self._mouseY)
-            self.queueRefresh()
         self._mouseX = e.GetX()
         self._mouseY = e.GetY()
+
+    def OnMouseWheel(self, e):
+        delta = float(e.GetWheelRotation()) / float(e.GetWheelDelta())
+        delta = max(min(delta, 4), -4)
+        self._app.getView().deltaZoom(delta)
 
 
 class NotificationPanel(wx.Panel):
@@ -73,24 +85,26 @@ class NotificationPanel(wx.Panel):
         sizer.Add(self._info, flag=wx.BOTTOM|wx.LEFT|wx.RIGHT, border=16)
         self.SetSizer(sizer)
 
+        self.Hide()
+
 
 class MainWindow(wx.Frame):
     def __init__(self, app):
         super(MainWindow, self).__init__(None, title='Cura - Pink Unicorn edition')
         self._app = app
 
-        self._topbar = TopBar(self, app)
         self._mainView = MainOpenGLView(self, app)
         self._settingsPanel = None
+        self._topBar = TopBar(self._mainView, app)
         self._app.getView().setOpenGLWindow(self._mainView)
 
         self._fileBrowser = wx.Panel(self._mainView)
         self._fileBrowser.SetSize((185, 400))
         self._fileBrowser.SetBackgroundColour(wx.GREEN)
 
-        self._transformTools = wx.Panel(self._mainView)
-        self._transformTools.SetSize((165, 54))
-        self._transformTools.SetBackgroundColour(wx.BLUE)
+        self._toolsPanel = wx.Panel(self._mainView)
+        self._toolsPanel.SetSize((165, 54))
+        self._toolsPanel.SetBackgroundColour(wx.BLUE)
 
         self._printProfilePanel = ProfilePanel(self._mainView, app)
         self._printProfilePanel.Fit()
@@ -99,14 +113,14 @@ class MainWindow(wx.Frame):
         self._notification = NotificationPanel(self._mainView)
 
         self._mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self._mainSizer.Add(self._topbar, 0, wx.EXPAND)
         self._mainSizer.Add(self._mainView, 1, wx.EXPAND)
         self.SetSizer(self._mainSizer)
 
         self._floatSizer = FloatSizer()
-        self._floatSizer.Add(self._fileBrowser, userData={'left': 0, 'top': 32})
-        self._floatSizer.Add(self._printProfilePanel, userData={'right': 0, 'top': 32})
-        self._floatSizer.Add(self._transformTools, userData={'top': 0})
+        self._floatSizer.Add(self._toolsPanel, userData={'top': 0})
+        self._floatSizer.Add(self._topBar, userData={'top': 0, 'width': 1.0})
+        self._floatSizer.Add(self._fileBrowser, userData={'left': 0, 'top': 72})
+        self._floatSizer.Add(self._printProfilePanel, userData={'right': 0, 'top': 72})
         self._floatSizer.Add(self._notification, userData={'bottom': 32})
         self._mainView.SetSizer(self._floatSizer)
 
@@ -117,9 +131,10 @@ class MainWindow(wx.Frame):
             self._settingsPanel = None
             self._mainView.Refresh()
 
-    def openSettingCategory(self, category):
+    def openSettingCategory(self, categoryButton):
+        category = categoryButton.category
         self.closeSettings()
 
         self._settingsPanel = SettingPanel(self._mainView, self._app, category)
-        self._floatSizer.Add(self._settingsPanel, userData={'right': self._printProfilePanel, 'top': 32})
+        self._floatSizer.Add(self._settingsPanel, userData={'right': self._printProfilePanel, 'top': 72 + categoryButton.GetPosition()[1]})
         self._mainView.Layout()

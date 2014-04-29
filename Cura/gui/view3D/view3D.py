@@ -63,7 +63,7 @@ class View3D(object):
             self._pitch = 0
             self._zoom = 300
             self._projection = 'orthogonal'
-        self._openGLWindow.queueRefresh()
+        self.refresh()
 
     def addRenderer(self, renderer, prepend = False):
         assert(isinstance(renderer, Renderer))
@@ -97,6 +97,9 @@ class View3D(object):
     def setOpenGLWindow(self, window):
         self._openGLWindow = window
 
+    def refresh(self):
+        self._openGLWindow.queueRefresh()
+
     def getMouseRay(self, x, y):
         if self._viewport is None:
             return numpy.array([0,0,0],numpy.float32), numpy.array([0,0,1],numpy.float32)
@@ -114,19 +117,29 @@ class View3D(object):
 
     def setPitch(self, value):
         self._pitch = max(min(value, self._max_pitch), self._min_pitch)
+        self.refresh()
 
     def setYaw(self, value):
         self._yaw = value
+        self.refresh()
+
+    def deltaZoom(self, delta):
+        self._zoom *= 1.0 - delta / 10.0
+        if self._zoom < self._min_zoom:
+            self._zoom = self._min_zoom
+        if self._zoom > self._max_zoom:
+            self._zoom = self._max_zoom
+        self.refresh()
 
     def render(self, panel):
-        self._init3DProjection(panel.GetSize())
+        self._init3DProjection(panel.GetSize(), panel.isUpsideDown())
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         for renderer in self._renderer_list:
             if renderer.active:
                 renderer.render()
 
-    def _init3DProjection(self, size):
+    def _init3DProjection(self, size, upsideDown):
         glViewport(0, 0, size.GetWidth(), size.GetHeight())
         glLoadIdentity()
 
@@ -152,7 +165,9 @@ class View3D(object):
         else:
             z = self._zoom / 2.0
             glOrtho(-z * aspect, z * aspect, -z, z, 1.0, self._max_zoom * 2)
-        glScale(1, -1, 1)
+
+        if upsideDown:
+            glScale(1, -1, 1)
 
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()

@@ -5,6 +5,7 @@ from wx.lib.buttons import GenToggleButton
 class TopBarButton(GenToggleButton):
     def __init__(self, parent, label, size=None):
         super(TopBarButton, self).__init__(parent, label=label, style=wx.BORDER_NONE, size=size)
+        self.SetBackgroundColour((214, 214, 214))
         f = self.GetFont()
         self._boldFont = wx.Font(f.PointSize, f.Family, f.Style, wx.FONTWEIGHT_BOLD, False, f.FaceName)
         self._downColor = (57, 163, 213)

@@ -4,21 +4,22 @@ import sys
 import numpy
 
 from wx import glcanvas
-import OpenGL
-#OpenGL.UNSIGNED_BYTE_IMAGES_AS_STRING = True
 from OpenGL.GL import *
 from OpenGL.GL.framebufferobjects import *
 
 """
 The OpenGLPanel is a tricky beast.
 
-On Windows, most is fine and ok. We need to handle the EVT_ERASE_BACKGROUND to prevent flickering.
+On Windows, most is fine and ok. But we do get some flickering of panels on top of the GLCanvas.
 
 On Linux and MacOS we have the problem that we cannot draw normal widgets on top of a wx.GLCanvas.
     So we need to draw the OpenGL information to a background buffer, and render that buffer into a normal wxPanel.
+
+
+An alternative solution is to have floating borderless dialogs on top of of the GLPanel.
 """
 
-if False:
+if True:
     class OpenGLPanelBase(glcanvas.GLCanvas):
         def __init__(self, parent):
             attribList = (glcanvas.WX_GL_RGBA, glcanvas.WX_GL_DOUBLEBUFFER, glcanvas.WX_GL_DEPTH_SIZE, 24, glcanvas.WX_GL_STENCIL_SIZE, 8, 0)
@@ -43,6 +44,9 @@ if False:
 
         def _refresh(self):
             self.Refresh()
+
+        def isUpsideDown(self):
+            return False
 else:
     class RenderGLPanel(glcanvas.GLCanvas):
         def __init__(self, parent):
@@ -125,6 +129,10 @@ else:
 
         def _refresh(self):
             self._renderPanel.Refresh()
+
+        def isUpsideDown(self):
+            return True
+
 
 class OpenGLPanel(OpenGLPanelBase):
     def __init__(self, parent):

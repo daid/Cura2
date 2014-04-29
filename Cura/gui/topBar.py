@@ -17,6 +17,8 @@ class TopBar(wx.Panel):
         self._settingsButton = TopBarButton(self, 'Settings')
         self._helpButton = TopBarButton(self, 'Help')
 
+        self.SetBackgroundColour((214, 214, 214))
+
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(wx.StaticBitmap(self, bitmap=getBitmap('small_logo.png')), 0, flag=wx.EXPAND)
         sizer.Add(wx.Panel(self, size=(100, 1)), 0, flag=wx.EXPAND)
@@ -36,7 +38,7 @@ class TopBar(wx.Panel):
         sizer.Add(wx.Panel(self, size=(10, 1)), 0, flag=wx.EXPAND)
         sizer.Add(wx.StaticText(self, label='View settings'), 0, flag=wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(wx.Panel(self, size=(10, 1)), 0, flag=wx.EXPAND)
-        sizer.Add(wx.ComboBox(self), 0, flag=wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(wx.ComboBox(self, style=wx.CB_DROPDOWN|wx.CB_READONLY), 0, flag=wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(wx.Panel(self, size=(10, 1)), 0, flag=wx.EXPAND)
         sizer.Add(wx.StaticBitmap(self, bitmap=getBitmap('top_bar_line.png')), 0, flag=wx.EXPAND)
         sizer.Add(self._settingsButton, 0, flag=wx.ALIGN_CENTER_VERTICAL)

@@ -45,7 +45,7 @@ class SettingCategory(object):
     def getIcon(self):
         return self._icon
 
-    def __lt__(self, other):
+    def __cmp__(self, other):
         return self._order - other._order
 
     def getSettings(self):
@@ -55,6 +55,9 @@ class SettingCategory(object):
                 settings.append(s)
                 settings += s.getSettings()
         return settings
+
+    def __repr__(self):
+        return '<SettingCategory: %s %d>' % (self._key, self._order)
 
 
 class Setting(object):
