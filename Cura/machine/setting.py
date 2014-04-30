@@ -105,6 +105,14 @@ class Setting(object):
     def isVisible(self):
         return self._visible
 
+    def allChildrenVisible(self):
+        if len(self._child_settings) < 1:
+            return False
+        for c in self._child_settings:
+            if not c.isVisible() and not c.allChildrenVisible():
+                return False
+        return True
+
     def setLabel(self, label, tooltip=''):
         self._label = label
         self._tooltip = tooltip
@@ -169,3 +177,6 @@ class Setting(object):
                 settings.append(s)
                 settings += s.getSettings()
         return settings
+
+    def __repr__(self):
+        return '<Setting: %s>' % (self._key)

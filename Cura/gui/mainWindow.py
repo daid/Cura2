@@ -1,48 +1,11 @@
 import wx
 
+from Cura.gui.floatSizer import FloatSizer
+from Cura.gui.floatSizer import FloatingPanel
 from Cura.gui.openGLPanel import OpenGLPanel
 from Cura.gui.profilePanel import ProfilePanel
 from Cura.gui.settingPanel import SettingPanel
 from Cura.gui.topBar import TopBar
-
-
-class FloatSizer(wx.PySizer):
-    def __init__(self):
-        wx.PySizer.__init__(self)
-
-    def CalcMin(self):
-        return wx.Size(1, 1)
-
-    def RecalcSizes(self):
-        size = self.GetSize()
-        for item in self.GetChildren():
-            itemSize = item.CalcMin()
-            data = item.GetUserData()
-
-            if 'width' in data:
-                itemSize[0] = size[0] * data['width']
-            if 'height' in data:
-                itemSize[1] = size[1] * data['height']
-
-            x = (size[0] - itemSize[0]) / 2
-            y = (size[1] - itemSize[1]) / 2
-
-            if 'left' in data:
-                x = data['left']
-            if 'top' in data:
-                y = data['top']
-            if 'right' in data:
-                if isinstance(data['right'], wx.Window):
-                    x = data['right'].GetPosition()[0] - itemSize[0]
-                else:
-                    x = size[0] - itemSize[0] - data['right']
-            if 'bottom' in data:
-                if isinstance(data['bottom'], wx.Window):
-                    y = data['bottom'].GetPosition()[1] - itemSize[1]
-                else:
-                    y = size[1] - itemSize[1] - data['bottom']
-
-            item.SetDimension((x, y), itemSize)
 
 
 class MainOpenGLView(OpenGLPanel):
@@ -68,9 +31,9 @@ class MainOpenGLView(OpenGLPanel):
         self._app.getView().deltaZoom(delta)
 
 
-class NotificationPanel(wx.Panel):
+class NotificationPanel(FloatingPanel):
     def __init__(self, parent):
-        super(NotificationPanel, self).__init__(parent, style=wx.SIMPLE_BORDER)
+        super(NotificationPanel, self).__init__(parent)
         self.SetBackgroundColour((160, 160, 160))
         self._title = wx.StaticText(self, label='Big and bold')
         self._info = wx.StaticText(self, label='Small and informative information,\nwhich can span multiple lines.')
@@ -98,11 +61,12 @@ class MainWindow(wx.Frame):
         self._topBar = TopBar(self._mainView, app)
         self._app.getView().setOpenGLWindow(self._mainView)
 
-        self._fileBrowser = wx.Panel(self._mainView)
+        self._fileBrowser = FloatingPanel(self._mainView)
         self._fileBrowser.SetSize((185, 400))
         self._fileBrowser.SetBackgroundColour(wx.GREEN)
+        self._fileBrowser.Show()
 
-        self._toolsPanel = wx.Panel(self._mainView)
+        self._toolsPanel = FloatingPanel(self._mainView)
         self._toolsPanel.SetSize((165, 54))
         self._toolsPanel.SetBackgroundColour(wx.BLUE)
 
@@ -116,13 +80,16 @@ class MainWindow(wx.Frame):
         self._mainSizer.Add(self._mainView, 1, wx.EXPAND)
         self.SetSizer(self._mainSizer)
 
-        self._floatSizer = FloatSizer()
+        self._floatSizer = FloatSizer(self)
         self._floatSizer.Add(self._toolsPanel, userData={'top': 0})
         self._floatSizer.Add(self._topBar, userData={'top': 0, 'width': 1.0})
         self._floatSizer.Add(self._fileBrowser, userData={'left': 0, 'top': 72})
         self._floatSizer.Add(self._printProfilePanel, userData={'right': 0, 'top': 72})
         self._floatSizer.Add(self._notification, userData={'bottom': 32})
         self._mainView.SetSizer(self._floatSizer)
+        self.SetMinSize((300, 300))
+
+        self.Bind(wx.EVT_MOVE, self._onMove)
 
     def closeSettings(self):
         if self._settingsPanel is not None:
@@ -137,4 +104,7 @@ class MainWindow(wx.Frame):
 
         self._settingsPanel = SettingPanel(self._mainView, self._app, category)
         self._floatSizer.Add(self._settingsPanel, userData={'right': self._printProfilePanel, 'top': 72 + categoryButton.GetPosition()[1]})
+        self._mainView.Layout()
+
+    def _onMove(self, e):
         self._mainView.Layout()

@@ -1,8 +1,11 @@
 import wx
+
+from Cura.gui.floatSizer import FloatingPanel
 from Cura.gui.widgets.topBarButton import TopBarButton
 from Cura.resources import getBitmap
 
-class TopBar(wx.Panel):
+
+class TopBar(FloatingPanel):
     def __init__(self, parent, app):
         super(TopBar, self).__init__(parent)
         self._app = app

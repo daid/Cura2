@@ -1,11 +1,12 @@
 import wx
 
+from Cura.gui.floatSizer import FloatingPanel
 from Cura.gui.widgets.innerTitleBar import InnerTitleBar
 
 
-class SettingPanel(wx.Panel):
+class SettingPanel(FloatingPanel):
     def __init__(self, parent, app, category):
-        super(SettingPanel, self).__init__(parent, style=wx.SIMPLE_BORDER, size=(0, 0))
+        super(SettingPanel, self).__init__(parent)
         self._app = app
 
         sizer = wx.GridBagSizer(2, 2)
@@ -13,6 +14,9 @@ class SettingPanel(wx.Panel):
         n = 1
         for s in category.getSettings():
             if not s.isVisible():
+                continue
+            if s.allChildrenVisible():
+                # Do not show a setting when all it's child settings are visible, as this setting value is overruled by all the child settings.
                 continue
             flag = wx.EXPAND
             if s.getType() == 'float' or s.getType() == 'int':

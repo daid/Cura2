@@ -1,12 +1,13 @@
 import wx
 
+from Cura.gui.floatSizer import FloatingPanel
 from Cura.gui.widgets.profileCategoryButton import ProfileCategoryButton
 from Cura.gui.widgets.innerTitleBar import InnerTitleBar
 
 
-class ProfilePanel(wx.Panel):
+class ProfilePanel(FloatingPanel):
     def __init__(self, parent, app):
-        super(ProfilePanel, self).__init__(parent, style=wx.SIMPLE_BORDER)
+        super(ProfilePanel, self).__init__(parent)
 
         self._app = app
         self._categoryButtons = []
@@ -17,7 +18,7 @@ class ProfilePanel(wx.Panel):
         n = 0
         for c in self._app.getMachine().getSettingCategories():
             if c.isVisible():
-                b = ProfileCategoryButton(self, c.getLabel())
+                b = ProfileCategoryButton(self, c.getLabel(), c.getIcon())
                 b.category = c
                 sizer.Add(b, flag=wx.EXPAND)
                 b.Bind(wx.EVT_BUTTON, self.onCategoryButton)
@@ -27,8 +28,8 @@ class ProfilePanel(wx.Panel):
                 if n % 4 == 0:
                     sizer.Add(wx.StaticLine(self), flag=wx.EXPAND)
 
-        self._pluginsButton = ProfileCategoryButton(self, 'Plugins')
-        self._loadProfileButton = ProfileCategoryButton(self, 'Load profile')
+        self._pluginsButton = ProfileCategoryButton(self, 'Plugins', 'icon_plugin.png')
+        self._loadProfileButton = ProfileCategoryButton(self, 'Load profile', 'icon_load_profile.png')
         self._pluginsButton.Bind(wx.EVT_BUTTON, self.onPluginButton)
         self._loadProfileButton.Bind(wx.EVT_BUTTON, self.onLoadProfileButton)
         sizer.Add(self._pluginsButton, flag=wx.EXPAND)

@@ -18,7 +18,6 @@ class FDMPrinter(printer3D.Printer3D):
 
         self.addSetting('resolution', Setting('shell_thickness', 0.8, 'float'))
         self.addSetting('resolution', Setting('sparse_infill_density', 20.0, 'float'))
-        self.addSetting('resolution', Setting('spiralize', False, 'bool'))
 
         self.addSetting('shell_thickness', Setting('wall_thickness', 0.8, 'float'))
         self.addSetting('wall_thickness', Setting('wall_line_count', 2, 'int'))
@@ -82,6 +81,9 @@ class FDMPrinter(printer3D.Printer3D):
         self.addSetting('cool', Setting('cool_min_layer_time', 5.0, 'float'))
         self.addSetting('cool', Setting('cool_min_speed', 10.0, 'float'))
         self.addSetting('cool', Setting('cool_lift_head', False, 'bool'))
+
+        self.addSettingCategory(SettingCategory('blackmagic', order=100).setLabel('Black Magic'))
+        self.addSetting('blackmagic', Setting('spiralize', False, 'bool'))
 
         size = self.getSize()
         ret = numpy.array([[-size[0]/2,-size[1]/2],[size[0]/2,-size[1]/2],[size[0]/2, size[1]/2], [-size[0]/2, size[1]/2]], numpy.float32)
