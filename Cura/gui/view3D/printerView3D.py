@@ -10,7 +10,6 @@ class PrinterView3D(View3D):
     def __init__(self):
         super(PrinterView3D, self).__init__()
 
-        self.addRenderer(MachineRenderer())
         printable_object_renderer = PrintableObjectRenderer()
         self.addRenderer(printable_object_renderer, True)
         selection_renderer = SelectionRenderer()

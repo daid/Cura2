@@ -1,3 +1,4 @@
+import wx
 import numpy
 import os
 
@@ -5,6 +6,7 @@ from OpenGL.GL import *
 from OpenGL.GL import shaders
 from ctypes import c_void_p
 from Cura.resources import getResourcePath
+from Cura.resources import getBitmap
 
 legacyMode = False
 
@@ -12,29 +14,48 @@ legacyMode = False
 class GLShader(object):
     def __init__(self, vertexProgram=None, fragmentProgram=None, filename=None):
         super(GLShader, self).__init__()
+
         if filename is not None:
-            vertexProgram = ''
-            fragmentProgram = ''
-            type = 'BOTH'
-            for line in open(os.path.join(getResourcePath('shaders'), filename), "r"):
-                if line.startswith('--'):
-                    type = line[2:].strip()
-                if type == 'BOTH':
-                    vertexProgram += line
-                    fragmentProgram += line
-                elif type == 'VERTEX':
-                    vertexProgram += line
-                elif type == 'FRAGMENT':
-                    fragmentProgram += line
+            self._filename = filename
+            self._filetime = os.stat(os.path.join(getResourcePath('shaders'), filename)).st_mtime
+            self._loadFromFile(filename)
+        else:
+            self._filename = None
+            self._vertexString = vertexProgram
+            self._fragmentString = fragmentProgram
+        self._program = None
+
+    def _loadFromFile(self, filename):
+        vertexProgram = ''
+        fragmentProgram = ''
+        type = 'BOTH'
+        for line in open(os.path.join(getResourcePath('shaders'), filename), "r"):
+            if line.startswith('--'):
+                type = line[2:].strip()
+                continue
+            if type == 'BOTH':
+                vertexProgram += line
+                fragmentProgram += line
+            elif type == 'VERTEX':
+                vertexProgram += line
+            elif type == 'FRAGMENT':
+                fragmentProgram += line
         self._vertexString = vertexProgram
         self._fragmentString = fragmentProgram
 
     def bind(self):
+        if self._filename is not None:
+            if self._filetime != os.stat(os.path.join(getResourcePath('shaders'), self._filename)).st_mtime:
+                self.release()
+                self._loadFromFile(self._filename)
+
         if self._program is None and self._vertexString is not None:
+            vertexString = self._vertexString
+            fragmentString = self._fragmentString
+            self._vertexString = None
             try:
-                vertexShader = shaders.compileShader(self._vertexString, GL_VERTEX_SHADER)
-                fragmentShader = shaders.compileShader(self._fragmentString, GL_FRAGMENT_SHADER)
-                self._vertexString = None
+                vertexShader = shaders.compileShader(vertexString, GL_VERTEX_SHADER)
+                fragmentShader = shaders.compileShader(fragmentString, GL_FRAGMENT_SHADER)
 
                 #shader.compileProgram tries to return the shader program as a overloaded int. But the return value of a shader does not always fit in a int (needs to be a long). So we do raw OpenGL calls.
                 # This is to ensure that this works on intel GPU's
@@ -46,7 +67,7 @@ class GLShader(object):
                 # Validation has to occur *after* linking
                 glValidateProgram(self._program)
                 if glGetProgramiv(self._program, GL_VALIDATE_STATUS) == GL_FALSE:
-                    raise RuntimeError("Validation failure: %s"%(glGetProgramInfoLog(self._program)))
+                    raise RuntimeError("Validation failure: %s" % (glGetProgramInfoLog(self._program)))
                 if glGetProgramiv(self._program, GL_LINK_STATUS) == GL_FALSE:
                     raise RuntimeError("Link failure: %s" % (glGetProgramInfoLog(self._program)))
                 glDeleteShader(vertexShader)
@@ -139,6 +160,46 @@ class VertexRenderer(object):
             for info in self._buffers:
                 glDeleteBuffers(1, [info['buffer']])
             self._buffers = None
+
+
+class GLTexture(object):
+    def __init__(self, filename, filter='linear'):
+        self._texture = None
+        self._filename = filename
+        self._filter = filter
+
+    def bind(self):
+        if self._texture is None:
+            self._texture = glGenTextures(1)
+            glBindTexture(GL_TEXTURE_2D, self._texture)
+            if self._filter == 'linear':
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+            else:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+            img = wx.ImageFromBitmap(getBitmap(self._filename))
+            rgbData = img.GetData()
+            alphaData = img.GetAlphaData()
+            if alphaData is not None:
+                data = ''
+                for i in xrange(0, len(alphaData)):
+                    data += rgbData[i * 3:i * 3 + 3] + alphaData[i]
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.GetWidth(), img.GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+            else:
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.GetWidth(), img.GetHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, rgbData)
+            glBindTexture(GL_TEXTURE_2D, 0)
+
+        glEnable(GL_TEXTURE_2D)
+        glBindTexture(GL_TEXTURE_2D, self._texture)
+
+    def unbind(self):
+        glBindTexture(GL_TEXTURE_2D, 0)
+
+    def release(self):
+        if self._texture is not None:
+            glDeleteTextures(1, [self._texture])
+            self._texture = None
 
 def unproject(winx, winy, winz, modelMatrix, projMatrix, viewport):
     """

@@ -16,6 +16,7 @@ def loadMeshes(filename):
     volume = mesh.newVolume()
 
     vertexList = []
+    normalList = []
     faceList = []
 
     f = open(filename, "r")
@@ -24,11 +25,16 @@ def loadMeshes(filename):
         if len(parts) < 1:
             continue
         if parts[0] == 'v':
-            vertexList.append([float(parts[1]), float(parts[2]), float(parts[3])])
+            vertexList.append([float(parts[1]), -float(parts[3]), float(parts[2])])
+        if parts[0] == 'vn':
+            normalList.append([float(parts[1]), -float(parts[3]), float(parts[2])])
         if parts[0] == 'f':
-            parts = map(lambda p: p.split('/')[0], parts)
+            parts = map(lambda p: p.split('/'), parts)
             for idx in xrange(1, len(parts)-2):
-                faceList.append([int(parts[1]), int(parts[idx+1]), int(parts[idx+2])])
+                data = [int(parts[1][0]), int(parts[idx+1][0]), int(parts[idx+2][0])]
+                if len(parts[1]) > 2:
+                    data += [int(parts[1][2]), int(parts[idx+1][2]), int(parts[idx+2][2])]
+                faceList.append(data)
     f.close()
 
     volume._prepareFaceCount(len(faceList))
@@ -43,6 +49,29 @@ def loadMeshes(filename):
         if k < 0 or k >= len(vertexList):
             k = 0
         volume._addFace(vertexList[i][0], vertexList[i][1], vertexList[i][2], vertexList[j][0], vertexList[j][1], vertexList[j][2], vertexList[k][0], vertexList[k][1], vertexList[k][2])
-
     volume.calculateNormals()
+
+    if len(normalList) > 0:
+        n = 0
+        for f in faceList:
+            if len(f) > 3:
+                i = f[3] - 1
+                j = f[4] - 1
+                k = f[5] - 1
+                if i < 0 or i >= len(normalList):
+                    i = 0
+                if j < 0 or j >= len(normalList):
+                    j = 0
+                if k < 0 or k >= len(normalList):
+                    k = 0
+                volume.vertexData[n][3] = normalList[i][0]
+                volume.vertexData[n][4] = normalList[i][1]
+                volume.vertexData[n][5] = normalList[i][2]
+                volume.vertexData[n+1][3] = normalList[j][0]
+                volume.vertexData[n+1][4] = normalList[j][1]
+                volume.vertexData[n+1][5] = normalList[j][2]
+                volume.vertexData[n+2][3] = normalList[k][0]
+                volume.vertexData[n+2][4] = normalList[k][1]
+                volume.vertexData[n+2][5] = normalList[k][2]
+            n += 3
     return [mesh]

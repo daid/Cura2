@@ -5,7 +5,8 @@ from Cura.gui.floatSizer import FloatingPanel
 from Cura.gui.openGLPanel import OpenGLPanel
 from Cura.gui.profilePanel import ProfilePanel
 from Cura.gui.settingPanel import SettingPanel
-from Cura.gui.topBar import TopBar
+from Cura.gui.topBar import TopBarLeft
+from Cura.gui.topBar import TopBarRight
 
 
 class MainOpenGLView(OpenGLPanel):
@@ -58,7 +59,8 @@ class MainWindow(wx.Frame):
 
         self._mainView = MainOpenGLView(self, app)
         self._settingsPanel = None
-        self._topBar = TopBar(self._mainView, app)
+        self._topBarLeft = TopBarLeft(self._mainView, app)
+        self._topBarRight = TopBarRight(self._mainView, app)
         self._app.getView().setOpenGLWindow(self._mainView)
 
         self._fileBrowser = FloatingPanel(self._mainView)
@@ -82,7 +84,8 @@ class MainWindow(wx.Frame):
 
         self._floatSizer = FloatSizer(self)
         self._floatSizer.Add(self._toolsPanel, userData={'top': 0})
-        self._floatSizer.Add(self._topBar, userData={'top': 0, 'width': 1.0})
+        self._floatSizer.Add(self._topBarLeft, userData={'top': 0, 'left': 0, 'width': 0.5})
+        self._floatSizer.Add(self._topBarRight, userData={'top': 0, 'right': 0, 'width': 0.5})
         self._floatSizer.Add(self._fileBrowser, userData={'left': 0, 'top': 72})
         self._floatSizer.Add(self._printProfilePanel, userData={'right': 0, 'top': 72})
         self._floatSizer.Add(self._notification, userData={'bottom': 32})

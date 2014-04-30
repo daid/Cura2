@@ -39,6 +39,7 @@ class SettingPanel(FloatingPanel):
                 print 'Unknown settings type:', s.getType()
                 ctrl = wx.TextCtrl(self, value=s.getValue())
 
+            ctrl.setting = s
             sizer.Add(wx.Panel(self, size=(10, 10)), pos=(n, 0), span=(1, 1))
             sizer.Add(wx.StaticText(self, label=s.getLabel()), pos=(n, 1), span=(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
             sizer.Add(ctrl, pos=(n, 2), span=(1, 1), flag=flag)
@@ -53,7 +54,8 @@ class SettingPanel(FloatingPanel):
         self.SetSizer(sizer)
 
     def OnSettingChange(self, e):
-        pass
+        ctrl = e.GetEventObject()
+        ctrl.setting.setValue(ctrl.GetValue())
 
     def OnMouseEnter(self, e):
         pass

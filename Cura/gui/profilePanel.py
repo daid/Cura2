@@ -13,7 +13,7 @@ class ProfilePanel(FloatingPanel):
         self._categoryButtons = []
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(InnerTitleBar(self, 'Print profile'), flag=wx.EXPAND)
+        sizer.Add(InnerTitleBar(self, 'Profile'), flag=wx.EXPAND)
 
         n = 0
         for c in self._app.getMachine().getSettingCategories():
