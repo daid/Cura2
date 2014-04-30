@@ -1,9 +1,87 @@
 import numpy
+import os
 
 from OpenGL.GL import *
+from OpenGL.GL import shaders
 from ctypes import c_void_p
+from Cura.resources import getResourcePath
 
 legacyMode = False
+
+
+class GLShader(object):
+    def __init__(self, vertexProgram=None, fragmentProgram=None, filename=None):
+        super(GLShader, self).__init__()
+        if filename is not None:
+            vertexProgram = ''
+            fragmentProgram = ''
+            type = 'BOTH'
+            for line in open(os.path.join(getResourcePath('shaders'), filename), "r"):
+                if line.startswith('--'):
+                    type = line[2:].strip()
+                if type == 'BOTH':
+                    vertexProgram += line
+                    fragmentProgram += line
+                elif type == 'VERTEX':
+                    vertexProgram += line
+                elif type == 'FRAGMENT':
+                    fragmentProgram += line
+        self._vertexString = vertexProgram
+        self._fragmentString = fragmentProgram
+
+    def bind(self):
+        if self._program is None and self._vertexString is not None:
+            try:
+                vertexShader = shaders.compileShader(self._vertexString, GL_VERTEX_SHADER)
+                fragmentShader = shaders.compileShader(self._fragmentString, GL_FRAGMENT_SHADER)
+                self._vertexString = None
+
+                #shader.compileProgram tries to return the shader program as a overloaded int. But the return value of a shader does not always fit in a int (needs to be a long). So we do raw OpenGL calls.
+                # This is to ensure that this works on intel GPU's
+                # self._program = shaders.compileProgram(self._vertexProgram, self._fragmentProgram)
+                self._program = glCreateProgram()
+                glAttachShader(self._program, vertexShader)
+                glAttachShader(self._program, fragmentShader)
+                glLinkProgram(self._program)
+                # Validation has to occur *after* linking
+                glValidateProgram(self._program)
+                if glGetProgramiv(self._program, GL_VALIDATE_STATUS) == GL_FALSE:
+                    raise RuntimeError("Validation failure: %s"%(glGetProgramInfoLog(self._program)))
+                if glGetProgramiv(self._program, GL_LINK_STATUS) == GL_FALSE:
+                    raise RuntimeError("Link failure: %s" % (glGetProgramInfoLog(self._program)))
+                glDeleteShader(vertexShader)
+                glDeleteShader(fragmentShader)
+            except RuntimeError, e:
+                print str(e)
+                self._program = None
+        if self._program is not None:
+            shaders.glUseProgram(self._program)
+
+    def unbind(self):
+        shaders.glUseProgram(0)
+
+    def release(self):
+        if self._program is not None:
+            glDeleteProgram(self._program)
+            self._program = None
+
+    def setUniform(self, name, value):
+        if self._program is not None:
+            if type(value) is float:
+                glUniform1f(glGetUniformLocation(self._program, name), value)
+            elif type(value) is numpy.matrix:
+                glUniformMatrix3fv(glGetUniformLocation(self._program, name), 1, False, value.getA().astype(numpy.float32))
+            else:
+                print 'Unknown type for setUniform: %s' % (str(type(value)))
+
+    def isValid(self):
+        return self._program is not None
+
+    def getVertexShader(self):
+        return self._vertexString
+
+    def getFragmentShader(self):
+        return self._fragmentString
 
 
 class VertexRenderer(object):
@@ -56,6 +134,11 @@ class VertexRenderer(object):
             glDisableClientState(GL_VERTEX_ARRAY)
             glDisableClientState(GL_NORMAL_ARRAY)
 
+    def release(self):
+        if not legacyMode and self._buffers is not None:
+            for info in self._buffers:
+                glDeleteBuffers(1, [info['buffer']])
+            self._buffers = None
 
 def unproject(winx, winy, winz, modelMatrix, projMatrix, viewport):
     """

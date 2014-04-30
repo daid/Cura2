@@ -4,8 +4,6 @@ from Cura.gui.view3D.renderer import Renderer
 from Cura.resources import getMesh
 from Cura.gui import openGLUtils
 
-import OpenGL
-#OpenGL.ERROR_CHECKING = False
 from OpenGL.GL import *
 
 
@@ -16,6 +14,7 @@ class MachineRenderer(Renderer):
     def __init__(self):
         super(MachineRenderer,self).__init__()
         self._platform_mesh = None
+        self._shader = openGLUtils.GLShader(filename='objectShader.glsl')
 
     def render(self):
         if self.machine is None:

@@ -36,7 +36,7 @@ class NotificationPanel(FloatingPanel):
         super(NotificationPanel, self).__init__(parent)
         self.SetBackgroundColour((160, 160, 160))
         self._title = wx.StaticText(self, label='Big and bold')
-        self._info = wx.StaticText(self, label='Small and informative information,\nwhich can span multiple lines.')
+        self._info = wx.StaticText(self, label='That\'s what she said,\n!!!')
 
         f = self._title.GetFont()
         self._title.SetFont(wx.Font(f.PointSize * 2, f.Family, f.Style, wx.FONTWEIGHT_BOLD, False, f.FaceName))
