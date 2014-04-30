@@ -3,7 +3,7 @@ import wx
 
 class FloatingPanel(wx.Frame):
     def __init__(self, parent):
-        super(FloatingPanel, self).__init__(parent, style=wx.FRAME_FLOAT_ON_PARENT|wx.NO_BORDER|wx.FRAME_NO_TASKBAR)
+        super(FloatingPanel, self).__init__(parent, style=wx.FRAME_FLOAT_ON_PARENT | wx.NO_BORDER | wx.FRAME_NO_TASKBAR | wx.FRAME_SHAPED)
         self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE))
         wx.CallAfter(self.Show)
 
