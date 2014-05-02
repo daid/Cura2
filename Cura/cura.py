@@ -36,6 +36,7 @@ def main():
 
     from gui.app import CuraApp
     CuraApp().MainLoop()
+    CuraApp().finished()
 
 if __name__ == '__main__':
     main()

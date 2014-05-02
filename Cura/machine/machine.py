@@ -91,3 +91,17 @@ class Machine(object):
     def saveSettings(self, filename):
         settingsStorage = ConfigParser()
         settingsStorage.add_section('settings')
+        for cat in self._setting_category_list:
+            for setting in cat.getSettings():
+                settingsStorage.set('settings', setting.getKey(), setting.getValue())
+        with open(filename, "w") as f:
+            settingsStorage.write(f)
+
+    def loadSettings(self, filename):
+        settingsStorage = ConfigParser()
+        settingsStorage.read(filename)
+        if settingsStorage.has_section('settings'):
+            for cat in self._setting_category_list:
+                for setting in cat.getSettings():
+                    if settingsStorage.has_option('settings', setting.getKey()):
+                        setting.setValue(settingsStorage.get('settings', setting.getKey()))

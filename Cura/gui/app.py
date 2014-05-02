@@ -30,9 +30,14 @@ class CuraApp(wx.App):
         self._view.setMachine(self._machine)
         self._scene.setView(self._view)
 
+        self._machine.loadSettings('settings.ini')
+
         self._mainWindow = MainWindow(self)
         self._mainWindow.Show()
         self._mainWindow.Maximize()
+
+    def finished(self):
+        self._machine.saveSettings('settings.ini')
 
     def getMachine(self):
         return self._machine
