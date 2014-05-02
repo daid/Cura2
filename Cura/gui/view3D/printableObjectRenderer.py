@@ -18,6 +18,7 @@ class PrintableObjectRenderer(Renderer):
             mesh = obj.getMesh()
             glPushMatrix()
             offset = obj.getDrawOffset()
+            glTranslatef(obj.getPosition()[0], obj.getPosition()[1], 0)
             glTranslatef(offset[0], offset[1], offset[2])
             colorStrength = 0.8
             if obj.isSelected():

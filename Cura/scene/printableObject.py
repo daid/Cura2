@@ -27,8 +27,6 @@ class PrintableObject(DisplayableObject):
         if '.' in self._name:
             self._name = os.path.splitext(self._name)[0]
         self._mesh = None
-        self._matrix = numpy.identity(3, numpy.float64)
-        self._position = numpy.zeros((2,))
 
         # Mesh information.
         self._vMin = numpy.array([-1, -1, -1], numpy.float32)

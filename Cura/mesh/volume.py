@@ -8,7 +8,8 @@ class MeshVolume(object):
 
     The metaData field is used to associate other data with this volume.
     """
-    def __init__(self):
+    def __init__(self, mesh):
+        self._mesh = mesh
         self.vertexData = None
         self.vertexCount = 0
         self.metaData = {}
@@ -45,3 +46,6 @@ class MeshVolume(object):
         vertexData[::, 1] = normals
         vertexData[::, 3] = normals
         vertexData[::, 5] = normals
+
+    def getMesh(self):
+        return self._mesh

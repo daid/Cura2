@@ -30,6 +30,7 @@ class DisplayableObject(object):
 
     def setPosition(self, new_pos):
         self._position = new_pos
+        self._updated()
 
     def setScene(self, scene):
         self._scene = scene

@@ -5,10 +5,10 @@ import platform
 import os
 
 from Cura.gui.mainWindow import MainWindow
-from Cura.gui.view3D.renderer import Renderer
 from Cura.scene.printer3DScene import Printer3DScene
 from Cura.machine.fdmprinter import FDMPrinter
 from Cura.gui.view3D.printerView3D import PrinterView3D
+from Cura.gui.tools.selectAndMoveTool import SelectAndMoveTool
 
 
 class CuraApp(wx.App):
@@ -18,9 +18,13 @@ class CuraApp(wx.App):
         else:
             super(CuraApp, self).__init__(redirect=False)
 
+        self._toolbox = []
+
         self._machine = FDMPrinter()
         self._scene = Printer3DScene()
         self._view = PrinterView3D()
+
+        self._toolbox.append(SelectAndMoveTool(self))
 
         self._view.setScene(self._scene)
         self._view.setMachine(self._machine)
@@ -41,3 +45,6 @@ class CuraApp(wx.App):
 
     def getMainWindow(self):
         return self._mainWindow
+
+    def getTools(self):
+        return self._toolbox

@@ -14,28 +14,37 @@ class MainOpenGLView(OpenGLPanel):
     def __init__(self, parent, app):
         self._app = app
         super(MainOpenGLView, self).__init__(parent)
-        self.Bind(wx.EVT_LEFT_DOWN, self.onMouseLeftDown)
+        self.Bind(wx.EVT_LEFT_DOWN, self.onMouseDown)
+        self.Bind(wx.EVT_RIGHT_DOWN, self.onMouseDown)
         self.Bind(wx.EVT_MOTION, self.onMouseMotion)
+        self.Bind(wx.EVT_LEFT_UP, self.onMouseUp)
+        self.Bind(wx.EVT_RIGHT_UP, self.onMouseUp)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
+        self._activeTool = None
+        self._mousePos = (0, 0)
 
     def onRender(self):
         self._app.getView().render(self)
 
-    def onMouseLeftDown(self, e):
-        obj = self._app.getView()._selection_renderer.getFocusObject()
-        if obj is None:
-            return
-        obj.setSelected(not obj.isSelected())
+    def onMouseDown(self, e):
+        if self._activeTool is None:
+            for tool in self._app.getTools():
+                if tool.onMouseDown(e.GetX(), e.GetY(), e.GetButton()):
+                    self._activeTool = tool
+        self._mousePos = (e.GetX(), e.GetY())
 
     def onMouseMotion(self, e):
-        self._app.getView().updateMousePos(e.GetX(), self.GetSize().GetHeight() - 1 - e.GetY())
+        self._app.getView().updateMousePos(e.GetX(), e.GetY())
+        if self._activeTool is not None:
+            dx, dy = (e.GetX() - self._mousePos[0], e.GetY() - self._mousePos[1])
+            self._activeTool.onMouseMove(e.GetX(), e.GetY(), dx, dy)
+        self._mousePos = (e.GetX(), e.GetY())
 
-        if e.Dragging():
-            self._app.getView().setYaw(self._app.getView().getYaw() + e.GetX() - self._mouseX)
-            self._app.getView().setPitch(self._app.getView().getPitch() - e.GetY() + self._mouseY)
-        self._mouseX = e.GetX()
-        self._mouseY = e.GetY()
-        self.queueRefresh()
+    def onMouseUp(self, e):
+        if self._activeTool is not None:
+            self._activeTool.onMouseUp(e.GetX(), e.GetY(), e.GetButton())
+        if not e.LeftIsDown() and not e.RightIsDown() and not e.MiddleIsDown():
+            self._activeTool = None
 
     def OnMouseWheel(self, e):
         delta = float(e.GetWheelRotation()) / float(e.GetWheelDelta())
@@ -62,12 +71,16 @@ class NotificationPanel(FloatingPanel):
 
         self._hideTimer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self._onHideTimer, self._hideTimer)
-        self._hideTimer.Start(10000, False)
-
-        #wx.CallAfter(self.Hide)
+        wx.CallAfter(self.Hide)
 
     def _onHideTimer(self, e):
         self.Hide()
+
+    def notify(self, title, message):
+        self._title.SetLabel(title)
+        self._info.SetLabel(message)
+        self.Show()
+        self._hideTimer.Start(10000, False)
 
 
 class FileBrowserPanel(FloatingPanel):

@@ -10,7 +10,7 @@ class Mesh(object):
         self.metaData = {}
 
     def newVolume(self):
-        self._volumes.append(MeshVolume())
+        self._volumes.append(MeshVolume(self))
         return self._volumes[-1]
 
     def getVolumes(self):

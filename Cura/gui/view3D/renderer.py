@@ -9,6 +9,10 @@ class Renderer(object):
         self.active = True
         self.machine = None
         self.scene = None
+        self.view = None
 
     def render(self):
         pass
+
+    def setCurrentFocusRenderObject(self, obj):
+        self.view.setCurrentFocusRenderObject(obj)
