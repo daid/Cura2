@@ -39,8 +39,6 @@ class View3D(object):
 
         machineRenderer = MachineRenderer()
         self.addRenderer(machineRenderer)
-        self._focus_obj = None
-        self._mouse_3D_pos = None
 
     def setViewDirection(self, direction):
         if direction == '3D':
@@ -99,6 +97,9 @@ class View3D(object):
 
     def refresh(self):
         self._openGLWindow.queueRefresh()
+
+    def updateMousePos(self, x, y):
+        pass
 
     def getMouseRay(self, x, y):
         if self._viewport is None:

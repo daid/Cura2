@@ -15,9 +15,6 @@ class SettingPanel(FloatingPanel):
         for s in category.getSettings():
             if not s.isVisible():
                 continue
-            if s.allChildrenVisible():
-                # Do not show a setting when all it's child settings are visible, as this setting value is overruled by all the child settings.
-                continue
             flag = wx.EXPAND
             if s.getType() == 'float' or s.getType() == 'int':
                 ctrl = wx.TextCtrl(self, value=s.getValue())

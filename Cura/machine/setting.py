@@ -51,9 +51,8 @@ class SettingCategory(object):
     def getSettings(self):
         settings = []
         for s in self._settings:
-            if s.isVisible():
-                settings.append(s)
-                settings += s.getSettings()
+            settings.append(s)
+            settings += s.getSettings()
         return settings
 
     def __repr__(self):
@@ -103,13 +102,17 @@ class Setting(object):
         return self
 
     def isVisible(self):
-        return self._visible
+        if not self._visible:
+            return False
+        if self.allChildrenVisible():
+            return False
+        return True
 
     def allChildrenVisible(self):
         if len(self._child_settings) < 1:
             return False
         for c in self._child_settings:
-            if not c.isVisible() and not c.allChildrenVisible():
+            if not c._visible and not c.allChildrenVisible():
                 return False
         return True
 
@@ -173,9 +176,8 @@ class Setting(object):
     def getSettings(self):
         settings = []
         for s in self._child_settings:
-            if s.isVisible():
-                settings.append(s)
-                settings += s.getSettings()
+            settings.append(s)
+            settings += s.getSettings()
         return settings
 
     def __repr__(self):

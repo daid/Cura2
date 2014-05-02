@@ -20,7 +20,7 @@ void main()
 void main()
 {
 	vec3 lightDir = normalize(vec3(gl_LightSource[0].position) - position);
-	float intensity = abs(dot(lightDir, normal));
+	float intensity = abs(dot(lightDir, normalize(normal))) * 0.8;
 	
-	gl_FragColor = gl_Color * intensity;
+	gl_FragColor = vec4(gl_Color.rgb * intensity + vec3(gl_LightModel.ambient), gl_Color.a);
 }

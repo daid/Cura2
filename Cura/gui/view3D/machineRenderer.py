@@ -20,6 +20,7 @@ class MachineRenderer(Renderer):
     def render(self):
         self._backgroundTexture.bind()
         glDisable(GL_DEPTH_TEST)
+        glColor3f(1, 1, 1)
         glPushMatrix()
         glLoadIdentity()
         glBegin(GL_TRIANGLE_FAN)
@@ -55,6 +56,7 @@ class MachineRenderer(Renderer):
             glVertex3f(point[0], point[1], 0.02)
         glEnd()
         self._platformTexture.unbind()
+        glDisable(GL_CULL_FACE)
 
         mesh = getMesh('ultimaker_platform.obj')
         self._shader.bind()
@@ -62,9 +64,9 @@ class MachineRenderer(Renderer):
         glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)
         glEnable(GL_COLOR_MATERIAL)
-        glLightfv(GL_LIGHT0, GL_DIFFUSE, [1,1,1,1])
-        glLightfv(GL_LIGHT0, GL_AMBIENT, [0,0,0,0])
-        glLightfv(GL_LIGHT0, GL_SPECULAR, [0,0,0,0])
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, [0.8, 0.8, 0.8, 1])
+        glLightfv(GL_LIGHT0, GL_AMBIENT, [0, 0, 0, 0])
+        glLightfv(GL_LIGHT0, GL_SPECULAR, [0, 0, 0, 0])
         for v in mesh.getVolumes():
             if 'VertexRenderer' not in v.metaData:
                 v.metaData['VertexRenderer'] = openGLUtils.VertexRenderer(GL_TRIANGLES, v.vertexData)

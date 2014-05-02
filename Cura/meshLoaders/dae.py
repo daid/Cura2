@@ -10,7 +10,7 @@ __copyright__ = "Copyright (C) 2013 David Braam - Released under terms of the AG
 from xml.parsers.expat import ParserCreate
 import os
 
-from Cura.scene import printableObject
+from Cura.mesh.mesh import Mesh
 
 def loadScene(filename):
     loader = daeLoader(filename)

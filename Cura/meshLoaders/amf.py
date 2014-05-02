@@ -15,7 +15,7 @@ try:
 except:
     from xml.etree import ElementTree
 
-from Cura.scene import printableObject
+from Cura.mesh.mesh import Mesh
 
 def loadScene(filename):
     try:

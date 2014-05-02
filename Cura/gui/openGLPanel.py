@@ -6,6 +6,7 @@ import numpy
 from wx import glcanvas
 from OpenGL.GL import *
 from OpenGL.GL.framebufferobjects import *
+from Cura.gui import openGLUtils
 
 """
 The OpenGLPanel is a tricky beast.
@@ -140,6 +141,7 @@ class OpenGLPanel(OpenGLPanelBase):
         self._refreshQueued = False
         self._idleCalled = False
         self._shownError = False
+        self._releaseList = []
 
         wx.EVT_SIZE(self, self._onSize)
         wx.EVT_IDLE(self, self._onIdle)
@@ -165,6 +167,10 @@ class OpenGLPanel(OpenGLPanelBase):
 
     def _onRender(self):
         self._idleCalled = False
+        openGLUtils.contextSource = self
+        for obj in self._releaseList:
+            obj.release()
+        self._releaseList = []
         try:
             self.onRender()
         except:
@@ -181,6 +187,10 @@ class OpenGLPanel(OpenGLPanelBase):
                 traceback.print_exc()
                 wx.CallAfter(wx.MessageBox, errStr, _("3D window error"), wx.OK | wx.ICON_EXCLAMATION)
                 self._shownError = True
+        openGLUtils.contextSource = None
+
+    def addToReleaseList(self, obj):
+        self._releaseList.append(obj)
 
     def onRender(self):
         glClearColor(0.8, 0.8, 0.8, 0.0)

@@ -1,6 +1,7 @@
 import wx
 import numpy
 import os
+import atexit
 
 from OpenGL.GL import *
 from OpenGL.GL import shaders
@@ -9,6 +10,15 @@ from Cura.resources import getResourcePath
 from Cura.resources import getBitmap
 
 legacyMode = False
+shuttingDown = False
+contextSource = None
+
+
+#Register an at-exit function so we do not try to cleanup the OpenGL context on exit. (Window that needs to handle the cleanup could already be destroyed)
+def _death():
+    global shuttingDown
+    shuttingDown = True
+atexit.register(_death)
 
 
 class GLShader(object):
@@ -16,16 +26,17 @@ class GLShader(object):
         super(GLShader, self).__init__()
 
         if filename is not None:
-            self._filename = filename
-            self._filetime = os.stat(os.path.join(getResourcePath('shaders'), filename)).st_mtime
             self._loadFromFile(filename)
         else:
             self._filename = None
             self._vertexString = vertexProgram
             self._fragmentString = fragmentProgram
         self._program = None
+        self._contextSource = None
 
     def _loadFromFile(self, filename):
+        self._filename = filename
+        self._filetime = os.stat(os.path.join(getResourcePath('shaders'), filename)).st_mtime
         vertexProgram = ''
         fragmentProgram = ''
         type = 'BOTH'
@@ -50,6 +61,8 @@ class GLShader(object):
                 self._loadFromFile(self._filename)
 
         if self._program is None and self._vertexString is not None:
+            global contextSource
+            self._contextSource = contextSource
             vertexString = self._vertexString
             fragmentString = self._fragmentString
             self._vertexString = None
@@ -104,6 +117,11 @@ class GLShader(object):
     def getFragmentShader(self):
         return self._fragmentString
 
+    def __del__(self):
+        global shuttingDown
+        if not shuttingDown and self._program is not None:
+            self._contextSource.addToReleaseList(self)
+
 
 class VertexRenderer(object):
     def __init__(self, renderType, vertexData, hasNormals = True):
@@ -126,6 +144,8 @@ class VertexRenderer(object):
             glDisableClientState(GL_NORMAL_ARRAY)
         else:
             if self._buffers is None:
+                global contextSource
+                self._contextSource = contextSource
                 self._buffers = []
                 maxBufferLen = 30000
                 bufferCount = ((len(self._vertexData)-1) / maxBufferLen) + 1
@@ -135,7 +155,7 @@ class VertexRenderer(object):
                     bufferInfo['len'] = maxBufferLen
                     offset = n * maxBufferLen
                     if n == bufferCount - 1:
-                        bufferInfo['len'] = len(self._vertexData) % maxBufferLen
+                        bufferInfo['len'] = ((len(self._vertexData) - 1) % maxBufferLen) + 1
                     glBindBuffer(GL_ARRAY_BUFFER, bufferInfo['buffer'])
                     glBufferData(GL_ARRAY_BUFFER, self._vertexData[offset:offset+bufferInfo['len']], GL_STATIC_DRAW)
                     self._buffers.append(bufferInfo)
@@ -161,15 +181,22 @@ class VertexRenderer(object):
                 glDeleteBuffers(1, [info['buffer']])
             self._buffers = None
 
+    def __del__(self):
+        global shuttingDown
+        if not shuttingDown and self._buffers is not None:
+            self._contextSource.addToReleaseList(self)
 
 class GLTexture(object):
     def __init__(self, filename, filter='linear'):
         self._texture = None
         self._filename = filename
         self._filter = filter
+        self._contextSource = None
 
     def bind(self):
         if self._texture is None:
+            global contextSource
+            self._contextSource = contextSource
             self._texture = glGenTextures(1)
             glBindTexture(GL_TEXTURE_2D, self._texture)
             if self._filter == 'linear':
@@ -200,6 +227,11 @@ class GLTexture(object):
         if self._texture is not None:
             glDeleteTextures(1, [self._texture])
             self._texture = None
+
+    def __del__(self):
+        global shuttingDown
+        if not shuttingDown and self._program is not None:
+            self._contextSource.addToReleaseList(self)
 
 def unproject(winx, winy, winz, modelMatrix, projMatrix, viewport):
     """

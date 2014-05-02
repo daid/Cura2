@@ -1,10 +1,14 @@
 __author__ = 'Jaime van Kessel'
 
+import sys
+import numpy
+if sys.version_info[0] < 3:
+    from ConfigParser import ConfigParser
+else:
+    from configParser import ConfigParser
+
 from Cura.machine.setting import Setting
 from Cura.machine.setting import SettingCategory
-import string
-import numpy
-
 
 class Machine(object):
     """
@@ -83,3 +87,7 @@ class Machine(object):
             return float(eval(value, {}, {}))
         except:
             return 0.0
+
+    def saveSettings(self, filename):
+        settingsStorage = ConfigParser()
+        settingsStorage.add_section('settings')

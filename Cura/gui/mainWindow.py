@@ -1,5 +1,6 @@
 import wx
 
+from Cura.meshLoaders import meshLoader
 from Cura.gui.floatSizer import FloatSizer
 from Cura.gui.floatSizer import FloatingPanel
 from Cura.gui.openGLPanel import OpenGLPanel
@@ -13,11 +14,16 @@ class MainOpenGLView(OpenGLPanel):
     def __init__(self, parent, app):
         self._app = app
         super(MainOpenGLView, self).__init__(parent)
+        self.Bind(wx.EVT_LEFT_DOWN, self.onMouseLeftDown)
         self.Bind(wx.EVT_MOTION, self.onMouseMotion)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
 
     def onRender(self):
         self._app.getView().render(self)
+
+    def onMouseLeftDown(self, e):
+        obj = self._app.getView()._selection_renderer.getFocusObject()
+        obj.setSelected(not obj.isSelected())
 
     def onMouseMotion(self, e):
         if e.Dragging():
@@ -25,6 +31,8 @@ class MainOpenGLView(OpenGLPanel):
             self._app.getView().setPitch(self._app.getView().getPitch() - e.GetY() + self._mouseY)
         self._mouseX = e.GetX()
         self._mouseY = e.GetY()
+        self._app.getView().updateMousePos(e.GetX(), self.GetSize().GetHeight() - 1 - e.GetY())
+        self.queueRefresh()
 
     def OnMouseWheel(self, e):
         delta = float(e.GetWheelRotation()) / float(e.GetWheelDelta())
@@ -52,6 +60,35 @@ class NotificationPanel(FloatingPanel):
         self.Hide()
 
 
+class FileBrowserPanel(FloatingPanel):
+    def __init__(self, parent, app):
+        super(FileBrowserPanel, self).__init__(parent)
+        self._app = app
+        self.SetSize((185, 400))
+        self._loadButton = wx.Button(self, label='Load')
+        self._loadButton.Bind(wx.EVT_BUTTON, self._onLoadFile)
+
+    def _onLoadFile(self, e):
+        dlg = wx.FileDialog(self, _("Open 3D model"), style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST|wx.FD_MULTIPLE)
+
+        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
+        wildcardFilter = "All (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
+        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
+        wildcardFilter += "|Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
+
+        dlg.SetWildcard(wildcardFilter)
+        if dlg.ShowModal() != wx.ID_OK:
+            dlg.Destroy()
+            return
+        filenames = dlg.GetPaths()
+        dlg.Destroy()
+        if len(filenames) < 1:
+            return
+
+        for filename in filenames:
+            self._app.getScene().loadFile(filename)
+
+
 class MainWindow(wx.Frame):
     def __init__(self, app):
         super(MainWindow, self).__init__(None, title='Cura - Pink Unicorn edition')
@@ -63,10 +100,7 @@ class MainWindow(wx.Frame):
         self._topBarRight = TopBarRight(self._mainView, app)
         self._app.getView().setOpenGLWindow(self._mainView)
 
-        self._fileBrowser = FloatingPanel(self._mainView)
-        self._fileBrowser.SetSize((185, 400))
-        self._fileBrowser.SetBackgroundColour(wx.GREEN)
-        self._fileBrowser.Show()
+        self._fileBrowser = FileBrowserPanel(self._mainView, app)
 
         self._toolsPanel = FloatingPanel(self._mainView)
         self._toolsPanel.SetSize((165, 54))

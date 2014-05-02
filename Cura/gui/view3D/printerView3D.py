@@ -10,7 +10,10 @@ class PrinterView3D(View3D):
     def __init__(self):
         super(PrinterView3D, self).__init__()
 
+        self._selection_renderer = SelectionRenderer()
+        self.addRenderer(self._selection_renderer, True)
         printable_object_renderer = PrintableObjectRenderer()
-        self.addRenderer(printable_object_renderer, True)
-        selection_renderer = SelectionRenderer()
-        self.addRenderer(selection_renderer)
+        self.addRenderer(printable_object_renderer)
+
+    def updateMousePos(self, x, y):
+        self._selection_renderer.setMousePos(x, y)
