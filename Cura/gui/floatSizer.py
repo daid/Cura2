@@ -23,7 +23,15 @@ class FloatSizer(wx.PySizer):
             data = item.GetUserData()
 
             if 'width' in data:
-                itemSize[0] = size[0] * data['width']
+                if isinstance(data['width'], wx.Frame):
+                    if 'left' in data:
+                        x, y = self._parent.ScreenToClient(data['width'].GetPosition())
+                        itemSize[0] = x
+                    elif 'right' in data:
+                        x, y = self._parent.ScreenToClient(data['width'].GetPosition())
+                        itemSize[0] = size[0] - x - data['width'].GetSize().GetWidth()
+                else:
+                    itemSize[0] = size[0] * data['width']
             if 'height' in data:
                 itemSize[1] = size[1] * data['height']
 

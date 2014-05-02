@@ -16,6 +16,9 @@ class PrintableObjectRenderer(Renderer):
         self._shader.bind()
         for obj in self.scene.getObjects():
             mesh = obj.getMesh()
+            glPushMatrix()
+            offset = obj.getDrawOffset()
+            glTranslatef(offset[0], offset[1], offset[2])
             colorStrength = 0.8
             if obj.isSelected():
                 colorStrength = 1.0
@@ -32,4 +35,5 @@ class PrintableObjectRenderer(Renderer):
                         v.metaData['VertexRenderer'] = openGLUtils.VertexRenderer(GL_TRIANGLES, v.vertexData)
                     glColor3f(0.5 * colorStrength, 0.5 * colorStrength, 0.5 * colorStrength)
                     v.metaData['VertexRenderer'].render()
+            glPopMatrix()
         self._shader.unbind()

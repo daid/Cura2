@@ -1,6 +1,5 @@
-__author__ = 'Jaime van Kessel'
-
 import os
+import math
 import threading
 
 from Cura.meshLoaders.meshLoader import loadMeshes
@@ -31,6 +30,12 @@ class PrintableObject(DisplayableObject):
         self._matrix = numpy.identity(3, numpy.float64)
         self._position = numpy.zeros((2,))
 
+        # Mesh information.
+        self._vMin = numpy.array([-1, -1, -1], numpy.float32)
+        self._vMax = numpy.array([1, 1, 1], numpy.float32)
+        self._boundarySphere = 1
+        self._drawOffset = numpy.zeros((3,), numpy.float32)
+
     def loadMesh(self, filename):
         self._thread = threading.Thread(target=self._loadMeshThread, args=(filename,))
         self._thread.daemon = True
@@ -40,6 +45,38 @@ class PrintableObject(DisplayableObject):
         self._mesh = None
         mesh = loadMeshes(filename)[0]
         self._mesh = mesh
+        self._updated()
+        self._updateMeshInfo()
+
+    def _updateMeshInfo(self):
+        transformedMin = numpy.array([999999999999,999999999999,999999999999], numpy.float64)
+        transformedMax = numpy.array([-999999999999,-999999999999,-999999999999], numpy.float64)
+        boundarySphere = 0.0
+        for v in self._mesh.getVolumes():
+            vertexData = (numpy.matrix(v.vertexData[::,0:3], copy = False) * numpy.matrix(self._matrix, numpy.float32)).getA()
+            vertexMin = vertexData.min(0)
+            vertexMax = vertexData.max(0)
+            for n in xrange(0, 3):
+                transformedMin[n] = min(transformedMin[n], vertexMin[n])
+                transformedMax[n] = max(transformedMax[n], vertexMax[n])
+        center = (transformedMin + transformedMax) / 2.0
+        for v in self._mesh.getVolumes():
+            vertexData = v.vertexData[::,0:3]
+            centeredData = vertexData - center
+            sphere = math.sqrt(numpy.max(centeredData[:, 0] ** 2 + centeredData[:, 1] ** 2 + centeredData[:, 2] ** 2))
+            boundarySphere = max(boundarySphere, sphere)
+
+        self._vMin = transformedMin
+        self._vMax = transformedMax
+        self._boundarySphere = boundarySphere
+        self._drawOffset = numpy.array([-center[0], -center[1], -transformedMin[2]])
+        self._updated()
+
+    def getSize(self):
+        return self._vMax - self._vMin
 
     def getMesh(self):
         return self._mesh
+
+    def getDrawOffset(self):
+        return self._drawOffset

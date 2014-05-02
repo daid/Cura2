@@ -12,9 +12,9 @@ import os
 
 from Cura.mesh.mesh import Mesh
 
-def loadScene(filename):
+def loadMeshes(filename):
     loader = daeLoader(filename)
-    return [loader.obj]
+    return [loader.mesh]
 
 class daeLoader(object):
     """
@@ -24,8 +24,9 @@ class daeLoader(object):
     Parts of this class can be cleaned up and improved by using more numpy.
     """
     def __init__(self, filename):
-        self.obj = printableObject.printableObject(filename)
-        self.mesh = self.obj._addMesh()
+        self.mesh = Mesh()
+        self.mesh.metaData['filename'] = filename
+        self.volume = self.mesh.newVolume()
 
         r = ParserCreate()
         r.StartElementHandler = self._StartElementHandler
@@ -43,19 +44,19 @@ class daeLoader(object):
         for instance_visual_scene in self._base['collada'][0]['scene'][0]['instance_visual_scene']:
             for node in self._idMap[instance_visual_scene['_url']]['node']:
                 self._ProcessNode1(node)
-        self.mesh._prepareFaceCount(self._faceCount)
+        self.volume._prepareFaceCount(self._faceCount)
         for instance_visual_scene in self._base['collada'][0]['scene'][0]['instance_visual_scene']:
             for node in self._idMap[instance_visual_scene['_url']]['node']:
                 self._ProcessNode2(node)
 
         scale = float(self._base['collada'][0]['asset'][0]['unit'][0]['_meter']) * 1000
-        self.mesh.vertexes *= scale
+        self.volume.vertexData *= scale
         
         self._base = None
         self._cur = None
         self._idMap = None
         
-        self.obj._postProcessAfterLoad()
+        self.volume.calculateNormals()
 
     def _ProcessNode1(self, node):
         if 'node' in node:
@@ -132,13 +133,13 @@ class daeLoader(object):
                             y2 = positionList[idx2*3+1]
                             z2 = positionList[idx2*3+2]
                             if matrix is not None:
-                                self.mesh._addFace(
+                                self.volume._addFace(
                                     x0 * matrix[0] + y0 * matrix[1] + z0 * matrix[2] + matrix[3], x0 * matrix[4] + y0 * matrix[5] + z0 * matrix[6] + matrix[7], x0 * matrix[8] + y0 * matrix[9] + z0 * matrix[10] + matrix[11],
                                     x1 * matrix[0] + y1 * matrix[1] + z1 * matrix[2] + matrix[3], x1 * matrix[4] + y1 * matrix[5] + z1 * matrix[6] + matrix[7], x1 * matrix[8] + y1 * matrix[9] + z1 * matrix[10] + matrix[11],
                                     x2 * matrix[0] + y2 * matrix[1] + z2 * matrix[2] + matrix[3], x2 * matrix[4] + y2 * matrix[5] + z2 * matrix[6] + matrix[7], x2 * matrix[8] + y2 * matrix[9] + z2 * matrix[10] + matrix[11]
                                 )
                             else:
-                                self.mesh._addFace(x0, y0, z0, x1, y1, z1, x2, y2, z2)
+                                self.volume._addFace(x0, y0, z0, x1, y1, z1, x2, y2, z2)
         if 'instance_node' in node:
             for instance_node in node['instance_node']:
                 self._ProcessNode2(self._idMap[instance_node['_url']], matrix)

@@ -20,8 +20,13 @@ class SelectionRenderer(Renderer):
             oldClearColor = glGetFloatv(GL_COLOR_CLEAR_VALUE)
             glClearColor(1, 1, 1, 1)
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+            glDisable(GL_LIGHTING)
+            glDisable(GL_BLEND)
             objIdx = 0
             for obj in self.scene.getObjects():
+                glPushMatrix()
+                offset = obj.getDrawOffset()
+                glTranslatef(offset[0], offset[1], offset[2])
                 mesh = obj.getMesh()
                 if mesh is not None:
                     volumeIdx = 0
@@ -41,13 +46,14 @@ class SelectionRenderer(Renderer):
                         v.metaData['VertexRenderer'].render()
                         volumeIdx += 1
                 objIdx += 1
+                glPopMatrix()
 
-            n = glReadPixels(self._mousePos[0], self._mousePos[1], 1, 1, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8)[0][0] >> 8
+            n = glReadPixels(self._mousePos[0], self._mousePos[1], 1, 1, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8)[0][0]
             f = glReadPixels(self._mousePos[0], self._mousePos[1], 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)[0][0]
-            if (n >> 16) == 0:
-                self._focusObject = self.scene.getObjects()[n & 0xFF]
+            if (n >> 24) == 0 and (n & 0xFF) == 255:
+                self._focusObject = self.scene.getObjects()[(n >> 8) & 0xFF]
                 if self._focusObject.getMesh() is not None:
-                    self._focusVolume = self._focusObject.getMesh().getVolumes()[(n >> 8) & 0xFF]
+                    self._focusVolume = self._focusObject.getMesh().getVolumes()[(n >> 16) & 0xFF]
                 else:
                     self._focusVolume = None
             else:

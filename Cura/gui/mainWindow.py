@@ -23,15 +23,18 @@ class MainOpenGLView(OpenGLPanel):
 
     def onMouseLeftDown(self, e):
         obj = self._app.getView()._selection_renderer.getFocusObject()
+        if obj is None:
+            return
         obj.setSelected(not obj.isSelected())
 
     def onMouseMotion(self, e):
+        self._app.getView().updateMousePos(e.GetX(), self.GetSize().GetHeight() - 1 - e.GetY())
+
         if e.Dragging():
             self._app.getView().setYaw(self._app.getView().getYaw() + e.GetX() - self._mouseX)
             self._app.getView().setPitch(self._app.getView().getPitch() - e.GetY() + self._mouseY)
         self._mouseX = e.GetX()
         self._mouseY = e.GetY()
-        self._app.getView().updateMousePos(e.GetX(), self.GetSize().GetHeight() - 1 - e.GetY())
         self.queueRefresh()
 
     def OnMouseWheel(self, e):
@@ -57,6 +60,13 @@ class NotificationPanel(FloatingPanel):
         sizer.Add(self._info, flag=wx.BOTTOM|wx.LEFT|wx.RIGHT, border=16)
         self.SetSizer(sizer)
 
+        self._hideTimer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self._onHideTimer, self._hideTimer)
+        self._hideTimer.Start(10000, False)
+
+        #wx.CallAfter(self.Hide)
+
+    def _onHideTimer(self, e):
         self.Hide()
 
 
@@ -118,8 +128,8 @@ class MainWindow(wx.Frame):
 
         self._floatSizer = FloatSizer(self)
         self._floatSizer.Add(self._toolsPanel, userData={'top': 0})
-        self._floatSizer.Add(self._topBarLeft, userData={'top': 0, 'left': 0, 'width': 0.5})
-        self._floatSizer.Add(self._topBarRight, userData={'top': 0, 'right': 0, 'width': 0.5})
+        self._floatSizer.Add(self._topBarLeft, userData={'top': 0, 'left': 0, 'width': self._toolsPanel})
+        self._floatSizer.Add(self._topBarRight, userData={'top': 0, 'right': 0, 'width': self._toolsPanel})
         self._floatSizer.Add(self._fileBrowser, userData={'left': 0, 'top': 72})
         self._floatSizer.Add(self._printProfilePanel, userData={'right': 0, 'top': 72})
         self._floatSizer.Add(self._notification, userData={'bottom': 32})

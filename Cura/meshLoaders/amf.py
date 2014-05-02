@@ -17,7 +17,7 @@ except:
 
 from Cura.mesh.mesh import Mesh
 
-def loadScene(filename):
+def loadMeshes(filename):
     try:
         zfile = zipfile.ZipFile(filename)
         xml = zfile.read(zfile.namelist()[0])
@@ -47,7 +47,8 @@ def loadScene(filename):
 
     ret = []
     for amfObj in amf.iter('object'):
-        obj = printableObject.printableObject(filename)
+        mesh = Mesh()
+        mesh.metaData['filename'] = filename
         for amfMesh in amfObj.iter('mesh'):
             vertexList = []
             for vertices in amfMesh.iter('vertices'):
@@ -64,11 +65,11 @@ def loadScene(filename):
                         vertexList.append(v)
 
             for volume in amfMesh.iter('volume'):
-                m = obj._addMesh()
+                v = mesh.newVolume()
                 count = 0
                 for triangle in volume.iter('triangle'):
                     count += 1
-                m._prepareFaceCount(count)
+                v._prepareFaceCount(count)
 
                 for triangle in volume.iter('triangle'):
                     for t in triangle:
@@ -78,9 +79,9 @@ def loadScene(filename):
                             v2 = vertexList[int(t.text)]
                         elif t.tag == 'v3':
                             v3 = vertexList[int(t.text)]
-                            m._addFace(v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2])
-        obj._postProcessAfterLoad()
-        ret.append(obj)
+                            v._addFace(v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2])
+                v.calculateNormals()
+        ret.append(mesh)
 
     return ret
 

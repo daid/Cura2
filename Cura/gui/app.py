@@ -24,6 +24,7 @@ class CuraApp(wx.App):
 
         self._view.setScene(self._scene)
         self._view.setMachine(self._machine)
+        self._scene.setView(self._view)
 
         self._mainWindow = MainWindow(self)
         self._mainWindow.Show()

@@ -9,6 +9,7 @@ class Scene(object):
     """
     def __init__(self):
         self._machine = None  # Scene has a reference to the machine
+        self._view = None
         self._object_list = []
 
     def getObjects(self):
@@ -19,15 +20,11 @@ class Scene(object):
 
     def addObject(self, object):
         self._object_list.append(object)
+        object.setScene(self)
+        self.sceneUpdated(object)
 
-    def getSelectedObject(self):  # Todo: Implement
-        return self._findFirstMatch(obj for obj in self._object_list if obj[0].isSelected()) #todo; Only single object can be selected
-        #return None
+    def sceneUpdated(self, updatedObject=None):
+        self._view.refresh()
 
-    def _findFirstMatch(self,iterable, default = None): #TODO; Might need to move this to util.
-        """
-        Function that returns first object from an iteratable.
-        """
-        for item in iterable:
-            return item
-        return default
+    def setView(self, view):
+        self._view = view
