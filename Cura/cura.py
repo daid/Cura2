@@ -35,8 +35,9 @@ def main():
     (options, args) = parser.parse_args()
 
     from gui.app import CuraApp
-    CuraApp().MainLoop()
-    CuraApp().finished()
+    app = CuraApp()
+    app.MainLoop()
+    app.finished()
 
 if __name__ == '__main__':
     main()

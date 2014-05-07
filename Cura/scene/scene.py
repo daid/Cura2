@@ -28,3 +28,7 @@ class Scene(object):
 
     def setView(self, view):
         self._view = view
+
+    def deselectAll(self):
+        for obj in self._object_list:
+            obj.setSelected(False)

@@ -58,7 +58,7 @@ class MachineRenderer(Renderer):
         self._platformTexture.unbind()
         glDisable(GL_CULL_FACE)
 
-        mesh = getMesh('ultimaker_platform.obj')
+        mesh = getMesh('ultimaker2_platform.obj')
         self._shader.bind()
         glColor3f(1, 1, 1)
         glEnable(GL_LIGHTING)

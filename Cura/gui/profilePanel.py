@@ -6,6 +6,10 @@ from Cura.gui.widgets.innerTitleBar import InnerTitleBar
 
 
 class ProfilePanel(FloatingPanel):
+    """
+    Always visible side panel which contains all the categories from the machine settings.
+    This panel can be collapsed into icons or used normal sized to have text as well as icons.
+    """
     def __init__(self, parent, app):
         super(ProfilePanel, self).__init__(parent)
 

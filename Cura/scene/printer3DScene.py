@@ -16,6 +16,8 @@ class Printer3DScene(Scene):
         obj = PrintableObject(filename)
         obj.loadMesh(filename)
         self.addObject(obj)
+        self.deselectAll()
+        obj.setSelected(True)
 
     def sceneUpdated(self, updatedObject=None):
 

@@ -1,11 +1,8 @@
 __author__ = 'Jaime van Kessel'
 
-import sys
+import threading
 import numpy
-if sys.version_info[0] < 3:
-    from ConfigParser import ConfigParser
-else:
-    from configParser import ConfigParser
+from ConfigParser import ConfigParser
 
 from Cura.machine.setting import Setting
 from Cura.machine.setting import SettingCategory
@@ -17,6 +14,9 @@ class Machine(object):
 
     def __init__(self):
         self._setting_category_list = []  # List of SettingCategories, each category holds settings.
+        self._translator = None
+        self._translatorDelay = 0.5
+        self._timer = None
 
         self.addSettingCategory(SettingCategory('machine').setLabel('Machine configuration').setVisible(False))
 
@@ -46,6 +46,7 @@ class Machine(object):
     def addSetting(self, parent_key, setting):
         assert(self.getSettingCategory(setting.getKey()) is None)
         assert(self.getSettingByKey(setting.getKey()) is None)
+        setting.setMachine(self)
         category = self.getSettingCategory(parent_key)
         if category is not None:
             category.addSetting(setting)
@@ -105,3 +106,20 @@ class Machine(object):
                 for setting in cat.getSettings():
                     if settingsStorage.has_option('settings', setting.getKey()):
                         setting.setValue(settingsStorage.get('settings', setting.getKey()))
+
+    def onSettingUpdated(self):
+        """
+        Event that is called whenever a setting is updated. Trigger a new engine action on this, but with a slight delay.
+        """
+        if self._timer is not None:
+            self._timer.cancel()
+        self._timer = threading.Timer(self._translatorDelay, self._onSettingUpdate)
+        self._timer.start()
+
+    def _onSettingUpdate(self):
+        self._timer = None
+        if self._translator is not None:
+            self._translator.start()
+
+    def setTranslator(self, translator):
+        self._translator = translator

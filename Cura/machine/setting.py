@@ -71,11 +71,13 @@ class Setting(object):
         self._tooltip = ''
         self._default = unicode(default)
         self._value = None
+        self._machine = None
         self._type = type
         self._visible = True
         self._validators = []
         self._conditions = []
         self._parent_setting = None
+        self._hide_if_all_children_visible = True
         self._copy_from_parent_function = lambda value: value
         self._child_settings = []
 
@@ -97,6 +99,9 @@ class Setting(object):
                 return ret
         return None
 
+    def setMachine(self, machine):
+        self._machine = machine
+
     def setVisible(self, visible):
         self._visible = visible
         return self
@@ -104,7 +109,7 @@ class Setting(object):
     def isVisible(self):
         if not self._visible:
             return False
-        if self.allChildrenVisible():
+        if self._hide_if_all_children_visible and self.allChildrenVisible():
             return False
         return True
 
@@ -115,6 +120,10 @@ class Setting(object):
             if not c._visible and not c.allChildrenVisible():
                 return False
         return True
+
+    def setAlwaysVisible(self):
+        self._hide_if_all_children_visible = False
+        return self
 
     def setLabel(self, label, tooltip=''):
         self._label = label
@@ -149,7 +158,9 @@ class Setting(object):
         return self._default
 
     def setValue(self, value):
-        self._value = value
+        if self._value != value:
+            self._value = value
+            self._machine.onSettingUpdated()
 
     def validate(self):
         result = settingValidators.SUCCESS

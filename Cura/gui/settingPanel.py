@@ -5,6 +5,10 @@ from Cura.gui.widgets.innerTitleBar import InnerTitleBar
 
 
 class SettingPanel(FloatingPanel):
+    """
+    Panel which contains configuration settings that can be changed.
+    This panel is used in the main window and expanded from the side profilePanel.
+    """
     def __init__(self, parent, app, category):
         super(SettingPanel, self).__init__(parent)
         self._app = app
