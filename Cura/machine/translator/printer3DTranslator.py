@@ -1,4 +1,3 @@
-__author__ = 'Jaime van Kessel'
 
 from Cura.machine.translator.translator import Translator
 

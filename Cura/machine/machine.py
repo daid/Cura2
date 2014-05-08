@@ -79,6 +79,7 @@ class Machine(object):
         s = self.getSettingByKey(key)
         if s is not None:
             return s.getValue()
+        print 'Setting key not found:', key
         return ''
 
     def getSettingValueByKeyFloat(self, key):
@@ -94,7 +95,8 @@ class Machine(object):
         settingsStorage.add_section('settings')
         for cat in self._setting_category_list:
             for setting in cat.getSettings():
-                settingsStorage.set('settings', setting.getKey(), setting.getValue())
+                if setting.isVisible():
+                    settingsStorage.set('settings', setting.getKey(), setting.getValue())
         with open(filename, "w") as f:
             settingsStorage.write(f)
 

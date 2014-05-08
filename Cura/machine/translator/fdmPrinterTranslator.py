@@ -53,7 +53,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
     def receivedData(self, data):
         if data[0:4] == self.CMD_PROGRESS_UPDATE:
             progress = struct.unpack('@f', data[4:8])[0]
-            print 'Progress:', progress
+            #print 'Progress:', progress
         else:
             print 'Unhandled engine message:', len(data)
 
@@ -69,7 +69,89 @@ class FDMPrinterTranslator(Printer3DTranslator):
         settings = {
             'layerThickness': int(fbk('layer_height') * 1000),
             'initialLayerThickness': int(fbk('layer_height_0') * 1000),
-            'filamentDiameter': int(fbk('filament_diameter') * 1000),
-            'filamentFlow': int(fbk('filament_flow')),
+            'filamentDiameter': int(fbk('material_diameter') * 1000),
+            'filamentFlow': int(fbk('material_flow')),
+            'layer0extrusionWidth': int(fbk('wall_line_width_0') * 1000),
+            'extrusionWidth': int(fbk('wall_line_width_x') * 1000),
+            'insetCount': int(fbk('wall_line_count')),
+            'downSkinCount': int(fbk('bottom_layers')),
+            'upSkinCount': int(fbk('top_layers')),
+            'skirtDistance': int(fbk('skirt_gap') * 1000),
+            'skirtLineCount': int(fbk('skirt_line_count')),
+            'skirtMinLength': int(fbk('skirt_minimal_length') * 1000),
+
+            'retractionAmount': int(fbk('retraction_amount') * 1000),
+            # 'retractionAmountPrime': int(fbk('') * 1000),
+            # 'retractionAmountExtruderSwitch': int(fbk('') * 1000),
+            'retractionSpeed': int(fbk('retraction_speed')),
+            'retractionMinimalDistance': int(fbk('retraction_min_travel') * 1000),
+            'minimalExtrusionBeforeRetraction': int(fbk('retraction_minimal_extrusion') * 1000),
+            'retractionZHop': int(fbk('retraction_hop') * 1000),
+
+            'enableCombing': 1 if vbk('retraction_combing') == 'True' else 0,
+            # 'enableOozeShield': int(fbk('') * 1000),
+            # 'wipeTowerSize': int(fbk('') * 1000),
+            # 'multiVolumeOverlap': int(fbk('') * 1000),
+
+            'initialSpeedupLayers': int(fbk('speed_slowdown_layers')),
+            'initialLayerSpeed': int(fbk('speed_layer_0')),
+            'skirtSpeed': int(fbk('skirt_speed')),
+            'inset0Speed': int(fbk('speed_wall_0')),
+            'insetXSpeed': int(fbk('speed_wall_x')),
+            'supportSpeed': int(fbk('speed_support')),
+            'moveSpeed': int(fbk('speed_travel')),
+            'fanFullOnLayerNr': int(fbk('cool_fan_full_layer')),
+
+            'infillOverlap': int(fbk('fill_overlap')),
+            'infillSpeed': int(fbk('speed_infill')),
+            'infillPattern': int(0),
+
+            'minimalLayerTime': int(fbk('cool_min_layer_time') * 1000),
+            'minimalFeedrate': int(fbk('cool_min_speed')),
+            'coolHeadLift': 1 if vbk('cool_lift_head') == 'True' else 0,
+            'fanSpeedMin': int(fbk('cool_fan_speed_min')),
+            'fanSpeedMax': int(fbk('cool_fan_speed_max')),
+
+            'spiralizeMode': 1 if vbk('magic_spiralize') == 'True' else 0,
         }
+
+        if vbk('adhesion_type') == 'raft':
+            settings['raftMargin'] = int(fbk('raft_margin') * 1000)
+            settings['raftLineSpacing'] = int(fbk('raft_line_spacing') * 1000)
+            settings['raftBaseThickness'] = int(fbk('raft_base_thickness') * 1000)
+            settings['raftBaseLinewidth'] = int(fbk('raft_base_linewidth') * 1000)
+            settings['raftBaseSpeed'] = int(fbk('raft_base_speed') * 1000)
+            settings['raftInterfaceThickness'] = int(fbk('raft_interface_thickness') * 1000)
+            settings['raftInterfaceLinewidth'] = int(fbk('raft_interface_linewidth') * 1000)
+            settings['raftInterfaceLineSpacing'] = int(fbk('') * 1000)
+            settings['raftFanSpeed'] = int(fbk('') * 1000)
+            settings['raftSurfaceThickness'] = int(fbk('') * 1000)
+            settings['raftSurfaceLinewidth'] = int(fbk('') * 1000)
+            settings['raftSurfaceLineSpacing'] = int(fbk('') * 1000)
+            settings['raftSurfaceLayers'] = int(fbk('raft_surface_layers'))
+            settings['raftSurfaceSpeed'] = int(fbk('') * 1000)
+            settings['raftAirGap'] = int(fbk('raft_airgap') * 1000)
+            settings['skirtLineCount'] = 0
+        if vbk('adhesion_type') == 'brim':
+            settings['skirtLineCount'] = int(fbk('brim_line_count'))
+        if vbk('support_type') == '':
+            settings['supportType'] = 0
+            settings['supportAngle'] = -1
+        else:
+            settings['supportType'] = 0
+            settings['supportAngle'] = int(fbk('support_angle'))
+            settings['supportEverywhere'] = 1 if vbk('support_type') == 'everywhere' else 0
+            settings['supportLineDistance'] = int(100 * fbk('wall_line_width_x') * 1000 / fbk('support_fill_rate')),
+            settings['supportXYDistance'] = int(fbk('support_xy_distance') * 1000)
+            settings['supportZDistance'] = int(fbk('support_z_distance') * 1000)
+            settings['supportExtruder'] = -1
+
+        settings['sparseInfillLineDistance'] = -1
+        if fbk('fill_sparse_density') >= 100:
+            settings['sparseInfillLineDistance'] = fbk('wall_line_width_x')
+            settings['downSkinCount'] = 10000
+            settings['upSkinCount'] = 10000
+        elif fbk('fill_sparse_density') > 0:
+            settings['sparseInfillLineDistance'] = int(100 * fbk('wall_line_width_x') * 1000 / fbk('fill_sparse_density'))
+
         return settings

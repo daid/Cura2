@@ -78,7 +78,7 @@ class Setting(object):
         self._conditions = []
         self._parent_setting = None
         self._hide_if_all_children_visible = True
-        self._copy_from_parent_function = lambda value: value
+        self._copy_from_parent_function = lambda machine, value: value
         self._child_settings = []
 
         if type == 'float':
@@ -137,6 +137,9 @@ class Setting(object):
         self._validators[0].maxValue = maxValue
         return self
 
+    def setCopyFromParentFunction(self, func):
+        self._copy_from_parent_function = func
+
     def getLabel(self):
         return self._label
 
@@ -150,6 +153,8 @@ class Setting(object):
         return self._type
 
     def getValue(self):
+        if not self._visible and self._copy_from_parent_function is not None and self._parent_setting is not None:
+            self._value = str(self._copy_from_parent_function(self._machine, self._parent_setting.getValue()))
         if self._value is None:
             return self._default
         return self._value

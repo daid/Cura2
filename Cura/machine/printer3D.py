@@ -4,6 +4,7 @@ from Cura.machine import machine
 from Cura.machine.setting import Setting
 from Cura.machine.setting import SettingCategory
 
+
 class Printer3D(machine.Machine):
     """
     Class that holds settings for any kind of 3D printers

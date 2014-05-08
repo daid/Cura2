@@ -35,16 +35,18 @@ class SelectAndMoveTool(Tool):
         if self._state == 'dragObject':
             p0, p1 = self._app.getView().projectScreenPositionToRay(x, y)
             z = self._dragPos3D[2]
+            if z < 0:
+                self._dragPos3D = p0 - (p1 - p0) * (p0[2] / (p1[2] - p0[2]))
+            else:
+                p0[2] -= z
+                p1[2] -= z
+                cursorZ0 = p0 - (p1 - p0) * (p0[2] / (p1[2] - p0[2]))
+                delta = numpy.array(cursorZ0[0:2] - self._dragPos3D[0:2], numpy.float32)
+                self._dragPos3D[0:2] = cursorZ0[0:2]
 
-            p0[2] -= z
-            p1[2] -= z
-            cursorZ0 = p0 - (p1 - p0) * (p0[2] / (p1[2] - p0[2]))
-            delta = numpy.array(cursorZ0[0:2] - self._dragPos3D[0:2], numpy.float32)
-            self._dragPos3D[0:2] = cursorZ0[0:2]
-
-            for obj in self._app.getScene().getObjects():
-                if obj.isSelected():
-                    obj.setPosition(obj.getPosition() + delta)
+                for obj in self._app.getScene().getObjects():
+                    if obj.isSelected():
+                        obj.setPosition(obj.getPosition() + delta)
 
     def onMouseUp(self, x, y, button):
         if button == 3 and self._state == 'rotateView':
