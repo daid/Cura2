@@ -26,19 +26,21 @@ class CuraApp(wx.App):
         self._view = PrinterView3D()
         self._translator = FDMPrinterTranslator(self._scene, self._machine)
 
-
         self._toolbox.append(SelectAndMoveTool(self))
 
         self._view.setScene(self._scene)
         self._view.setMachine(self._machine)
         self._scene.setView(self._view)
         self._machine.setTranslator(self._translator)
+        self._scene.setTranslator(self._translator)
 
         self._machine.loadSettings('settings.ini')
 
         self._mainWindow = MainWindow(self)
         self._mainWindow.Show()
         self._mainWindow.Maximize()
+
+        self._scene.loadFile('C:/Models/D&D/Box.stl')
 
     def finished(self):
         self._machine.saveSettings('settings.ini')

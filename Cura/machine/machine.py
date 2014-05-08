@@ -111,15 +111,8 @@ class Machine(object):
         """
         Event that is called whenever a setting is updated. Trigger a new engine action on this, but with a slight delay.
         """
-        if self._timer is not None:
-            self._timer.cancel()
-        self._timer = threading.Timer(self._translatorDelay, self._onSettingUpdate)
-        self._timer.start()
-
-    def _onSettingUpdate(self):
-        self._timer = None
         if self._translator is not None:
-            self._translator.start()
+            self._translator.trigger()
 
     def setTranslator(self, translator):
         self._translator = translator

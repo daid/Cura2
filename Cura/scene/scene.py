@@ -10,6 +10,7 @@ class Scene(object):
     def __init__(self):
         self._machine = None  # Scene has a reference to the machine
         self._view = None
+        self._translator = None
         self._object_list = []
 
     def getObjects(self):
@@ -25,6 +26,8 @@ class Scene(object):
 
     def sceneUpdated(self, updatedObject=None):
         self._view.refresh()
+        if self._translator is not None:
+            self._translator.trigger()
 
     def setView(self, view):
         self._view = view
@@ -32,3 +35,6 @@ class Scene(object):
     def deselectAll(self):
         for obj in self._object_list:
             obj.setSelected(False)
+
+    def setTranslator(self, translator):
+        self._translator = translator

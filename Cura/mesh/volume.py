@@ -49,3 +49,10 @@ class MeshVolume(object):
 
     def getMesh(self):
         return self._mesh
+
+    def getVertexPositionData(self):
+        print len(self.vertexData)
+        return self.vertexData[::, 0:3].tostring()
+
+    def getVertexNormalData(self):
+        return self.vertexData[::,3:6].tostring()
