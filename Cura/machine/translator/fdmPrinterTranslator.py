@@ -1,8 +1,9 @@
-__author__ = 'Jaime van Kessel'
 
 import platform
 import os
 import struct
+import numpy
+
 from Cura.machine.translator.printer3DTranslator import Printer3DTranslator
 from Cura.machine.engineCommunication.socketConnection import SocketConnection
 
@@ -30,11 +31,16 @@ class FDMPrinterTranslator(Printer3DTranslator):
     CMD_VOLUME_VERTEX_NORMAL = struct.pack('@i', 0x1003)
     CMD_FINISHED = struct.pack('@i', 0x9000)
 
+    CMD_PROGRESS_UPDATE = struct.pack('@i', 0x10000)
+
     def communicate(self):
         for k, v in self.getEngineSettings().items():
             self.sendData(self.CMD_SETTING + str(k) + '=' + str(v))
         self.sendData(self.CMD_START_MESH)
         for obj in self._scene.getObjects():
+            self.sendData(self.CMD_SETTING + 'posx=' + str(obj.getPosition()[0]))
+            self.sendData(self.CMD_SETTING + 'posy=' + str(obj.getPosition()[1]))
+            self.sendData(self.CMD_MATRIX + obj.getMatrix().getA1().astype(numpy.float32).tostring())
             mesh = obj.getMesh()
             self.sendData(self.CMD_START_MESH)
             for volume in mesh.getVolumes():
@@ -44,8 +50,12 @@ class FDMPrinterTranslator(Printer3DTranslator):
             self.sendData(self.CMD_PROCESS)
         self.sendData(self.CMD_FINISHED)
 
-    def handleData(self, data):
-        print 'Unhandled engine message:', len(data)
+    def receivedData(self, data):
+        if data[0:4] == self.CMD_PROGRESS_UPDATE:
+            progress = struct.unpack('@f', data[4:8])[0]
+            print 'Progress:', progress
+        else:
+            print 'Unhandled engine message:', len(data)
 
     def canTranslate(self):
         return len(self._scene.getObjects()) > 0

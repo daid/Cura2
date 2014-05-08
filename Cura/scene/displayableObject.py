@@ -1,4 +1,3 @@
-__author__ = 'Jaime van Kessel'
 import math
 import numpy
 
@@ -30,6 +29,13 @@ class DisplayableObject(object):
 
     def setPosition(self, new_pos):
         self._position = new_pos
+        self._updated()
+
+    def getMatrix(self):
+        return self._matrix
+
+    def setMatrix(self, matrix):
+        self._matrix = matrix
         self._updated()
 
     def setScene(self, scene):

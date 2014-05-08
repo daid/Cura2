@@ -3,7 +3,7 @@ import wx
 from Cura.gui.floatSizer import FloatingPanel
 from Cura.gui.widgets.profileCategoryButton import ProfileCategoryButton
 from Cura.gui.widgets.innerTitleBar import InnerTitleBar
-
+from Cura.gui.widgets.gradientButton import GradientButton
 
 class ProfilePanel(FloatingPanel):
     """
@@ -38,7 +38,7 @@ class ProfilePanel(FloatingPanel):
         self._loadProfileButton.Bind(wx.EVT_BUTTON, self.onLoadProfileButton)
         sizer.Add(self._pluginsButton, flag=wx.EXPAND)
         sizer.Add(self._loadProfileButton, flag=wx.EXPAND)
-        sizer.Add(wx.Button(self, label='Save GCode'), flag=wx.EXPAND)
+        sizer.Add(GradientButton(self, label='Save GCode'), flag=wx.EXPAND)
         self.SetSizer(sizer)
 
     def onCategoryButton(self, e):
