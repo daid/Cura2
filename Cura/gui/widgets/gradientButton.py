@@ -32,8 +32,10 @@ class GradientButton(GenButton):
         (width, height) = self.GetClientSizeTuple()
 
         dc = wx.PaintDC(self)
-        dc.GradientFillLinear((0, 0, width, height), self._colorTopGray, self._colorBottomGray, wx.SOUTH)
-        dc.GradientFillLinear((0, 0, width * self._fillAmount, height), self._colorTop, self._colorBottom, wx.SOUTH)
+        fillWidth = width * self._fillAmount
+        if fillWidth < width:
+            dc.GradientFillLinear((fillWidth, 0, width - fillWidth, height), self._colorTopGray, self._colorBottomGray, wx.SOUTH)
+        dc.GradientFillLinear((0, 0, fillWidth, height), self._colorTop, self._colorBottom, wx.SOUTH)
         dc.SetPen(wx.Pen((102, 102, 102)))
         dc.SetBrush(wx.Brush('#ffffff', wx.TRANSPARENT))
         dc.DrawRectangle(0, 0, width, height)

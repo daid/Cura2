@@ -1,9 +1,9 @@
-import sys
 
 import wx
 import platform
 import os
 
+from Cura.resources import getDefaultPreferenceStoragePath
 from Cura.gui.mainWindow import MainWindow
 from Cura.scene.printer3DScene import Printer3DScene
 from Cura.machine.fdmprinter import FDMPrinter
@@ -13,6 +13,7 @@ from Cura.gui.tools.selectAndMoveTool import SelectAndMoveTool
 
 
 class CuraApp(wx.App):
+    # TODO: Should be subclassed to provide different applications, with different scenes/machines/views/translators
     def __init__(self):
         if platform.system() == "Windows" and not 'PYCHARM_HOSTED' in os.environ:
             super(CuraApp, self).__init__(redirect=True, filename='output.txt')
@@ -34,7 +35,7 @@ class CuraApp(wx.App):
         self._machine.setTranslator(self._translator)
         self._scene.setTranslator(self._translator)
 
-        self._machine.loadSettings('settings.ini')
+        self._machine.loadSettings(getDefaultPreferenceStoragePath('settings.ini'))
 
         self._mainWindow = MainWindow(self)
         self._mainWindow.Show()
@@ -43,7 +44,7 @@ class CuraApp(wx.App):
         self._scene.loadFile('C:/Models/D&D/Box.stl')
 
     def finished(self):
-        self._machine.saveSettings('settings.ini')
+        self._machine.saveSettings(getDefaultPreferenceStoragePath('settings.ini'))
 
     def getMachine(self):
         return self._machine
@@ -53,6 +54,9 @@ class CuraApp(wx.App):
 
     def getView(self):
         return self._view
+
+    def getTranslator(self):
+        return self._translator
 
     def getMainWindow(self):
         return self._mainWindow

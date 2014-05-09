@@ -6,6 +6,16 @@ from Cura.gui.widgets.innerTitleBar import InnerTitleBar
 from Cura.gui.widgets.gradientButton import GradientButton
 
 
+class PrintSaveButton(GradientButton):
+    # TODO: This does not belong here.
+    def __init__(self, parent, app):
+        super(PrintSaveButton, self).__init__(parent, label='Save GCode')
+        app.getTranslator().addProgressCallback(self._onProgressUpdate)
+
+    def _onProgressUpdate(self, progress, ready):
+        self.setFillAmount(progress)
+
+
 class ProfilePanel(FloatingPanel):
     """
     Always visible side panel which contains all the categories from the machine settings.
@@ -37,7 +47,7 @@ class ProfilePanel(FloatingPanel):
 
         self._pluginsButton = ProfileCategoryButton(self, 'Plugins', 'icon_plugin.png')
         self._loadProfileButton = ProfileCategoryButton(self, 'Load profile', 'icon_load_profile.png')
-        self._saveButton = GradientButton(self, label='Save GCode')
+        self._saveButton = PrintSaveButton(self, app)
         self._pluginsButton.Bind(wx.EVT_BUTTON, self.onPluginButton)
         self._loadProfileButton.Bind(wx.EVT_BUTTON, self.onLoadProfileButton)
         sizer.Add(self._pluginsButton, flag=wx.EXPAND)

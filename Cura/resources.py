@@ -1,5 +1,6 @@
 import os
 import wx
+import platform
 
 _image_cache = {}
 _mesh_cache = {}
@@ -25,3 +26,15 @@ def getMesh(name):
     if name not in _mesh_cache:
         _mesh_cache[name] = meshLoader.loadMeshes(os.path.join(getResourcePath('meshes'), name))[-1]
     return _mesh_cache[name]
+
+
+def getDefaultPreferenceStoragePath(filename):
+    base_path = os.path.dirname(__file__)
+    base_path = os.path.abspath(os.path.join(base_path, '..'))
+    if platform.system().startswith('Windows'):
+        base_path = os.path.expanduser('~/.cura')
+    try:
+        os.makedirs(base_path)
+    except:
+        pass
+    return os.path.join(base_path, filename)

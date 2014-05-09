@@ -19,6 +19,7 @@ class Translator(object):
         self._connections = []
         self._scene = scene
         self._machine = machine
+        self._progress_callbacks = []
         self._start_timer = None
         self._start_delay = 0.5
 
@@ -148,6 +149,13 @@ class Translator(object):
         for connection in self._connections:
             if connection.sendData(data):
                 return
+
+    def addProgressCallback(self, callback):
+        self._progress_callbacks.append(callback)
+
+    def progressUpdate(self, progress, ready):
+        for callback in self._progress_callbacks:
+            callback(progress, ready)
 
     def canTranslate(self):
         """ Override in subclass """
