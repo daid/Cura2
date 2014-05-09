@@ -24,6 +24,11 @@ class Scene(object):
         object.setScene(self)
         self.sceneUpdated(object)
 
+    def removeObject(self, object):
+        self._object_list.remove(object)
+        object.setScene(None)
+        self.sceneUpdated()
+
     def sceneUpdated(self, updatedObject=None):
         self._view.refresh()
         if self._translator is not None:

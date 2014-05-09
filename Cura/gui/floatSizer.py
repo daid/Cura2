@@ -44,12 +44,12 @@ class FloatSizer(wx.PySizer):
                 y = data['top']
             if 'right' in data:
                 if isinstance(data['right'], wx.Window):
-                    x = data['right'].GetPosition()[0] - itemSize[0]
+                    x = self._parent.ScreenToClient(data['right'].GetPosition())[0] - itemSize[0]
                 else:
                     x = size[0] - itemSize[0] - data['right']
             if 'bottom' in data:
                 if isinstance(data['bottom'], wx.Window):
-                    y = data['bottom'].GetPosition()[1] - itemSize[1]
+                    y = self._parent.ScreenToClient(data['bottom'].GetPosition())[1] - itemSize[1]
                 else:
                     y = size[1] - itemSize[1] - data['bottom']
 

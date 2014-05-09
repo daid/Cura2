@@ -1,4 +1,5 @@
 import numpy
+import wx
 
 from Cura.gui.tools.tool import Tool
 from Cura.gui.view3D.selectionRenderer import SelectionRenderer
@@ -14,6 +15,14 @@ class SelectAndMoveTool(Tool):
         self._state = ''
 
         app.getView().addFocusRenderer(SelectionRenderer())
+
+    def onKeyDown(self, key_code):
+        if key_code == wx.WXK_DELETE:
+            for o in self._app.getScene().getObjects():
+                if o.isSelected():
+                    self._app.getScene().removeObject(o)
+            return True
+        return False
 
     def onMouseDown(self, x, y, button):
         if button == 3:

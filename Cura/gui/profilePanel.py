@@ -5,6 +5,7 @@ from Cura.gui.widgets.profileCategoryButton import ProfileCategoryButton
 from Cura.gui.widgets.innerTitleBar import InnerTitleBar
 from Cura.gui.widgets.gradientButton import GradientButton
 
+
 class ProfilePanel(FloatingPanel):
     """
     Always visible side panel which contains all the categories from the machine settings.
@@ -17,7 +18,9 @@ class ProfilePanel(FloatingPanel):
         self._categoryButtons = []
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(InnerTitleBar(self, 'Profile'), flag=wx.EXPAND)
+        self._titleBar = InnerTitleBar(self, 'Profile')
+        self._titleBar.Bind(wx.EVT_LEFT_DOWN, self.onSmallToggle)
+        sizer.Add(self._titleBar, flag=wx.EXPAND)
 
         n = 0
         for c in self._app.getMachine().getSettingCategories():
@@ -34,12 +37,31 @@ class ProfilePanel(FloatingPanel):
 
         self._pluginsButton = ProfileCategoryButton(self, 'Plugins', 'icon_plugin.png')
         self._loadProfileButton = ProfileCategoryButton(self, 'Load profile', 'icon_load_profile.png')
+        self._saveButton = GradientButton(self, label='Save GCode')
         self._pluginsButton.Bind(wx.EVT_BUTTON, self.onPluginButton)
         self._loadProfileButton.Bind(wx.EVT_BUTTON, self.onLoadProfileButton)
         sizer.Add(self._pluginsButton, flag=wx.EXPAND)
         sizer.Add(self._loadProfileButton, flag=wx.EXPAND)
-        sizer.Add(GradientButton(self, label='Save GCode'), flag=wx.EXPAND)
+        sizer.Add(self._saveButton, flag=wx.EXPAND)
         self.SetSizer(sizer)
+        self.setSmall(False)
+
+    def onSmallToggle(self, e):
+        self.setSmall(not self._titleBar.isSmall())
+        self.Fit()
+        self.Parent.Layout()
+
+    def setSmall(self, small):
+        self._titleBar.setSmall(small)
+        for button in self._categoryButtons:
+            button.setSmall(small)
+        self._pluginsButton.setSmall(small)
+        self._loadProfileButton.setSmall(small)
+        self._saveButton.setSmall(small)
+        if small:
+            self._titleBar.setIcon('inner_title_bar_open_arrow.png')
+        else:
+            self._titleBar.setIcon('inner_title_bar_close_arrow.png')
 
     def onCategoryButton(self, e):
         button = e.GetEventObject()

@@ -14,6 +14,7 @@ class MainOpenGLView(OpenGLPanel):
     def __init__(self, parent, app):
         self._app = app
         super(MainOpenGLView, self).__init__(parent)
+        self.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
         self.Bind(wx.EVT_LEFT_DOWN, self.onMouseDown)
         self.Bind(wx.EVT_RIGHT_DOWN, self.onMouseDown)
         self.Bind(wx.EVT_MOTION, self.onMouseMotion)
@@ -26,11 +27,17 @@ class MainOpenGLView(OpenGLPanel):
     def onRender(self):
         self._app.getView().render(self)
 
+    def onKeyDown(self, e):
+        for tool in self._app.getTools():
+            if tool.onKeyDown(e.GetKeyCode()):
+                return
+
     def onMouseDown(self, e):
         if self._activeTool is None:
             for tool in self._app.getTools():
                 if tool.onMouseDown(e.GetX(), e.GetY(), e.GetButton()):
                     self._activeTool = tool
+                    break
         self._mousePos = (e.GetX(), e.GetY())
 
     def onMouseMotion(self, e):

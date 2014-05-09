@@ -10,6 +10,9 @@ class Tool(object):
         self.visible = False
         self._app = app
 
+    def onKeyDown(self, key_code):
+        return False
+
     def onMouseDown(self, x, y, button):
         return False
 

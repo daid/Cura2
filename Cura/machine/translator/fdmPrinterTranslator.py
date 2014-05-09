@@ -12,6 +12,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
     def __init__(self, scene, machine):
         super(FDMPrinterTranslator, self).__init__(scene, machine)
         self._engine_executable_name = 'CuraEngine'
+        self._progress = 0.0
 
         self.addConnection(SocketConnection(self))
 
@@ -52,13 +53,26 @@ class FDMPrinterTranslator(Printer3DTranslator):
 
     def receivedData(self, data):
         if data[0:4] == self.CMD_PROGRESS_UPDATE:
-            progress = struct.unpack('@f', data[4:8])[0]
-            #print 'Progress:', progress
+            self._progress = struct.unpack('@f', data[4:8])[0]
         else:
             print 'Unhandled engine message:', len(data)
 
     def canTranslate(self):
-        return len(self._scene.getObjects()) > 0
+        if len(self._scene.getObjects()) < 1:
+            return False
+        for obj in self._scene.getObjects():
+            if obj.getMesh() is None:
+                return False
+        return True
+
+    def setup(self):
+        self._progress = 0.0
+
+    def finish(self, success):
+        if success:
+            self._progress = 1.0
+        else:
+            self._progress = 0.0
 
     def getCommandParameters(self):
         return ['-v', '--command-socket']

@@ -19,5 +19,4 @@ class Printer3DScene(Scene):
         obj.setSelected(True)
 
     def sceneUpdated(self, updatedObject=None):
-
         super(Printer3DScene, self).sceneUpdated(updatedObject)

@@ -4,6 +4,7 @@ from wx.lib.buttons import GenButton
 
 class GradientButton(GenButton):
     def __init__(self, parent, label):
+        self._small = False
         super(GradientButton, self).__init__(parent, label=label)
         self.SetMinSize((-1, 42))
 
@@ -15,6 +16,13 @@ class GradientButton(GenButton):
         self._colorTopGray = wx.Colour(gray, gray, gray)
         gray = (self._colorBottom.Red() + self._colorBottom.Green() + self._colorBottom.Blue()) / 3
         self._colorBottomGray = wx.Colour(gray, gray, gray)
+
+    def setSmall(self, small):
+        self._small = small
+        self.Refresh()
+
+    def isSmall(self):
+        return self._small
 
     def setFillAmount(self, fill):
         self._fillAmount = fill
@@ -30,6 +38,11 @@ class GradientButton(GenButton):
         dc.SetBrush(wx.Brush('#ffffff', wx.TRANSPARENT))
         dc.DrawRectangle(0, 0, width, height)
 
-        self.DrawLabel(dc, width, height)
-        if self.hasFocus and self.useFocusInd:
-            self.DrawFocusIndicator(dc, width, height)
+        if not self._small:
+            self.DrawLabel(dc, width, height)
+
+    def DoGetBestSize(self):
+        w, h = super(GenButton, self).DoGetBestSize()
+        if self._small:
+            w = 46
+        return w, h

@@ -6,9 +6,17 @@ from Cura.resources import getBitmap
 
 class ProfileCategoryButton(GenToggleButton):
     def __init__(self, parent, label, icon):
-        super(ProfileCategoryButton, self).__init__(parent, label=label, style=wx.BORDER_NONE)
         icon = 'icon_resolution.png'
         self._icon = getBitmap(icon)
+        self._small = False
+        super(ProfileCategoryButton, self).__init__(parent, label=label, style=wx.BORDER_NONE)
+
+    def setSmall(self, small):
+        self._small = small
+        self.Refresh()
+
+    def isSmall(self):
+        return self._small
 
     def DrawLabel(self, dc, width, height, dx=0, dy=0):
         dc.SetFont(self.GetFont())
@@ -42,10 +50,14 @@ class ProfileCategoryButton(GenToggleButton):
                 dc.DrawBitmap(b, n, (height - b.GetHeight()) / 2)
         b = self._icon
         dc.DrawBitmap(b, 22 - b.GetWidth() / 2, (height - b.GetHeight()) / 2)
-        self.DrawLabel(dc, width, height)
+        if not self._small:
+            self.DrawLabel(dc, width, height)
 
     def DoGetBestSize(self):
         w, h = super(ProfileCategoryButton, self).DoGetBestSize()
-        w += 55 + 20
+        if not self._small:
+            w += 55 + 20
+        else:
+            w = 46
         h = max(30, h)
         return w, h

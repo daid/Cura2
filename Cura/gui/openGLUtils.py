@@ -186,6 +186,7 @@ class VertexRenderer(object):
         if not shuttingDown and self._buffers is not None:
             self._contextSource.addToReleaseList(self)
 
+
 class GLTexture(object):
     def __init__(self, filename, filter='linear'):
         self._texture = None
@@ -235,7 +236,7 @@ class GLTexture(object):
 
 def unproject(winx, winy, winz, modelMatrix, projMatrix, viewport):
     """
-    Projects window position to 3D space. (gluUnProject). Reimplentation as some drivers crash with the original.
+    Projects window position to 3D space. (gluUnProject). Reimplementation as some drivers crash with the original glu version.
     """
     npModelMatrix = numpy.matrix(numpy.array(modelMatrix, numpy.float64).reshape((4,4)))
     npProjMatrix = numpy.matrix(numpy.array(projMatrix, numpy.float64).reshape((4,4)))
