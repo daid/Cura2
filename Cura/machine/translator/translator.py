@@ -128,8 +128,8 @@ class Translator(object):
         returnCode = self._engine_process.wait()
         self.finish(returnCode == 0)
         self._engine_process = None
-        #if returnCode != 0:
-        print self._result_log.getvalue()
+        if returnCode != 0:
+            print self._result_log.getvalue()
 
     def _communicate(self):
         for connection in self._connections:

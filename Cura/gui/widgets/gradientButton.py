@@ -31,7 +31,7 @@ class GradientButton(GenButton):
     def OnPaint(self, event):
         (width, height) = self.GetClientSizeTuple()
 
-        dc = wx.PaintDC(self)
+        dc = wx.BufferedPaintDC(self)
         fillWidth = width * self._fillAmount
         if fillWidth < width:
             dc.GradientFillLinear((fillWidth, 0, width - fillWidth, height), self._colorTopGray, self._colorBottomGray, wx.SOUTH)

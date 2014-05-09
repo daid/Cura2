@@ -154,7 +154,7 @@ class MainWindow(wx.Frame):
         self._floatSizer.Add(self._printProfilePanel, userData={'right': 0, 'top': 72})
         self._floatSizer.Add(self._notification, userData={'bottom': 32})
         self._mainView.SetSizer(self._floatSizer)
-        self.SetMinSize((300, 300))
+        self.SetMinSize((500, 500))
 
         self.Bind(wx.EVT_MOVE, self._onMove)
 

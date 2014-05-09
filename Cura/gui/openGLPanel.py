@@ -1,7 +1,6 @@
 import wx
 import os
 import sys
-import numpy
 
 from wx import glcanvas
 from OpenGL.GL import *

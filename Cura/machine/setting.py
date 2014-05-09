@@ -55,6 +55,9 @@ class SettingCategory(object):
             settings += s.getSettings()
         return settings
 
+    def getChildren(self):
+        return self._settings
+
     def __repr__(self):
         return '<SettingCategory: %s %d>' % (self._key, self._order)
 
@@ -105,6 +108,9 @@ class Setting(object):
     def setVisible(self, visible):
         self._visible = visible
         return self
+
+    def getVisibleProperty(self):
+        return self._visible
 
     def isVisible(self):
         if not self._visible:
@@ -195,6 +201,9 @@ class Setting(object):
             settings.append(s)
             settings += s.getSettings()
         return settings
+
+    def getChildren(self):
+        return self._child_settings
 
     def __repr__(self):
         return '<Setting: %s>' % (self._key)

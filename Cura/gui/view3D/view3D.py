@@ -125,6 +125,7 @@ class View3D(object):
 
     def setPitch(self, value):
         self._pitch = max(min(value, self._max_pitch), self._min_pitch)
+        self._projection = 'perspective'
         self.refresh()
 
     def setYaw(self, value):

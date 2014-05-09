@@ -9,11 +9,26 @@ from Cura.gui.widgets.gradientButton import GradientButton
 class PrintSaveButton(GradientButton):
     # TODO: This does not belong here.
     def __init__(self, parent, app):
+        self._app = app
         super(PrintSaveButton, self).__init__(parent, label='Save GCode')
         app.getTranslator().addProgressCallback(self._onProgressUpdate)
+        self.Bind(wx.EVT_BUTTON, self._onSaveClick)
 
     def _onProgressUpdate(self, progress, ready):
         self.setFillAmount(progress)
+
+    def _onSaveClick(self, e):
+        # TODO: USB print, SD save
+        dlg = wx.FileDialog(self, _("Save toolpath"), style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+        dlg.SetWildcard('Toolpath (*.gcode)|*.gcode')
+        if dlg.ShowModal() != wx.ID_OK:
+            dlg.Destroy()
+            return
+        filename = dlg.GetPath()
+        dlg.Destroy()
+
+        with open(filename, "wb") as f:
+            f.write(self._app.getScene().getResult().getGCode())
 
 
 class ProfilePanel(FloatingPanel):

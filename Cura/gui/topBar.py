@@ -3,6 +3,7 @@ import wx
 from Cura.gui.floatSizer import FloatingPanel
 from Cura.gui.widgets.topBarButton import TopBarButton
 from Cura.resources import getBitmap
+from Cura.gui.preferencesDialog import PreferencesDialog
 
 
 class TopBarLeft(FloatingPanel):
@@ -76,3 +77,8 @@ class TopBarRight(FloatingPanel):
 
         self.SetSizer(sizer)
         self.SetMinSize((-1, 39))
+
+        self.Bind(wx.EVT_BUTTON, self.onPreferences, self._settingsButton)
+
+    def onPreferences(self, e):
+        PreferencesDialog(self._app).Show()

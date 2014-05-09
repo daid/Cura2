@@ -68,6 +68,8 @@ class FDMPrinterTranslator(Printer3DTranslator):
         self.progressUpdate(0.0, False)
 
     def finish(self, success):
+        self._scene.getResult().setLog(self._result_log.getvalue())
+        self._scene.getResult().setGCode(self._result_output.getvalue())
         if success:
             self.progressUpdate(1.0, True)
         else:
