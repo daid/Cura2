@@ -1,14 +1,14 @@
-from Cura.machine.machine import Machine
-from Cura.scene.scene import Scene
-from Cura.gui import openGLUtils
-from Cura.gui.view3D.renderer import Renderer
-from Cura.gui.view3D.machineRenderer import MachineRenderer
-
 import numpy
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
+from Cura.geometry.ray import Ray
+from Cura.machine.machine import Machine
+from Cura.scene.scene import Scene
+from Cura.gui import openGLUtils
+from Cura.gui.view3D.renderer import Renderer
+from Cura.gui.view3D.machineRenderer import MachineRenderer
 
 class View3D(object):
     """
@@ -225,5 +225,7 @@ class View3D(object):
 
     def projectScreenPositionToRay(self, x, y):
         if self._viewport is None:
-            return numpy.array([0, 0, 0], numpy.float32), numpy.array([0, 0, 1], numpy.float32)
-        return self._unproject(x, y, 0.0), self._unproject(x, y, 1.0)
+            return Ray(numpy.array([0, 0, 0], numpy.float32), numpy.array([0, 0, 0], numpy.float32))
+        startPoint = self._unproject(x, y, 0.0)
+        endPoint = self._unproject(x, y, 1.0)
+        return Ray(startPoint, endPoint - startPoint)

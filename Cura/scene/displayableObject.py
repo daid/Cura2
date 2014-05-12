@@ -13,7 +13,6 @@ class DisplayableObject(object):
 
     def setSelected(self,selected):
         self._selected = selected
-        self._updated()
 
     def isSelected(self):
         return self._selected

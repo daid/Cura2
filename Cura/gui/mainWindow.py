@@ -10,6 +10,7 @@ from Cura.gui.topBar import TopBarLeft
 from Cura.gui.topBar import TopBarRight
 from Cura.gui.widgets.innerTitleBar import InnerTitleBar
 
+
 class MainOpenGLView(OpenGLPanel):
     def __init__(self, parent, app):
         self._app = app

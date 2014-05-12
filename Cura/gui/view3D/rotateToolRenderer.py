@@ -34,17 +34,81 @@ def _generateCircle(pointCount=64, thickness=0.05):
     return openGLUtils.VertexRenderer(GL_TRIANGLES, points, indices=indices)
 
 
+class RotateFocusObject(object):
+    def __init__(self, axis, obj):
+        self._axis = axis
+        self._obj = obj
+
+    def getAxis(self):
+        return self._axis
+
+    def getObject(self):
+        return self._obj
+
+
 class RotateToolRenderer(Renderer):
     def __init__(self):
         super(RotateToolRenderer,self).__init__()
         self._shader = openGLUtils.GLShader(filename='selectionCircleShader.glsl')
         self._circle = _generateCircle()
-        self._z_axis = None
-        self._x_axis = None
-        self._y_axis = None
+        self._axisInfo = None
 
     def render(self):
-        glClear(GL_DEPTH_BUFFER_BIT)
+        glDepthFunc(GL_ALWAYS)
+        for obj in self.scene.getObjects():
+            if not obj.isSelected():
+                continue
+            if self._axisInfo is not None and self._axisInfo.getObject() != obj:
+                continue
+            centerPosition = [obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2.0]
+            glPushMatrix()
+            glTranslatef(centerPosition[0], centerPosition[1], centerPosition[2])
+            s = self.view.getZoom() / 10.0
+            glScalef(s, s, s)
+            self._shader.bind()
+            glColor3f(0.5, 0.5, 1)
+            if self._axisInfo is None or self._axisInfo.getAxis() == 'z':
+                self._circle.render()
+            glColor3f(0.5, 1, 0.5)
+            glRotatef(90, 1, 0, 0)
+            if self._axisInfo is None or self._axisInfo.getAxis() == 'y':
+                self._circle.render()
+            glColor3f(1.0, 0.5, 0.5)
+            glRotatef(90, 0, 1, 0)
+            if self._axisInfo is None or self._axisInfo.getAxis() == 'x':
+                self._circle.render()
+            self._shader.unbind()
+            glPopMatrix()
+        glDepthFunc(GL_LESS)
+        for obj in self.scene.getObjects():
+            if not obj.isSelected():
+                continue
+            if self._axisInfo is not None and self._axisInfo.getObject() != obj:
+                continue
+            centerPosition = [obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2.0]
+            glPushMatrix()
+            glTranslatef(centerPosition[0], centerPosition[1], centerPosition[2])
+            s = self.view.getZoom() / 10.0
+            glScalef(s, s, s)
+            self._shader.bind()
+            glColor3f(0.5, 0.5, 1)
+            if self._axisInfo is None or self._axisInfo.getAxis() == 'z':
+                self._circle.render()
+            glColor3f(0.5, 1, 0.5)
+            glRotatef(90, 1, 0, 0)
+            if self._axisInfo is None or self._axisInfo.getAxis() == 'y':
+                self._circle.render()
+            glColor3f(1.0, 0.5, 0.5)
+            glRotatef(90, 0, 1, 0)
+            if self._axisInfo is None or self._axisInfo.getAxis() == 'x':
+                self._circle.render()
+            self._shader.unbind()
+            glPopMatrix()
+
+    def focusRender(self):
+        if self._axisInfo is not None:
+            return
+        glDepthFunc(GL_ALWAYS)
         for obj in self.scene.getObjects():
             if not obj.isSelected():
                 continue
@@ -54,38 +118,14 @@ class RotateToolRenderer(Renderer):
             s = self.view.getZoom() / 10.0
             glScalef(s, s, s)
             self._shader.bind()
-            glColor3f(0.5, 0.5, 1)
+            self.setCurrentFocusRenderObject(RotateFocusObject('z', obj))
             self._circle.render()
-            glColor3f(0.5, 1, 0.5)
+            self.setCurrentFocusRenderObject(RotateFocusObject('y', obj))
             glRotatef(90, 1, 0, 0)
             self._circle.render()
-            glColor3f(1.0, 0.5, 0.5)
+            self.setCurrentFocusRenderObject(RotateFocusObject('x', obj))
             glRotatef(90, 0, 1, 0)
             self._circle.render()
             self._shader.unbind()
             glPopMatrix()
-
-    def focusRender(self):
-        glClear(GL_DEPTH_BUFFER_BIT)
-        centerPosition = numpy.zeros((3,), numpy.float32)
-        count = 0
-        for obj in self.scene.getObjects():
-            centerPosition += [obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2.0]
-            count += 1
-        if count < 1:
-            return
-        centerPosition /= count
-
-        glPushMatrix()
-        glTranslatef(centerPosition[0], centerPosition[1], centerPosition[2])
-        s = self.view.getZoom() / 10.0
-        glScalef(s, s, s)
-        self.setCurrentFocusRenderObject(self._z_axis)
-        self._circle.render()
-        glRotatef(90, 1, 0, 0)
-        self.setCurrentFocusRenderObject(self._y_axis)
-        self._circle.render()
-        glRotatef(90, 0, 1, 0)
-        self.setCurrentFocusRenderObject(self._x_axis)
-        self._circle.render()
-        glPopMatrix()
+        glDepthFunc(GL_LESS)

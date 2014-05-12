@@ -1,8 +1,8 @@
 import numpy
-import wx
 
 from Cura.gui.tools.tool import ToolboxTool
 from Cura.gui.view3D.rotateToolRenderer import RotateToolRenderer
+from Cura.gui.view3D.rotateToolRenderer import RotateFocusObject
 
 
 class RotateTool(ToolboxTool):
@@ -17,10 +17,14 @@ class RotateTool(ToolboxTool):
         return False
 
     def onMouseDown(self, x, y, button):
-        pass
+        obj = self._app.getView().getFocusObject()
+        if isinstance(obj, RotateFocusObject):
+            self._renderer._axisInfo = obj
+            return True
+        return False
 
     def onMouseMove(self, x, y, dx, dy):
         pass
 
     def onMouseUp(self, x, y, button):
-        pass
+        self._renderer._axisInfo = None
