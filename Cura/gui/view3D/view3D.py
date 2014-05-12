@@ -21,6 +21,7 @@ class View3D(object):
         self._renderer_list = []  # The view holds a set of renderers, such as machine renderer or object renderer.
         self._machine = None  # Reference to the machine
         self._openGLWindow = None
+        self._focus_debug = False
 
         self._yaw = 30
         self._pitch = 60
@@ -160,6 +161,20 @@ class View3D(object):
 
             self._mousePos = None
 
+        if self._focus_debug:
+            glClearColor(1, 1, 1, 0.0)
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+            glDisable(GL_LIGHTING)
+            glDisable(GL_BLEND)
+
+            self._focusIdx = 0
+            self._focusObjectList = []
+            for renderer in self._renderer_list:
+                if renderer.active:
+                    renderer.focusRender()
+            self._focusIdx = None
+            return
+
         glClearColor(0.8, 0.8, 0.8, 1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         for renderer in self._renderer_list:
@@ -212,7 +227,10 @@ class View3D(object):
         assert self._focusIdx is not None
         glColor4ub((self._focusIdx >> 16) & 0xFF, (self._focusIdx >> 8) & 0xFF, self._focusIdx & 0xFF, 0xFF)
         self._focusObjectList.append(obj)
-        self._focusIdx += 1
+        if self._focus_debug:
+            self._focusIdx += 64
+        else:
+            self._focusIdx += 1
 
     def getFocusObject(self):
         return self._focusObject

@@ -47,5 +47,6 @@ class ToolboxTool(Tool):
         return True
 
     def setActive(self, value):
-        self._renderer.active = value
+        if self._renderer is not None:
+            self._renderer.active = value
         super(ToolboxTool, self).setActive(value)

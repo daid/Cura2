@@ -3,8 +3,8 @@ import math
 import numpy
 from OpenGL.GL import *
 
+from Cura.geometry.plane import Plane
 from Cura.gui import openGLUtils
-from Cura.resources import getMesh
 from Cura.gui.view3D.renderer import Renderer
 
 
@@ -52,6 +52,11 @@ class RotateToolRenderer(Renderer):
         self._shader = openGLUtils.GLShader(filename='selectionCircleShader.glsl')
         self._circle = _generateCircle()
         self._axisInfo = None
+        self._axisList = [
+            numpy.array([0, 0, 1], numpy.float32),
+            numpy.array([0, 1, 0], numpy.float32),
+            numpy.array([1, 0, 0], numpy.float32),
+        ]
 
     def render(self):
         glDepthFunc(GL_ALWAYS)
@@ -67,15 +72,15 @@ class RotateToolRenderer(Renderer):
             glScalef(s, s, s)
             self._shader.bind()
             glColor3f(0.5, 0.5, 1)
-            if self._axisInfo is None or self._axisInfo.getAxis() == 'z':
+            if self._axisInfo is None or self._axisInfo.getAxis() is self._axisList[0]:
                 self._circle.render()
             glColor3f(0.5, 1, 0.5)
             glRotatef(90, 1, 0, 0)
-            if self._axisInfo is None or self._axisInfo.getAxis() == 'y':
+            if self._axisInfo is None or self._axisInfo.getAxis() is self._axisList[1]:
                 self._circle.render()
             glColor3f(1.0, 0.5, 0.5)
             glRotatef(90, 0, 1, 0)
-            if self._axisInfo is None or self._axisInfo.getAxis() == 'x':
+            if self._axisInfo is None or self._axisInfo.getAxis() is self._axisList[2]:
                 self._circle.render()
             self._shader.unbind()
             glPopMatrix()
@@ -92,15 +97,15 @@ class RotateToolRenderer(Renderer):
             glScalef(s, s, s)
             self._shader.bind()
             glColor3f(0.5, 0.5, 1)
-            if self._axisInfo is None or self._axisInfo.getAxis() == 'z':
+            if self._axisInfo is None or self._axisInfo.getAxis() is self._axisList[0]:
                 self._circle.render()
             glColor3f(0.5, 1, 0.5)
             glRotatef(90, 1, 0, 0)
-            if self._axisInfo is None or self._axisInfo.getAxis() == 'y':
+            if self._axisInfo is None or self._axisInfo.getAxis() is self._axisList[1]:
                 self._circle.render()
             glColor3f(1.0, 0.5, 0.5)
             glRotatef(90, 0, 1, 0)
-            if self._axisInfo is None or self._axisInfo.getAxis() == 'x':
+            if self._axisInfo is None or self._axisInfo.getAxis() is self._axisList[2]:
                 self._circle.render()
             self._shader.unbind()
             glPopMatrix()
@@ -117,15 +122,30 @@ class RotateToolRenderer(Renderer):
             glTranslatef(centerPosition[0], centerPosition[1], centerPosition[2])
             s = self.view.getZoom() / 10.0
             glScalef(s, s, s)
-            self._shader.bind()
-            self.setCurrentFocusRenderObject(RotateFocusObject('z', obj))
+            self.setCurrentFocusRenderObject(RotateFocusObject(self._axisList[0], obj))
             self._circle.render()
-            self.setCurrentFocusRenderObject(RotateFocusObject('y', obj))
+            self.setCurrentFocusRenderObject(RotateFocusObject(self._axisList[1], obj))
             glRotatef(90, 1, 0, 0)
             self._circle.render()
-            self.setCurrentFocusRenderObject(RotateFocusObject('x', obj))
+            self.setCurrentFocusRenderObject(RotateFocusObject(self._axisList[2], obj))
             glRotatef(90, 0, 1, 0)
             self._circle.render()
-            self._shader.unbind()
             glPopMatrix()
         glDepthFunc(GL_LESS)
+        for obj in self.scene.getObjects():
+            if not obj.isSelected():
+                continue
+            centerPosition = [obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2.0]
+            glPushMatrix()
+            glTranslatef(centerPosition[0], centerPosition[1], centerPosition[2])
+            s = self.view.getZoom() / 10.0
+            glScalef(s, s, s)
+            self.setCurrentFocusRenderObject(RotateFocusObject(self._axisList[0], obj))
+            self._circle.render()
+            self.setCurrentFocusRenderObject(RotateFocusObject(self._axisList[1], obj))
+            glRotatef(90, 1, 0, 0)
+            self._circle.render()
+            self.setCurrentFocusRenderObject(RotateFocusObject(self._axisList[2], obj))
+            glRotatef(90, 0, 1, 0)
+            self._circle.render()
+            glPopMatrix()

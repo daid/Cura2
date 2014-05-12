@@ -123,6 +123,7 @@ class FileBrowserPanel(FloatingPanel):
 class ToolsPanel(FloatingPanel):
     def __init__(self, parent, app):
         self._app = app
+        self._active_tool = None
         super(ToolsPanel, self).__init__(parent)
         self._main_panel = wx.Panel(self)
         self.SetSizer(wx.BoxSizer())
@@ -147,6 +148,9 @@ class ToolsPanel(FloatingPanel):
     def onToolButton(self, e):
         tool = e.GetEventObject().tool
         tool.setActive(not tool.isActive())
+        if self._active_tool is not None and self._active_tool != tool:
+            self._active_tool.setActive(False)
+        self._active_tool = tool
         self._app.getView().refresh()
 
 class MainWindow(wx.Frame):

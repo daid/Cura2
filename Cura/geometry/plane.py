@@ -4,15 +4,18 @@ from Cura.geometry.ray import Ray
 
 class Plane(object):
     def __init__(self, normal=None, distance=None, a=None, b=None, c=None):
-        # a,b,c = 3x[x,y,z]
-        # normal = [x,y,z]
-        # distance = d
+        # a,b,c = [x,y,z],[x,y,z],[x,y,z]
+        # normal,distance = [x,y,z],d
+        # normal,a = [x,y,z],[x,y,z]
         if a is not None and b is not None and c is not None:
             normal = numpy.cross(b - a, c - a)
             normal /= numpy.linalg.norm(normal)
             distance = numpy.dot(normal, a)
         if distance is None:
-            distance = 0
+            if a is None:
+                distance = 0
+            else:
+                distance = numpy.dot(normal, a)
         assert isinstance(normal, numpy.ndarray)
         self.normal = normal
         self.distance = distance
@@ -20,6 +23,9 @@ class Plane(object):
     def flip(self):
         self.normal *= -1
         self.distance *= -1
+
+    def pointOnPlane(self, point):
+        return self.intersectRay(Ray(point, self.normal))
 
     def intersectRay(self, ray):
         assert isinstance(ray, Ray)

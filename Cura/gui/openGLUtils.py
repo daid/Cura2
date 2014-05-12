@@ -257,6 +257,7 @@ class GLTexture(object):
         if not shuttingDown and self._program is not None:
             self._contextSource.addToReleaseList(self)
 
+
 def unproject(winx, winy, winz, modelMatrix, projMatrix, viewport):
     """
     Projects window position to 3D space. (gluUnProject). Reimplementation as some drivers crash with the original glu version.
@@ -271,3 +272,9 @@ def unproject(winx, winy, winz, modelMatrix, projMatrix, viewport):
     vector = (numpy.matrix(vector) * finalMatrix).getA().flatten()
     ret = list(vector)[0:3] / vector[3]
     return ret
+
+
+def glMultiplyMatrix(matrix):
+    m = numpy.identity(4, numpy.float64)
+    m[:3, :3] = matrix
+    glMultMatrixd(m)

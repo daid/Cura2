@@ -10,6 +10,8 @@ from Cura.machine.fdmprinter import FDMPrinter
 from Cura.machine.translator.fdmPrinterTranslator import FDMPrinterTranslator
 from Cura.gui.view3D.printerView3D import PrinterView3D
 from Cura.gui.tools.rotateTool import RotateTool
+from Cura.gui.tools.scaleTool import ScaleTool
+from Cura.gui.tools.mirrorTool import MirrorTool
 from Cura.gui.tools.selectAndMoveTool import SelectAndMoveTool
 
 
@@ -29,6 +31,8 @@ class CuraApp(wx.App):
         self._translator = FDMPrinterTranslator(self._scene, self._machine)
 
         self._toolbox.append(RotateTool(self))
+        self._toolbox.append(ScaleTool(self))
+        self._toolbox.append(MirrorTool(self))
         self._toolbox.append(SelectAndMoveTool(self))
 
         self._view.setScene(self._scene)
