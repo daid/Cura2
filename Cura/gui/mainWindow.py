@@ -8,7 +8,7 @@ from Cura.gui.profilePanel import ProfilePanel
 from Cura.gui.settingPanel import SettingPanel
 from Cura.gui.topBar import TopBarLeft
 from Cura.gui.topBar import TopBarRight
-
+from Cura.gui.widgets.innerTitleBar import InnerTitleBar
 
 class MainOpenGLView(OpenGLPanel):
     def __init__(self, parent, app):
@@ -29,13 +29,13 @@ class MainOpenGLView(OpenGLPanel):
 
     def onKeyDown(self, e):
         for tool in self._app.getTools():
-            if tool.onKeyDown(e.GetKeyCode()):
+            if tool.isActive() and tool.onKeyDown(e.GetKeyCode()):
                 return
 
     def onMouseDown(self, e):
         if self._activeTool is None:
             for tool in self._app.getTools():
-                if tool.onMouseDown(e.GetX(), e.GetY(), e.GetButton()):
+                if tool.isActive() and tool.onMouseDown(e.GetX(), e.GetY(), e.GetButton()):
                     self._activeTool = tool
                     break
         self._mousePos = (e.GetX(), e.GetY())
@@ -119,6 +119,35 @@ class FileBrowserPanel(FloatingPanel):
             self._app.getScene().loadFile(filename)
 
 
+class ToolsPanel(FloatingPanel):
+    def __init__(self, parent, app):
+        self._app = app
+        super(ToolsPanel, self).__init__(parent)
+        self._main_panel = wx.Panel(self)
+        self.SetSizer(wx.BoxSizer())
+        self.GetSizer().Add(self._main_panel, 1, flag=wx.EXPAND)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        self._main_panel.SetSizer(sizer)
+        # TODO: Get tool panel title from app.
+        sizer.Add(InnerTitleBar(self._main_panel, 'Transform model'), flag=wx.EXPAND)
+        self._tools_panel = wx.Panel(self._main_panel)
+        sizer.Add(self._tools_panel, flag=wx.EXPAND)
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self._tools_panel.SetSizer(sizer)
+        for tool in self._app.getTools():
+            if tool.hasActiveButton():
+                button = wx.Button(self._tools_panel, label=str(tool), size=(53,38))
+                button.tool = tool
+                button.Bind(wx.EVT_BUTTON, self.onToolButton)
+                sizer.Add(button)
+
+    def onToolButton(self, e):
+        tool = e.GetEventObject().tool
+        tool.setActive(not tool.isActive())
+        self._app.getView().refresh()
+
 class MainWindow(wx.Frame):
     def __init__(self, app):
         super(MainWindow, self).__init__(None, title='Cura - Pink Unicorn edition')
@@ -132,9 +161,7 @@ class MainWindow(wx.Frame):
 
         self._fileBrowser = FileBrowserPanel(self._mainView, app)
 
-        self._toolsPanel = FloatingPanel(self._mainView)
-        self._toolsPanel.SetSize((165, 54))
-        self._toolsPanel.SetBackgroundColour(wx.BLUE)
+        self._toolsPanel = ToolsPanel(self._mainView, app)
 
         self._printProfilePanel = ProfilePanel(self._mainView, app)
         self._printProfilePanel.Fit()

@@ -19,7 +19,6 @@ class View3D(object):
     def __init__(self):
         self._scene = None  # A view 3D has a scene responsible for data storage of what is in the 3D world.
         self._renderer_list = []  # The view holds a set of renderers, such as machine renderer or object renderer.
-        self._focus_renderer_list = []  # The view holds a set of renderers, these renders render invisible 3D objects used to get the object of focus under the mouse.
         self._machine = None  # Reference to the machine
         self._openGLWindow = None
 
@@ -77,19 +76,10 @@ class View3D(object):
         renderer.scene = self._scene
         renderer.machine = self._machine
 
-    def addFocusRenderer(self, renderer):
-        assert(isinstance(renderer, Renderer))
-        self._focus_renderer_list.append(renderer)
-        renderer.view = self
-        renderer.scene = self._scene
-        renderer.machine = self._machine
-
     def setScene(self,scene):
         assert(issubclass(type(scene), Scene))
         self._scene = scene
         for render in self._renderer_list:
-            render.scene = scene
-        for render in self._focus_renderer_list:
             render.scene = scene
 
     def getScene(self):
@@ -101,8 +91,6 @@ class View3D(object):
         self._max_zoom = numpy.max(machine.getSize()) * 3
         for renderer in self._renderer_list:
             renderer.machine = machine
-        for render in self._focus_renderer_list:
-            render.machine = machine
 
     def getMachine(self):
         return self._machine
@@ -133,7 +121,13 @@ class View3D(object):
         self.refresh()
 
     def deltaZoom(self, delta):
-        self._zoom *= 1.0 - delta / 10.0
+        self.setZoom(self._zoom * (1.0 - delta / 10.0))
+
+    def getZoom(self):
+        return self._zoom
+
+    def setZoom(self, zoom):
+        self._zoom = zoom
         if self._zoom < self._min_zoom:
             self._zoom = self._min_zoom
         if self._zoom > self._max_zoom:
@@ -151,15 +145,15 @@ class View3D(object):
 
             self._focusIdx = 0
             self._focusObjectList = []
-            for renderer in self._focus_renderer_list:
+            for renderer in self._renderer_list:
                 if renderer.active:
-                    renderer.render()
+                    renderer.focusRender()
             self._focusIdx = None
 
             n = glReadPixels(self._mousePos[0], self._viewport[1] + self._viewport[3] - 1 - self._mousePos[1], 1, 1, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8)[0][0]
             f = glReadPixels(self._mousePos[0], self._viewport[1] + self._viewport[3] - 1 - self._mousePos[1], 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)[0][0]
             self._mousePos3D = self._unproject(self._mousePos[0], self._mousePos[1], f)
-            if (n & 0xFF) == 0xFF:   # If the Alpha is is not 0xFF we have read a pixel not on the rendering buffer.
+            if (n & 0xFF) == 0xFF and (n >> 8) < len(self._focusObjectList):   # If the Alpha is is not 0xFF we have read a pixel not on the rendering buffer.
                 self._focusObject = self._focusObjectList[n >> 8]
             else:
                 self._focusObject = None

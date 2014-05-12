@@ -1,8 +1,8 @@
 import numpy
 import wx
 
+from Cura.scene.displayableObject import DisplayableObject
 from Cura.gui.tools.tool import Tool
-from Cura.gui.view3D.selectionRenderer import SelectionRenderer
 
 
 class SelectAndMoveTool(Tool):
@@ -13,8 +13,6 @@ class SelectAndMoveTool(Tool):
     def __init__(self, app):
         super(SelectAndMoveTool, self).__init__(app)
         self._state = ''
-
-        app.getView().addFocusRenderer(SelectionRenderer())
 
     def onKeyDown(self, key_code):
         if key_code == wx.WXK_DELETE:
@@ -29,14 +27,14 @@ class SelectAndMoveTool(Tool):
             self._state = 'rotateView'
         if button == 1:
             obj = self._app.getView().getFocusObject()
-            if obj is not None:
-                for o in self._app.getScene().getObjects():
-                    o.setSelected(False)
+            if obj is not None and isinstance(obj, DisplayableObject):
+                if not wx.GetKeyState(wx.WXK_CONTROL):
+                    self._app.getScene().deselectAll()
                 obj.setSelected(not obj.isSelected())
-            self._dragPos3D = self._app.getView().getMousePos3D()
-            self._state = 'dragObject'
+                self._dragPos3D = self._app.getView().getMousePos3D()
+                self._state = 'dragObject'
         return True
-
+    
     def onMouseMove(self, x, y, dx, dy):
         if self._state == 'rotateView':
             self._app.getView().setYaw(self._app.getView().getYaw() + dx)

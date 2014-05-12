@@ -1,13 +1,12 @@
 import wx
 from wx.lib.agw.customtreectrl import CustomTreeCtrl
-from wx.lib.agw.customtreectrl import EVT_TREE_ITEM_CHECKING
 from wx.lib.agw.customtreectrl import EVT_TREE_ITEM_CHECKED
 
 
-class MachineViewsPanel(wx.Panel):
+class MachineViewCustomizeDialog(wx.Dialog):
     def __init__(self, parent, app):
         self._app = app
-        super(MachineViewsPanel, self).__init__(parent)
+        super(MachineViewCustomizeDialog, self).__init__(parent, title='Settings', size=(500, 600))
 
         self._settings_tree = CustomTreeCtrl(self, style=wx.BORDER_SIMPLE, agwStyle=wx.TR_HAS_BUTTONS|wx.TR_HIDE_ROOT)
         self.Bind(EVT_TREE_ITEM_CHECKED, self._onItemChecked, self._settings_tree)
@@ -16,6 +15,7 @@ class MachineViewsPanel(wx.Panel):
             if not category.isVisible():
                 continue
             category_node = self._settings_tree.AppendItem(root_node, category.getLabel())
+            category_node.Expand()
             for child in category.getChildren():
                 self._addSettingNode(category_node, child)
 
@@ -33,6 +33,7 @@ class MachineViewsPanel(wx.Panel):
             setting_node.Set3StateValue(wx.CHK_UNDETERMINED)
         for child in setting.getChildren():
             self._addSettingNode(setting_node, child)
+        setting_node.Expand()
 
     def _onItemChecked(self, e):
         item = e.GetItem()
@@ -65,7 +66,7 @@ class MachineViewsPanel(wx.Panel):
 class PreferencesDialog(wx.Dialog):
     def __init__(self, app):
         self._app = app
-        super(PreferencesDialog, self).__init__(app.getMainWindow(), title='Settings', size=(600, 600))
+        super(PreferencesDialog, self).__init__(app.getMainWindow(), title='Settings')
         self._main_panel = wx.Panel(self)
         self._bottom_panel = wx.Panel(self)
         self.SetSizer(wx.BoxSizer(wx.VERTICAL))
@@ -80,33 +81,21 @@ class PreferencesDialog(wx.Dialog):
         sizer.Add(self._close_button, 0, border=5, flag=wx.ALL)
         self.Bind(wx.EVT_BUTTON, self.onCloseButton, self._close_button)
 
-        cats = ['Main', 'Setting views', 'Machines']
-        self._preference_category_list = wx.ListBox(self._main_panel, choices=cats)
-        self._preference_category_list.SetSelection(0)
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer = wx.GridBagSizer(2, 2)
         self._main_panel.SetSizer(sizer)
+        self._setting_view_selection = wx.ComboBox(self._main_panel, choices=['Basic', 'Intermediate', 'Expert', '+Add custom'], style=wx.CB_DROPDOWN|wx.CB_READONLY)
+        self._setting_view_customize = wx.Button(self._main_panel, label='Customize')
+        sizer.Add(wx.StaticText(self._main_panel, -1, 'Settings view preset'), pos=(0, 0), border=5, flag=wx.ALL|wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self._setting_view_selection, pos=(0, 1), border=5, flag=wx.ALL|wx.EXPAND)
+        sizer.Add(self._setting_view_customize, pos=(0, 2), border=5, flag=wx.ALL)
+        sizer.AddGrowableCol(1)
 
-        self._main_settings_panel = wx.Panel(self._main_panel)
-        self._view_settings_panel = MachineViewsPanel(self._main_panel, self._app)
-        self._machine_settings_panel = wx.Panel(self._main_panel)
-
-        self._main_settings_panel.SetBackgroundColour(wx.RED)
-        self._machine_settings_panel.SetBackgroundColour(wx.BLUE)
-
-        sizer.Add(self._preference_category_list, 0, border=5, flag=wx.ALL | wx.EXPAND)
-        sizer.Add(self._main_settings_panel, 1, border=5, flag=wx.ALL | wx.EXPAND)
-        sizer.Add(self._view_settings_panel, 1, border=5, flag=wx.ALL | wx.EXPAND)
-        sizer.Add(self._machine_settings_panel, 1, border=5, flag=wx.ALL | wx.EXPAND)
-
-        self.Bind(wx.EVT_LISTBOX, self.updateSettingCategory, self._preference_category_list)
-        self.updateSettingCategory()
-
-    def updateSettingCategory(self, e=None):
-        idx = self._preference_category_list.GetSelection()
-        self._main_settings_panel.Show(idx == 0)
-        self._view_settings_panel.Show(idx == 1)
-        self._machine_settings_panel.Show(idx == 2)
         self._main_panel.Layout()
+
+        self.Bind(wx.EVT_BUTTON, self.onCustomizeButton, self._setting_view_customize)
 
     def onCloseButton(self, e):
         self.Close()
+
+    def onCustomizeButton(self, e):
+        MachineViewCustomizeDialog(self, self._app).ShowModal()

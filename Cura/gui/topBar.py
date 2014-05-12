@@ -81,4 +81,5 @@ class TopBarRight(FloatingPanel):
         self.Bind(wx.EVT_BUTTON, self.onPreferences, self._settingsButton)
 
     def onPreferences(self, e):
-        PreferencesDialog(self._app).Show()
+        PreferencesDialog(self._app).ShowModal()
+        self._settingsButton.SetValue(False)

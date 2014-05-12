@@ -124,9 +124,10 @@ class GLShader(object):
 
 
 class VertexRenderer(object):
-    def __init__(self, renderType, vertexData, hasNormals = True):
+    def __init__(self, renderType, vertexData, hasNormals=True, indices=None):
         self._renderType = renderType
         self._vertexData = vertexData
+        self._indices = indices
         self._hasNormals = hasNormals
         self._buffers = None
 
@@ -139,7 +140,10 @@ class VertexRenderer(object):
                 glNormalPointer(GL_FLOAT, 2 * 3 * 4, self._vertexData.reshape(len(self._vertexData) * 6)[3:])
             else:
                 glVertexPointer(3, GL_FLOAT, 3 * 4, self._vertexData)
-            glDrawArrays(GL_TRIANGLES, 0, len(self._vertexData))
+            if self._hasIndices:
+                glDrawElements(self._renderType, self._indices.size, GL_UNSIGNED_INT, self._indices)
+            else:
+                glDrawArrays(self._renderType, 0, len(self._vertexData))
             glDisableClientState(GL_VERTEX_ARRAY)
             glDisableClientState(GL_NORMAL_ARRAY)
         else:
@@ -147,12 +151,17 @@ class VertexRenderer(object):
                 global contextSource
                 self._contextSource = contextSource
                 self._buffers = []
-                maxBufferLen = 30000
-                bufferCount = ((len(self._vertexData)-1) / maxBufferLen) + 1
+                if self._indices is not None:
+                    maxBufferLen = len(self._vertexData)
+                    bufferCount = 1
+                else:
+                    maxBufferLen = 30000
+                    bufferCount = ((len(self._vertexData)-1) / maxBufferLen) + 1
                 for n in xrange(0, bufferCount):
-                    bufferInfo = {}
-                    bufferInfo['buffer'] = glGenBuffers(1)
-                    bufferInfo['len'] = maxBufferLen
+                    bufferInfo = {
+                        'buffer': glGenBuffers(1),
+                        'len': maxBufferLen,
+                    }
                     offset = n * maxBufferLen
                     if n == bufferCount - 1:
                         bufferInfo['len'] = ((len(self._vertexData) - 1) % maxBufferLen) + 1
@@ -160,6 +169,12 @@ class VertexRenderer(object):
                     glBufferData(GL_ARRAY_BUFFER, self._vertexData[offset:offset+bufferInfo['len']], GL_STATIC_DRAW)
                     self._buffers.append(bufferInfo)
                 glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+                if self._indices is not None:
+                    self._bufferIndices = glGenBuffers(1)
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self._bufferIndices)
+                    glBufferData(GL_ELEMENT_ARRAY_BUFFER, numpy.array(self._indices, numpy.uint32), GL_STATIC_DRAW)
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
             for bufferInfo in self._buffers:
                 glBindBuffer(GL_ARRAY_BUFFER, bufferInfo['buffer'])
@@ -170,7 +185,12 @@ class VertexRenderer(object):
                     glNormalPointer(GL_FLOAT, 2 * 3 * 4, c_void_p(3 * 4))
                 else:
                     glVertexPointer(3, GL_FLOAT, 3 * 4, c_void_p(0))
-                glDrawArrays(self._renderType, 0, bufferInfo['len'])
+                if self._indices is not None:
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self._bufferIndices)
+                    glDrawElements(self._renderType, self._indices.size, GL_UNSIGNED_INT, c_void_p(0))
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+                else:
+                    glDrawArrays(self._renderType, 0, bufferInfo['len'])
             glBindBuffer(GL_ARRAY_BUFFER, 0)
             glDisableClientState(GL_VERTEX_ARRAY)
             glDisableClientState(GL_NORMAL_ARRAY)
@@ -179,7 +199,10 @@ class VertexRenderer(object):
         if not legacyMode and self._buffers is not None:
             for info in self._buffers:
                 glDeleteBuffers(1, [info['buffer']])
+            if self._indices:
+                glDeleteBuffers(1, [self._bufferIndices])
             self._buffers = None
+            self._bufferIndices = None
 
     def __del__(self):
         global shuttingDown

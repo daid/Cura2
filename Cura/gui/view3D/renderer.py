@@ -11,6 +11,9 @@ class Renderer(object):
         self.scene = None
         self.view = None
 
+    def focusRender(self):
+        pass
+
     def render(self):
         pass
 
