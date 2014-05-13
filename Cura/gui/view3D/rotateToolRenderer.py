@@ -55,7 +55,7 @@ class RotateToolRenderer(Renderer):
         self._axisList = [
             numpy.array([0, 0, 1], numpy.float32),
             numpy.array([0, 1, 0], numpy.float32),
-            numpy.array([1, 0, 0], numpy.float32),
+            numpy.array([-1, 0, 0], numpy.float32),
         ]
 
     def render(self):
