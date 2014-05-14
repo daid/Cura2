@@ -8,7 +8,7 @@ from Cura.gui.widgets.gradientButton import GradientButton
 
 
 class PrintSaveButton(GradientButton):
-    # TODO: This does not belong here.
+    # TODO: This does not belong here. Move to seperate file
     def __init__(self, parent, app):
         self._app = app
         super(PrintSaveButton, self).__init__(parent, label='Save GCode')

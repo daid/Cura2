@@ -13,7 +13,7 @@ The OpenGLPanel is a tricky beast.
 On Windows, most is fine and ok. But we do get some flickering of panels on top of the GLCanvas.
 
 On Linux and MacOS we have the problem that we cannot draw normal widgets on top of a wx.GLCanvas.
-    So we need to draw the OpenGL information to a background buffer, and render that buffer into a normal wxPanel.
+    So we need to draw the OpenGL information to a background buffer and render that buffer into a normal wxPanel.
 
 
 An alternative solution is to have floating borderless dialogs on top of of the GLPanel.

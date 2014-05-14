@@ -60,7 +60,7 @@ class MainOpenGLView(OpenGLPanel):
         self._app.getView().deltaZoom(delta)
 
 
-class NotificationPanel(FloatingPanel):
+class NotificationPanel(FloatingPanel):  #TODO move to seperate file
     def __init__(self, parent):
         super(NotificationPanel, self).__init__(parent)
         self.SetBackgroundColour((160, 160, 160))
@@ -91,7 +91,7 @@ class NotificationPanel(FloatingPanel):
         self._hideTimer.Start(10000, False)
 
 
-class FileBrowserPanel(FloatingPanel):
+class FileBrowserPanel(FloatingPanel):  #TODO move to seperate file
     def __init__(self, parent, app):
         super(FileBrowserPanel, self).__init__(parent)
         self._app = app
@@ -120,7 +120,7 @@ class FileBrowserPanel(FloatingPanel):
             self._app.getScene().loadFile(filename)
 
 
-class ToolsPanel(FloatingPanel):
+class ToolsPanel(FloatingPanel): #TODO move to seperate file
     def __init__(self, parent, app):
         self._app = app
         self._active_tool = None
