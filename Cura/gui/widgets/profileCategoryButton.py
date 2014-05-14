@@ -5,6 +5,9 @@ from Cura.resources import getBitmap
 
 
 class ProfileCategoryButton(GenToggleButton):
+    """
+    Button that 'holds' a set of settings, which will be expanded when clicked upon.
+    """
     def __init__(self, parent, label, icon):
         icon = 'icon_resolution.png'
         self._icon = getBitmap(icon)
@@ -19,6 +22,9 @@ class ProfileCategoryButton(GenToggleButton):
         return self._small
 
     def DrawLabel(self, dc, width, height, dx=0, dy=0):
+        """
+        draw the text of the button. TODO: Naming not consistent. Should start with lower case?
+        """
         dc.SetFont(self.GetFont())
         if self.IsEnabled():
             dc.SetTextForeground(self.GetForegroundColour())
@@ -29,9 +35,15 @@ class ProfileCategoryButton(GenToggleButton):
         dc.DrawText(label, 55, (height - th) / 2)
 
     def GetBackgroundBrush(self, dc):
+        """
+        TODO: Naming not consistent. Should start with lower case?
+        """
         return wx.Brush(self.GetBackgroundColour(), wx.SOLID)
 
     def OnPaint(self, event):
+        """
+        Rendering of the button.
+        """
         (width, height) = self.GetClientSizeTuple()
 
         dc = wx.BufferedPaintDC(self)
@@ -39,7 +51,7 @@ class ProfileCategoryButton(GenToggleButton):
         if brush is not None:
             dc.SetBackground(brush)
             dc.Clear()
-
+        #Draw border around active categories
         if not self.up:
             b = getBitmap('category_select_left.png')
             dc.DrawBitmap(b, 9, (height - b.GetHeight()) / 2)
@@ -54,6 +66,9 @@ class ProfileCategoryButton(GenToggleButton):
             self.DrawLabel(dc, width, height)
 
     def DoGetBestSize(self):
+        """
+        TODO: Naming not consistent. Should start with lower case?
+        """
         w, h = super(ProfileCategoryButton, self).DoGetBestSize()
         if not self._small:
             w += 55 + 20
