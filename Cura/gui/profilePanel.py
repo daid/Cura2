@@ -80,6 +80,8 @@ class ProfilePanel(FloatingPanel):
         self.setSmall(not self._titleBar.isSmall())
         self.Fit()
         self.Parent.Layout()
+        self.Layout() #because on linux the layout stuff doesn't bubble down. Screw you wxwidgets.
+
 
     def setSmall(self, small):
         self._titleBar.setSmall(small)
