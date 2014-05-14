@@ -49,16 +49,20 @@ class ProfilePanel(FloatingPanel):
 
         n = 0
         for c in self._app.getMachine().getSettingCategories():
-            if c.isVisible():
-                b = ProfileCategoryButton(self, c.getLabel(), c.getIcon())
-                b.category = c
-                sizer.Add(b, flag=wx.EXPAND)
-                b.Bind(wx.EVT_BUTTON, self.onCategoryButton)
-                self._categoryButtons.append(b)
+            if not c.isVisible():
+                continue
+            # Filter out categories that do not have visible settings.
+            if len(filter(lambda s: s.isVisible(), c.getSettings())) < 1:
+                continue
+            b = ProfileCategoryButton(self, c.getLabel(), c.getIcon())
+            b.category = c
+            sizer.Add(b, flag=wx.EXPAND)
+            b.Bind(wx.EVT_BUTTON, self.onCategoryButton)
+            self._categoryButtons.append(b)
 
-                n += 1
-                if n % 4 == 0:
-                    sizer.Add(wx.StaticLine(self), flag=wx.EXPAND)
+            n += 1
+            if n % 4 == 0:
+                sizer.Add(wx.StaticLine(self), flag=wx.EXPAND)
 
         self._pluginsButton = ProfileCategoryButton(self, 'Plugins', 'icon_plugin.png')
         self._loadProfileButton = ProfileCategoryButton(self, 'Load profile', 'icon_load_profile.png')

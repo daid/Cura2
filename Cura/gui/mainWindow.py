@@ -153,6 +153,7 @@ class ToolsPanel(FloatingPanel):
         self._active_tool = tool
         self._app.getView().refresh()
 
+
 class MainWindow(wx.Frame):
     def __init__(self, app):
         super(MainWindow, self).__init__(None, title='Cura - Pink Unicorn edition')
@@ -168,9 +169,7 @@ class MainWindow(wx.Frame):
 
         self._toolsPanel = ToolsPanel(self._mainView, app)
 
-        self._printProfilePanel = ProfilePanel(self._mainView, app)
-        self._printProfilePanel.Fit()
-        self._printProfilePanel.SetPosition((600, 32))
+        self._profilePanel = ProfilePanel(self._mainView, app)
 
         self._notification = NotificationPanel(self._mainView)
 
@@ -183,7 +182,7 @@ class MainWindow(wx.Frame):
         self._floatSizer.Add(self._topBarLeft, userData={'top': 0, 'left': 0, 'width': self._toolsPanel})
         self._floatSizer.Add(self._topBarRight, userData={'top': 0, 'right': 0, 'width': self._toolsPanel})
         self._floatSizer.Add(self._fileBrowser, userData={'left': 0, 'top': 72})
-        self._floatSizer.Add(self._printProfilePanel, userData={'right': 0, 'top': 72})
+        self._floatSizer.Add(self._profilePanel, userData={'right': 0, 'top': 72})
         self._floatSizer.Add(self._notification, userData={'bottom': 32})
         self._mainView.SetSizer(self._floatSizer)
         self.SetMinSize((500, 500))
@@ -197,12 +196,20 @@ class MainWindow(wx.Frame):
             self._settingsPanel = None
             self._mainView.Refresh()
 
+    def refreshProfilePanel(self):
+        self.closeSettings()
+        self._floatSizer.Detach(self._profilePanel)
+        self._profilePanel.Destroy()
+        self._profilePanel = ProfilePanel(self._mainView, self._app)
+        self._floatSizer.Add(self._profilePanel, userData={'right': 0, 'top': 72})
+        self._mainView.Layout()
+
     def openSettingCategory(self, categoryButton):
         category = categoryButton.category
         self.closeSettings()
 
         self._settingsPanel = SettingPanel(self._mainView, self._app, category)
-        self._floatSizer.Add(self._settingsPanel, userData={'right': self._printProfilePanel, 'top': 72 + categoryButton.GetPosition()[1]})
+        self._floatSizer.Add(self._settingsPanel, userData={'right': self._profilePanel, 'top': 72 + categoryButton.GetPosition()[1]})
         self._mainView.Layout()
 
     def _onMove(self, e):

@@ -100,7 +100,8 @@ class View3D(object):
         self._openGLWindow = window
 
     def refresh(self):
-        self._openGLWindow.queueRefresh()
+        if self._openGLWindow is not None:
+            self._openGLWindow.queueRefresh()
 
     def updateMousePos(self, x, y):
         self._mousePos = (x, y)

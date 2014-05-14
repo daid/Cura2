@@ -1,24 +1,27 @@
-from ConfigParser import ConfigParser
+
+import ConfigParser as configParser
 
 preferences = None
 
 
-def getPreference(key, default):
+def getPreference(key, default='', section='preferences'):
     global preferences
     if preferences is None:
         return default
-    if not preferences.has_option('preferences', key):
+    if not preferences.has_section(section):
         return default
-    return preferences.get('preferences', key)
+    if not preferences.has_option(section, key):
+        return default
+    return preferences.get(section, key)
 
 
-def setPreference(key, value):
+def setPreference(key, value, section='preferences'):
     global preferences
     if preferences is None:
-        preferences = ConfigParser()
-    if not preferences.has_section('preferences'):
-        preferences.add_section('preferences')
-    preferences.set('preferences', key, value)
+        preferences = configParser.ConfigParser()
+    if not preferences.has_section(section):
+        preferences.add_section(section)
+    preferences.set(section, key, value)
 
 
 def savePreferences(filename):
@@ -31,7 +34,5 @@ def savePreferences(filename):
 
 def loadPreferences(filename):
     global preferences
-    preferences = ConfigParser()
+    preferences = configParser.ConfigParser()
     preferences.read(filename)
-    if not preferences.has_section('preferences'):
-        preferences.add_section('preferences')

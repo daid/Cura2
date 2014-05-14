@@ -9,8 +9,8 @@ from Cura.machine.engineCommunication.socketConnection import SocketConnection
 
 
 class FDMPrinterTranslator(Printer3DTranslator):
-    def __init__(self, scene, machine):
-        super(FDMPrinterTranslator, self).__init__(scene, machine)
+    def __init__(self):
+        super(FDMPrinterTranslator, self).__init__()
         self._engine_executable_name = 'CuraEngine'
 
         self.addConnection(SocketConnection(self))

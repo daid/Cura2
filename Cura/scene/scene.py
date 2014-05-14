@@ -30,7 +30,8 @@ class Scene(object):
         self.sceneUpdated()
 
     def sceneUpdated(self, updatedObject=None):
-        self._view.refresh()
+        if self._view is not None:
+            self._view.refresh()
         if self._translator is not None:
             self._translator.trigger()
 

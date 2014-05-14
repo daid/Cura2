@@ -25,8 +25,8 @@ def main():
 
     (options, args) = parser.parse_args()
 
-    from gui.app import CuraApp
-    app = CuraApp()
+    from app import CuraFDMApp
+    app = CuraFDMApp()
     app.MainLoop()
     app.finished()
     preferences.savePreferences(getDefaultPreferenceStoragePath('preferences.ini'))

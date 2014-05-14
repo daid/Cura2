@@ -12,16 +12,22 @@ class Translator(object):
     Some machines might need to send (or receive) different kinds of data. This is the base class, with inherited
     classes for such cases.
     """
-    def __init__(self, scene, machine):
+    def __init__(self):
         self._engine_executable_name = 'Engine'
         self._engine_thread = None
         self._engine_process = None
         self._connections = []
-        self._scene = scene
-        self._machine = machine
+        self._scene = None
+        self._machine = None
         self._progress_callbacks = []
         self._start_timer = None
         self._start_delay = 0.5
+
+    def setMachine(self, machine):
+        self._machine = machine
+
+    def setScene(self, scene):
+        self._scene = scene
 
     def trigger(self):
         """
