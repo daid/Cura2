@@ -5,6 +5,9 @@ from Cura.gui.widgets.topBarButton import TopBarButton
 from Cura.resources import getBitmap
 from Cura.gui.preferencesDialog import PreferencesDialog
 
+"""
+TODO: Should be renamed to toBars or something like that.
+"""
 
 class TopBarLeft(FloatingPanel):
     def __init__(self, parent, app):
@@ -18,7 +21,7 @@ class TopBarLeft(FloatingPanel):
 
         self._3dViewButton.SetValue(True)
 
-        self.SetBackgroundColour((214, 214, 214))
+        self.SetBackgroundColour((214, 214, 214)) #TODO; extract this from a color setting file instead of hard coding it.
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(wx.StaticBitmap(self, bitmap=getBitmap('small_logo.png')), 0, flag=wx.EXPAND)
@@ -60,7 +63,7 @@ class TopBarRight(FloatingPanel):
         self._settingsButton = TopBarButton(self, 'Settings')
         self._helpButton = TopBarButton(self, 'Help')
 
-        self.SetBackgroundColour((214, 214, 214))
+        self.SetBackgroundColour((214, 214, 214))  #TODO; extract this from a color setting file instead of hard coding it.
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(wx.Panel(self), 1, flag=wx.EXPAND)

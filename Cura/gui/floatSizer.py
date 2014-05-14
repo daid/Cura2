@@ -1,7 +1,7 @@
 import wx
 
 
-class FloatingPanel(wx.Frame):
+class FloatingPanel(wx.Frame): #TODO: Move to seperate file; this has nothing to do with a sizer.
     def __init__(self, parent):
         super(FloatingPanel, self).__init__(parent, style=wx.FRAME_FLOAT_ON_PARENT | wx.NO_BORDER | wx.FRAME_NO_TASKBAR | wx.FRAME_SHAPED)
         self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE))
@@ -13,10 +13,10 @@ class FloatSizer(wx.PySizer):
         wx.PySizer.__init__(self)
         self._parent = parent
 
-    def CalcMin(self):
+    def CalcMin(self): #TODO: Wrong naming
         return wx.Size(1, 1)
 
-    def RecalcSizes(self):
+    def RecalcSizes(self): #TODO: Wrong naming
         size = self.GetSize()
         for item in self.GetChildren():
             itemSize = item.CalcMin()
