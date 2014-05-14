@@ -1,5 +1,6 @@
 import wx
 
+from Cura import preferences
 from Cura.gui.floatSizer import FloatingPanel
 from Cura.gui.widgets.profileCategoryButton import ProfileCategoryButton
 from Cura.gui.widgets.innerTitleBar import InnerTitleBar
@@ -73,7 +74,7 @@ class ProfilePanel(FloatingPanel):
         sizer.Add(self._loadProfileButton, flag=wx.EXPAND)
         sizer.Add(self._saveButton, flag=wx.EXPAND)
         self.SetSizer(sizer)
-        self.setSmall(False)
+        self.setSmall(preferences.getPreference('profile_small', 'False') == 'True')
 
     def onSmallToggle(self, e):
         self.setSmall(not self._titleBar.isSmall())
@@ -91,6 +92,7 @@ class ProfilePanel(FloatingPanel):
             self._titleBar.setIcon('inner_title_bar_open_arrow.png')
         else:
             self._titleBar.setIcon('inner_title_bar_close_arrow.png')
+        preferences.setPreference('profile_small', str(small))
 
     def onCategoryButton(self, e):
         button = e.GetEventObject()
