@@ -13,7 +13,6 @@ class InnerTitleBar(wx.Panel):
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.onEraseBackground)
         self._small = False
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM) #HACK; required for linux to ensure that the EVT_ERASE_BACKGROUND is called.
-        print("Title bar created")
 
     def setSmall(self, small):
         self._small = small
@@ -26,7 +25,6 @@ class InnerTitleBar(wx.Panel):
         self._icon = icon
 
     def onEraseBackground(self, evt):
-        print("Title bar background")
         dc = evt.GetDC()
         if not dc:
             dc = wx.ClientDC(self)
