@@ -159,8 +159,11 @@ class Setting(object):
         return self._type
 
     def getValue(self):
-        if not self._visible and self._copy_from_parent_function is not None and self._parent_setting is not None:
-            self._value = str(self._copy_from_parent_function(self._machine, self._parent_setting.getValue()))
+        if not self._visible:
+            if self._copy_from_parent_function is not None and self._parent_setting is not None:
+                self._value = str(self._copy_from_parent_function(self._machine, self._parent_setting.getValue()))
+            else:
+                return self._default
         if self._value is None:
             return self._default
         return self._value

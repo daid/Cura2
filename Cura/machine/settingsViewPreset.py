@@ -1,3 +1,4 @@
+import ConfigParser as configParser
 
 class SettingsViewPreset(object):
     def __init__(self):
@@ -28,3 +29,20 @@ class SettingsViewPreset(object):
         for category in machine.getSettingCategories():
             for setting in category.getSettings():
                 setting.setVisible(self.isSettingVisible(setting.getKey()))
+
+    def exportToFile(self, filename):
+        config = configParser.ConfigParser()
+        config.add_section('view_preset')
+        for k, v in self._setting_key_map.items():
+            config.set('view_preset', k, str(v))
+        with open(filename, "w") as f:
+            config.write(f)
+
+    def importFromFile(self, filename):
+        config = configParser.ConfigParser()
+        config.read(filename)
+        if not config.has_section('view_preset'):
+            return False
+        self._setting_key_map = {}
+        for k in config.options('view_preset'):
+            self._setting_key_map[k] = config.get('view_preset', k) == 'True'

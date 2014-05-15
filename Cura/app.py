@@ -25,6 +25,8 @@ class CuraApp(wx.App):
         self._translator = None
         self._machine = None
 
+        self._mainWindow = None
+
         if platform.system() == "Windows" and not 'PYCHARM_HOSTED' in os.environ:
             super(CuraApp, self).__init__(redirect=True, filename='output.txt')
         else:
@@ -85,6 +87,7 @@ class CuraFDMApp(CuraApp):
         self._scene.loadFile('C:/Models/D&D/Box.stl')
 
         self._machine.loadSettings(getDefaultPreferenceStoragePath('settings.ini'))
+        self.setActiveSettingsView(self._active_setting_view)
         return True
 
     def finished(self):
@@ -93,10 +96,14 @@ class CuraFDMApp(CuraApp):
     def getSettingsViewPresets(self):
         return self._settings_view_presets
 
+    def addSettingsViewPreset(self, svp):
+        self._settings_view_presets.append(svp)
+
     def getActiveSettingsViewPreset(self):
         return self._active_setting_view
 
     def setActiveSettingsView(self, settings_view):
         self._active_setting_view = settings_view
         settings_view.applyPreset(self._machine)
-        self._mainWindow.refreshProfilePanel()
+        if self._mainWindow is not None:
+            self._mainWindow.refreshProfilePanel()
