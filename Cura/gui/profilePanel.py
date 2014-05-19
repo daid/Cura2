@@ -8,7 +8,7 @@ from Cura.gui.widgets.gradientButton import GradientButton
 
 
 class PrintSaveButton(GradientButton):
-    # TODO: This does not belong here.
+    # TODO: This does not belong here. Move to seperate file
     def __init__(self, parent, app):
         self._app = app
         super(PrintSaveButton, self).__init__(parent, label='Save GCode')
@@ -80,6 +80,8 @@ class ProfilePanel(FloatingPanel):
         self.setSmall(not self._titleBar.isSmall())
         self.Fit()
         self.Parent.Layout()
+        self.Layout() #because on linux the layout stuff doesn't bubble down. Screw you wxwidgets.
+
 
     def setSmall(self, small):
         self._titleBar.setSmall(small)
