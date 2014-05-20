@@ -9,14 +9,27 @@ class FloatingPanel(wx.Frame): #TODO: Move to seperate file; this has nothing to
 
 
 class FloatSizer(wx.PySizer):
+    """
+    The FloatSizer is a specialized wxPython sized which can put floating panels on top of the 3D window. It uses relative positioning
+    """
     def __init__(self, parent):
         wx.PySizer.__init__(self)
         self._parent = parent
 
-    def CalcMin(self): #TODO: Wrong naming
+    def CalcMin(self):
+        """
+        This function is called from wxPython when a new layout for this sizer needs to be calculated.
+
+        Report the minimal size that we need for this component. Which we do not use in this sizer.
+        """
         return wx.Size(1, 1)
 
-    def RecalcSizes(self): #TODO: Wrong naming
+    def RecalcSizes(self):
+        """
+        This function is called from wxPython when a new layout for this sizer needs to be calculated.
+
+        Calculate the size and position needed for each child element.
+        """
         size = self.GetSize()
         for item in self.GetChildren():
             itemSize = item.CalcMin()
