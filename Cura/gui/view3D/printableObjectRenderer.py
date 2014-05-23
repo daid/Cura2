@@ -20,8 +20,8 @@ class PrintableObjectRenderer(Renderer):
             offset = obj.getDrawOffset()
             glTranslatef(obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2.0)
             openGLUtils.glMultiplyMatrix(obj.getTempMatrix())
-            openGLUtils.glMultiplyMatrix(obj.getMatrix())
             glTranslatef(offset[0], offset[1], offset[2] - obj.getSize()[2] / 2.0)
+            openGLUtils.glMultiplyMatrix(obj.getMatrix())
             colorStrength = 0.8
             if obj.isSelected():
                 colorStrength = 1.0
@@ -46,8 +46,10 @@ class PrintableObjectRenderer(Renderer):
         for obj in self.scene.getObjects():
             glPushMatrix()
             offset = obj.getDrawOffset()
-            glTranslatef(obj.getPosition()[0], obj.getPosition()[1], 0)
-            glTranslatef(offset[0], offset[1], offset[2])
+            glTranslatef(obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2.0)
+            openGLUtils.glMultiplyMatrix(obj.getTempMatrix())
+            glTranslatef(offset[0], offset[1], offset[2] - obj.getSize()[2] / 2.0)
+            openGLUtils.glMultiplyMatrix(obj.getMatrix())
             self.setCurrentFocusRenderObject(obj)
 
             mesh = obj.getMesh()

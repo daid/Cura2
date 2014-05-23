@@ -3,6 +3,7 @@ import os
 import math
 import threading
 
+from Cura.geometry import polygon
 from Cura.meshLoaders.meshLoader import loadMeshes
 from Cura.scene.displayableObject import DisplayableObject
 
@@ -35,6 +36,8 @@ class PrintableObject(DisplayableObject):
         self._boundarySphere = 1
         self._drawOffset = numpy.zeros((3,), numpy.float32)
 
+        self._convex2dBoundary = numpy.zeros((2, 1), numpy.float32)
+
     def loadMesh(self, filename):
         self._thread = threading.Thread(target=self._loadMeshThread, args=(filename,))
         self._thread.daemon = True
@@ -47,12 +50,20 @@ class PrintableObject(DisplayableObject):
         self._updated()
         self._updateMeshInfo()
 
+    def setMatrix(self, matrix):
+        super(PrintableObject, self).setMatrix(matrix)
+        self._thread = threading.Thread(target=self._updateMeshInfo)
+        self._thread.daemon = True
+        self._thread.start()
+
     def _updateMeshInfo(self):
         transformedMin = numpy.array([999999999999,999999999999,999999999999], numpy.float64)
         transformedMax = numpy.array([-999999999999,-999999999999,-999999999999], numpy.float64)
         boundarySphere = 0.0
+        hull = numpy.zeros((0, 2), numpy.int)
         for v in self._mesh.getVolumes():
-            vertexData = (numpy.matrix(v.vertexData[::,0:3], copy = False) * numpy.matrix(self._matrix, numpy.float32)).getA()
+            vertexData = (numpy.matrix(v.vertexData[::, 0:3], copy = False) * numpy.matrix(self._matrix, numpy.float32)).getA()
+            hull = polygon.convexHull(numpy.concatenate((numpy.rint(vertexData[:,0:2]).astype(int), hull), 0))
             vertexMin = vertexData.min(0)
             vertexMax = vertexData.max(0)
             for n in xrange(0, 3):
@@ -69,6 +80,7 @@ class PrintableObject(DisplayableObject):
         self._vMax = transformedMax
         self._boundarySphere = boundarySphere
         self._drawOffset = numpy.array([-center[0], -center[1], -transformedMin[2]])
+        self._convex2dBoundary = polygon.minkowskiHull((hull.astype(numpy.float32) + self._drawOffset[0:2]), numpy.array([[-1,-1],[-1,1],[1,1],[1,-1]],numpy.float32))
         self._updated()
 
     def getSize(self):

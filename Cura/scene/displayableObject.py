@@ -46,9 +46,7 @@ class DisplayableObject(object):
         self._updated()
 
     def applyMatrix(self, matrix):
-        self._matrix *= matrix
-        self._temp_matrix = numpy.matrix(numpy.identity(3, numpy.float64))
-        self._updated()
+        self.setMatrix(self._matrix * matrix)
 
     def setScene(self, scene):
         self._scene = scene
