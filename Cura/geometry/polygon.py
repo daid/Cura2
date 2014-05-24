@@ -65,7 +65,7 @@ def minkowskiHull(a, b):
     return convexHull(points.copy())
 
 
-def projectPoly(poly, normal):
+def _projectPoly(poly, normal):
     """
     Project a convex polygon on a given normal.
     A projection of a convex polygon on a infinite line is a finite line.
@@ -88,8 +88,8 @@ def polygonCollision(polyA, polyB):
         normal = (p1 - p0)[::-1]
         normal[1] = -normal[1]
         normal /= numpy.linalg.norm(normal)
-        aMin, aMax = projectPoly(polyA, normal)
-        bMin, bMax = projectPoly(polyB, normal)
+        aMin, aMax = _projectPoly(polyA, normal)
+        bMin, bMax = _projectPoly(polyB, normal)
         if aMin > bMax:
             return False
         if bMin > aMax:
@@ -100,11 +100,11 @@ def polygonCollision(polyA, polyB):
         normal = (p1 - p0)[::-1]
         normal[1] = -normal[1]
         normal /= numpy.linalg.norm(normal)
-        aMin, aMax = projectPoly(polyA, normal)
-        bMin, bMax = projectPoly(polyB, normal)
+        aMin, aMax = _projectPoly(polyA, normal)
+        bMin, bMax = _projectPoly(polyB, normal)
         if aMin > bMax:
             return False
-        if aMax < bMin:
+        if bMin > aMax:
             return False
     return True
 
@@ -119,13 +119,13 @@ def polygonCollisionPushVector(polyA, polyB):
         normal = (p1 - p0)[::-1]
         normal[1] = -normal[1]
         normal /= numpy.linalg.norm(normal)
-        aMin, aMax = projectPoly(polyA, normal)
-        bMin, bMax = projectPoly(polyB, normal)
+        aMin, aMax = _projectPoly(polyA, normal)
+        bMin, bMax = _projectPoly(polyB, normal)
         if aMin > bMax:
             return False
         if bMin > aMax:
             return False
-        size = min(bMax, bMax) - max(aMin, bMin)
+        size = min(aMax, bMax) - max(aMin, bMin)
         if size < retSize:
             ret = normal * (size + 0.1)
             retSize = size
@@ -135,13 +135,13 @@ def polygonCollisionPushVector(polyA, polyB):
         normal = (p1 - p0)[::-1]
         normal[1] = -normal[1]
         normal /= numpy.linalg.norm(normal)
-        aMin, aMax = projectPoly(polyA, normal)
-        bMin, bMax = projectPoly(polyB, normal)
+        aMin, aMax = _projectPoly(polyA, normal)
+        bMin, bMax = _projectPoly(polyB, normal)
         if aMin > bMax:
             return False
-        if aMax < bMin:
+        if bMin > aMax:
             return False
-        size = min(bMax, bMax) - max(aMin, bMin)
+        size = min(aMax, bMax) - max(aMin, bMin)
         if size < retSize:
             ret = normal * -(size + 0.1)
             retSize = size
@@ -158,8 +158,8 @@ def fullInside(polyA, polyB):
         normal = (p1 - p0)[::-1]
         normal[1] = -normal[1]
         normal /= numpy.linalg.norm(normal)
-        aMin, aMax = projectPoly(polyA, normal)
-        bMin, bMax = projectPoly(polyB, normal)
+        aMin, aMax = _projectPoly(polyA, normal)
+        bMin, bMax = _projectPoly(polyB, normal)
         if aMax > bMax:
             return False
         if aMin < bMin:
@@ -170,8 +170,8 @@ def fullInside(polyA, polyB):
         normal = (p1 - p0)[::-1]
         normal[1] = -normal[1]
         normal /= numpy.linalg.norm(normal)
-        aMin, aMax = projectPoly(polyA, normal)
-        bMin, bMax = projectPoly(polyB, normal)
+        aMin, aMax = _projectPoly(polyA, normal)
+        bMin, bMax = _projectPoly(polyB, normal)
         if aMax > bMax:
             return False
         if aMin < bMin:

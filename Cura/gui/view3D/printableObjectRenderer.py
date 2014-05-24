@@ -19,6 +19,7 @@ class PrintableObjectRenderer(Renderer):
             glPushMatrix()
             offset = obj.getDrawOffset()
             glTranslatef(obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2.0)
+
             openGLUtils.glMultiplyMatrix(obj.getTempMatrix())
             glTranslatef(offset[0], offset[1], offset[2] - obj.getSize()[2] / 2.0)
             openGLUtils.glMultiplyMatrix(obj.getMatrix())

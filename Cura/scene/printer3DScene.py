@@ -29,6 +29,7 @@ class Printer3DScene(Scene):
     def __init__(self):
         super(Printer3DScene,self).__init__()
         self._result_object = Printer3DResult()
+        self._is_in_update = False
 
     def loadFile(self, filename):
         if not os.path.isfile(filename):
@@ -41,18 +42,18 @@ class Printer3DScene(Scene):
 
     def sceneUpdated(self, updatedObject=None):
         super(Printer3DScene, self).sceneUpdated(updatedObject)
+        if self._is_in_update:
+            return
 
+        self._is_in_update = True
         for obj in self._object_list:
             if obj == updatedObject:
                 continue
-            v0 = polygon.polygonCollisionPushVector(obj._convex2dBoundary + obj.getPosition(), updatedObject._convex2dBoundary + updatedObject.getPosition())
-            v1 = polygon.polygonCollisionPushVector(updatedObject._convex2dBoundary + updatedObject.getPosition(), obj._convex2dBoundary + obj.getPosition())
-            if type(v0) is bool or type(v1) is bool:
+            v = polygon.polygonCollisionPushVector(obj._convex2dBoundary + obj.getPosition(), updatedObject._convex2dBoundary + updatedObject.getPosition())
+            if type(v) is bool:
                 continue
-            if numpy.linalg.norm(v0) < numpy.linalg.norm(v1):
-                obj.setPosition(obj.getPosition() + v0 * 1.01)
-            else:
-                obj.setPosition(obj.getPosition() + v1 * -1.01)
+            obj.setPosition(obj.getPosition() + v * 1.01)
+        self._is_in_update = False
 
     def getResult(self):
         return self._result_object
