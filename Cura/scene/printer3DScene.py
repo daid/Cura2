@@ -42,8 +42,6 @@ class Printer3DScene(Scene):
 
     def sceneUpdated(self, updatedObject=None):
         super(Printer3DScene, self).sceneUpdated(updatedObject)
-        if self._is_in_update:
-            return
 
         self._is_in_update = True
         for obj in self._object_list:
@@ -52,6 +50,9 @@ class Printer3DScene(Scene):
             v = polygon.polygonCollisionPushVector(obj._convex2dBoundary + obj.getPosition(), updatedObject._convex2dBoundary + updatedObject.getPosition())
             if type(v) is bool:
                 continue
+            posDiff = obj.getPosition() - updatedObject.getPosition()
+            if numpy.dot(posDiff, v) < 0:
+                v = -v
             obj.setPosition(obj.getPosition() + v * 1.01)
         self._is_in_update = False
 
