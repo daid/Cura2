@@ -13,6 +13,9 @@ class Printer3D(machine.Machine):
         super(Printer3D,self).__init__()
         self.addSettingCategory(SettingCategory('resolution', order=0).setLabel('Resolution'))
         self.addSetting('resolution', Setting('layer_height', 0.2, 'float').setRange(0.0001).setLabel(_("Layer height (mm)"), _("Layer height in millimeters.\nThis is the most important setting to determine the quality of your print. Normal quality prints are 0.1mm, high quality is 0.06mm. You can go up to 0.25mm with an Ultimaker for very fast prints at low quality.")))
+        self.getSettingByKey('machine_width').setLabel('Print area width (mm)')
+        self.getSettingByKey('machine_depth').setLabel('Print area depth (mm)')
+        self.getSettingByKey('machine_height').setLabel('Print area height (mm)')
 
         self.addSettingCategory(SettingCategory('support', order=5).setLabel('Support Material'))
         self.addSetting('support', Setting('support_enable', False, 'bool'))

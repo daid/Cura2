@@ -21,9 +21,9 @@ class SettingsViewPreset(object):
         self._setting_key_map[key] = visible
 
     def isSettingVisible(self, key):
-        if key in self._setting_key_map:
-            return self._setting_key_map[key]
-        return False
+        if key not in self._setting_key_map:
+            self._setting_key_map[key] = False
+        return self._setting_key_map[key]
 
     def applyPreset(self, machine):
         for category in machine.getSettingCategories():

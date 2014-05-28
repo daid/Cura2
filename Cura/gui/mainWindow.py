@@ -6,9 +6,11 @@ from Cura.gui.floatSizer import FloatingPanel
 from Cura.gui.openGLPanel import OpenGLPanel
 from Cura.gui.profilePanel import ProfilePanel
 from Cura.gui.settingPanel import SettingPanel
+from Cura.gui.fdmMachineConfigDialog import FDMMachineConfigDialog
 from Cura.gui.topBar import TopBarLeft
 from Cura.gui.topBar import TopBarRight
 from Cura.gui.widgets.innerTitleBar import InnerTitleBar
+from Cura.gui.widgets.gradientButton import GradientButton
 
 
 class MainOpenGLView(OpenGLPanel):
@@ -96,8 +98,16 @@ class FileBrowserPanel(FloatingPanel):  #TODO move to seperate file
         super(FileBrowserPanel, self).__init__(parent)
         self._app = app
         self.SetSize((185, 400))
-        self._loadButton = wx.Button(self, label='Load')
-        self._loadButton.Bind(wx.EVT_BUTTON, self._onLoadFile)
+        self._load_button = wx.Button(self, label='Load')
+        self._machine_button = GradientButton(self, 'Machine')
+
+        self._load_button.Bind(wx.EVT_BUTTON, self._onLoadFile)
+        self._machine_button.Bind(wx.EVT_BUTTON, self._onMachine)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(sizer)
+        sizer.Add(self._load_button)
+        sizer.Add(self._machine_button)
 
     def _onLoadFile(self, e):
         dlg = wx.FileDialog(self, _("Open 3D model"), style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST|wx.FD_MULTIPLE)
@@ -118,6 +128,9 @@ class FileBrowserPanel(FloatingPanel):  #TODO move to seperate file
 
         for filename in filenames:
             self._app.getScene().loadFile(filename)
+
+    def _onMachine(self, e):
+        FDMMachineConfigDialog(self._app).ShowModal()
 
 
 class ToolsPanel(FloatingPanel): #TODO move to seperate file

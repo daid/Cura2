@@ -78,6 +78,15 @@ class MachineViewCustomizeDialog(wx.Dialog):
         filename = dlg.GetPath()
         dlg.Destroy()
         self._setting_view_preset.importFromFile(filename)
+        for category_node in self._settings_tree.GetRootItem().GetChildren():
+            for child_node in category_node.GetChildren():
+                self._updateNode(child_node)
+        self._settings_tree.Refresh()
+
+    def _updateNode(self, node):
+        node.Check(self._setting_view_preset.isSettingVisible(node.setting.getKey()))
+        for child_node in node.GetChildren():
+            self._updateNode(child_node)
 
 
 class AddCustomViewPresetDialog(wx.Dialog):

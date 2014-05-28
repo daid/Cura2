@@ -66,6 +66,7 @@ class ProfilePanel(FloatingPanel):
                 sizer.Add(wx.StaticLine(self), flag=wx.EXPAND)
 
         self._pluginsButton = ProfileCategoryButton(self, 'Plugins', 'icon_plugin.png')
+        self._pluginsButton.Hide()
         self._loadProfileButton = ProfileCategoryButton(self, 'Load profile', 'icon_load_profile.png')
         self._saveButton = PrintSaveButton(self, app)
         self._pluginsButton.Bind(wx.EVT_BUTTON, self.onPluginButton)
@@ -81,7 +82,6 @@ class ProfilePanel(FloatingPanel):
         self.Fit()
         self.Parent.Layout()
         self.Layout() #because on linux the layout stuff doesn't bubble down. Screw you wxwidgets.
-
 
     def setSmall(self, small):
         self._titleBar.setSmall(small)

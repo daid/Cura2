@@ -4,6 +4,7 @@ import platform
 import os
 
 from Cura.resources import getDefaultPreferenceStoragePath
+from Cura.resources import getResourcePath
 from Cura.gui.mainWindow import MainWindow
 from Cura.scene.printer3DScene import Printer3DScene
 from Cura.machine.settingsViewPreset import SettingsViewPreset
@@ -73,6 +74,8 @@ class CuraFDMApp(CuraApp):
     def OnInit(self):
         self._settings_view_presets = [SettingsViewPreset()]
         self._active_setting_view = self._settings_view_presets[0]
+        self._active_setting_view.setName('Normal')
+        self._active_setting_view.importFromFile(getResourcePath('view_presets/normal_view.ini'))
 
         self._scene = Printer3DScene()
         self._view = PrinterView3D()
