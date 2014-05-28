@@ -90,6 +90,10 @@ class FDMMachineConfigDialog(wx.Dialog):
 
     def addGCodeTab(self, setting):
         textArea = GcodeTextArea(self._tabs)
+        textArea.SetValue(setting.getValue())
+        textArea.setting = setting
+        textArea.Bind(wx.EVT_KILL_FOCUS, self.OnSettingChange, textArea)
+        textArea.Bind(wx.stc.EVT_STC_CHANGE, self.OnSettingChange, textArea)
         self._tabs.AddPage(textArea, setting.getLabel())
 
     def OnSettingChange(self, e):

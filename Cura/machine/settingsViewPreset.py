@@ -27,8 +27,9 @@ class SettingsViewPreset(object):
 
     def applyPreset(self, machine):
         for category in machine.getSettingCategories():
-            for setting in category.getSettings():
-                setting.setVisible(self.isSettingVisible(setting.getKey()))
+            if category.isVisible():
+                for setting in category.getSettings():
+                    setting.setVisible(self.isSettingVisible(setting.getKey()))
 
     def exportToFile(self, filename):
         config = configParser.ConfigParser()

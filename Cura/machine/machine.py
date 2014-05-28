@@ -95,8 +95,7 @@ class Machine(object):
         settingsStorage.add_section('settings')
         for cat in self._setting_category_list:
             for setting in cat.getSettings():
-                if setting.isVisible():
-                    settingsStorage.set('settings', setting.getKey(), setting.getValue())
+                settingsStorage.set('settings', setting.getKey(), setting.getValue())
         with open(filename, "w") as f:
             settingsStorage.write(f)
 
