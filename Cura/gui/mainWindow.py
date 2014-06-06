@@ -10,6 +10,7 @@ from Cura.gui.fdmMachineConfigDialog import FDMMachineConfigDialog
 from Cura.gui.topBar import TopBarLeft
 from Cura.gui.topBar import TopBarRight
 from Cura.gui.widgets.innerTitleBar import InnerTitleBar
+from Cura.gui.widgets.toolButton import ToolButton
 from Cura.gui.widgets.gradientButton import GradientButton
 
 
@@ -137,6 +138,7 @@ class ToolsPanel(FloatingPanel): #TODO move to seperate file
     def __init__(self, parent, app):
         self._app = app
         self._active_tool = None
+        self._buttons = []
         super(ToolsPanel, self).__init__(parent)
         self._main_panel = wx.Panel(self)
         self.SetSizer(wx.BoxSizer())
@@ -153,17 +155,22 @@ class ToolsPanel(FloatingPanel): #TODO move to seperate file
         self._tools_panel.SetSizer(sizer)
         for tool in self._app.getTools():
             if tool.hasActiveButton():
-                button = wx.Button(self._tools_panel, label=str(tool), size=(53,38))
+                button = ToolButton(self._tools_panel, size=(53,38))
                 button.tool = tool
                 button.Bind(wx.EVT_BUTTON, self.onToolButton)
                 sizer.Add(button)
+                self._buttons.append(button)
 
     def onToolButton(self, e):
-        tool = e.GetEventObject().tool
+        button = e.GetEventObject()
+        tool = button.tool
         tool.setActive(not tool.isActive())
         if self._active_tool is not None and self._active_tool != tool:
             self._active_tool.setActive(False)
         self._active_tool = tool
+        for b in self._buttons:
+            if b != button:
+                b.SetValue(False)
         self._app.getView().refresh()
 
 
