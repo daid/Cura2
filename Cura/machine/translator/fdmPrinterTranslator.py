@@ -36,18 +36,37 @@ class FDMPrinterTranslator(Printer3DTranslator):
     def communicate(self):
         for k, v in self.getEngineSettings().items():
             self.sendData(self.CMD_SETTING + str(k) + '=' + str(v))
-        self.sendData(self.CMD_START_MESH)
-        for obj in self._scene.getObjects():
-            self.sendData(self.CMD_SETTING + 'posx=' + str(obj.getPosition()[0]))
-            self.sendData(self.CMD_SETTING + 'posy=' + str(obj.getPosition()[1]))
-            self.sendData(self.CMD_MATRIX + obj.getMatrix().getA1().astype(numpy.float32).tostring())
-            mesh = obj.getMesh()
+        all_at_once = True
+        if all_at_once:
             self.sendData(self.CMD_START_MESH)
-            for volume in mesh.getVolumes():
-                self.sendData(self.CMD_START_VOLUME)
-                self.sendData(self.CMD_VOLUME_VERTEX_POSITION + volume.getVertexPositionData())
-                # self.sendData(self.CMD_VOLUME_VERTEX_NORMAL + volume.getVertexNormalData())
+            for obj in self._scene.getObjects():
+                self.sendData(self.CMD_SETTING + 'posx=' + str(obj.getPosition()[0] * 1000))
+                self.sendData(self.CMD_SETTING + 'posy=' + str(obj.getPosition()[1] * 1000))
+                self.sendData(self.CMD_MATRIX + obj.getMatrix().getA1().astype(numpy.float32).tostring())
+                mesh = obj.getMesh()
+                for volume in mesh.getVolumes():
+                    self.sendData(self.CMD_START_VOLUME)
+                    self.sendData(self.CMD_VOLUME_VERTEX_POSITION + volume.getVertexPositionData().tostring())
+                    # self.sendData(self.CMD_VOLUME_VERTEX_NORMAL + volume.getVertexNormalData().tostring())
+            if self._machine.getSettingValueByKey('machine_center_is_zero') == 'True':
+                self.sendData(self.CMD_SETTING + 'posx=0')
+                self.sendData(self.CMD_SETTING + 'posy=0')
+            else:
+                self.sendData(self.CMD_SETTING + 'posx=' + str(self._machine.getSettingValueByKeyFloat('machine_width') / 2 * 1000))
+                self.sendData(self.CMD_SETTING + 'posy=' + str(self._machine.getSettingValueByKeyFloat('machine_depth') / 2 * 1000))
             self.sendData(self.CMD_PROCESS)
+        else:
+            for obj in self._scene.getObjects():
+                self.sendData(self.CMD_SETTING + 'posx=' + str(obj.getPosition()[0] * 1000))
+                self.sendData(self.CMD_SETTING + 'posy=' + str(obj.getPosition()[1] * 1000))
+                self.sendData(self.CMD_MATRIX + obj.getMatrix().getA1().astype(numpy.float32).tostring())
+                mesh = obj.getMesh()
+                self.sendData(self.CMD_START_MESH)
+                for volume in mesh.getVolumes():
+                    self.sendData(self.CMD_START_VOLUME)
+                    self.sendData(self.CMD_VOLUME_VERTEX_POSITION + volume.getVertexPositionData().tostring())
+                    # self.sendData(self.CMD_VOLUME_VERTEX_NORMAL + volume.getVertexNormalData().tostring())
+                self.sendData(self.CMD_PROCESS)
         self.sendData(self.CMD_FINISHED)
 
     def receivedData(self, data):

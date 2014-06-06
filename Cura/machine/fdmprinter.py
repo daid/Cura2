@@ -42,8 +42,8 @@ class FDMPrinter(printer3D.Printer3D):
         self.addSetting('machine', Setting('machine_head_shape_max_x', 0, 'float').setLabel(_("Head size towards X max (mm)"), _("The head size when printing multiple objects, measured from the tip of the nozzle towards the outer part of the head. 18mm for an Ultimaker if the fan is on the left side.")))
         self.addSetting('machine', Setting('machine_head_shape_max_y', 0, 'float').setLabel(_("Head size towards Y max (mm)"), _("The head size when printing multiple objects, measured from the tip of the nozzle towards the outer part of the head. 35mm for an Ultimaker if the fan is on the left side.")))
         for n in xrange(1, self.getMaxNozzles() + 1):
-            self.addSetting('machine', Setting('machine_nozzle_offset_x_' + str(n), 0.0, 'float').setLabel(_('Nozzle %d offset X') % (n)))
-            self.addSetting('machine', Setting('machine_nozzle_offset_y_' + str(n), 0.0, 'float').setLabel(_('Nozzle %d offset Y') % (n)))
+            self.addSetting('machine', Setting('machine_nozzle_offset_x_' + str(n), 0.0, 'float').setLabel(_('Nozzle %d offset X') % (n + 1)))
+            self.addSetting('machine', Setting('machine_nozzle_offset_y_' + str(n), 0.0, 'float').setLabel(_('Nozzle %d offset Y') % (n + 1)))
         self.addSetting('machine', Setting('machine_start_gcode', '', 'string').setLabel(_('Start GCode')))
         self.addSetting('machine', Setting('machine_end_gcode', '', 'string').setLabel(_('End GCode')))
 
@@ -82,6 +82,12 @@ class FDMPrinter(printer3D.Printer3D):
         self.addSetting('retraction_enable', Setting('retraction_combing', True, 'bool').setLabel(_("Enable combing"), _("Combing is the act of avoiding holes in the print for the head to travel over. If combing is disabled the printer head moves straight from the start point to the end point and it will always retract.")))
         self.addSetting('retraction_enable', Setting('retraction_minimal_extrusion', 0.02, 'float').setRange(0).setLabel(_("Minimal extrusion before retracting (mm)"), _("The minimal amount of extrusion that needs to be done before retracting again if a retraction needs to happen before this minimal is reached the retraction is ignored.\nThis avoids retracting a lot on the same piece of filament which flattens the filament and causes grinding issues.")))
         self.addSetting('retraction_enable', Setting('retraction_hop', 0.0, 'float').setRange(0).setLabel(_("Z hop when retracting (mm)"), _("When a retraction is done, the head is lifted by this amount to travel over the print. A value of 0.075 works well. This feature has a lot of positive effect on delta towers.")))
+        self.getSettingByKey('retraction_speed').setCopyFromParentFunction(None)
+        self.getSettingByKey('retraction_amount').setCopyFromParentFunction(None)
+        self.getSettingByKey('retraction_min_travel').setCopyFromParentFunction(None)
+        self.getSettingByKey('retraction_combing').setCopyFromParentFunction(None)
+        self.getSettingByKey('retraction_minimal_extrusion').setCopyFromParentFunction(None)
+        self.getSettingByKey('retraction_hop').setCopyFromParentFunction(None)
 
         self.addSettingCategory(SettingCategory('infill', order=15).setLabel('Infill'))
         self.addSetting('infill', Setting('fill_sparse_density', 20.0, 'float').setRange(0, 100).setLabel(_("Fill Density (%)"), _("This controls how densely filled the insides of your print will be. For a solid part use 100%, for an empty part use 0%. A value around 20% is usually enough.\nThis won't affect the outside of the print and only adjusts how strong the part becomes.")))
