@@ -82,7 +82,6 @@ class FileBrowserPanel(FloatingPanel):
         supported_extensions = meshLoader.loadSupportedExtensions()
         while True:
             path = getPreference('last_file_path', '')
-            print path
             fileList = []
             try:
                 for file in os.listdir(path):
