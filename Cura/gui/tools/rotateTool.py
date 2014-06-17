@@ -14,6 +14,9 @@ class RotateTool(ToolboxTool):
     def __init__(self, app):
         super(RotateTool, self).__init__(app, RotateToolRenderer())
 
+    def getButtonIconName(self):
+        return 'rotate_button.png'
+
     def onKeyDown(self, key_code):
         return False
 

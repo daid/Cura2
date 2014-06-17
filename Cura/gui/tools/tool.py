@@ -46,6 +46,9 @@ class ToolboxTool(Tool):
     def hasActiveButton(self):
         return True
 
+    def getButtonIconName(self):
+        return 'rotate_button.png'
+
     def setActive(self, value):
         if self._renderer is not None:
             self._renderer.active = value

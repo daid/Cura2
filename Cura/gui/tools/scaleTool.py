@@ -7,6 +7,9 @@ class ScaleTool(ToolboxTool):
     def __init__(self, app):
         super(ScaleTool, self).__init__(app, None)
 
+    def getButtonIconName(self):
+        return 'scale_button.png'
+
     def onKeyDown(self, key_code):
         return False
 

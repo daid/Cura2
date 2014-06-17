@@ -1,6 +1,7 @@
 import wx
 
 from Cura.meshLoaders import meshLoader
+from Cura.resources import getBitmap
 from Cura.gui.floatSizer import FloatSizer
 from Cura.gui.floatSizer import FloatingPanel
 from Cura.gui.openGLPanel import OpenGLPanel
@@ -148,14 +149,20 @@ class ToolsPanel(FloatingPanel): #TODO move to seperate file
         self._main_panel.SetSizer(sizer)
         # TODO: Get tool panel title from app.
         sizer.Add(InnerTitleBar(self._main_panel, 'Transform model'), flag=wx.EXPAND)
-        self._tools_panel = wx.Panel(self._main_panel)
+        self._tools_panel = wx.Panel(self._main_panel, style=wx.SIMPLE_BORDER)
+        self._tools_panel.SetBackgroundColour((214, 214, 214))
         sizer.Add(self._tools_panel, flag=wx.EXPAND)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         self._tools_panel.SetSizer(sizer)
+        firstButton = True
         for tool in self._app.getTools():
             if tool.hasActiveButton():
-                button = ToolButton(self._tools_panel, size=(53,38))
+                if firstButton:
+                    firstButton = False
+                else:
+                    sizer.Add(wx.StaticBitmap(self._tools_panel, bitmap=getBitmap('top_bar_line.png')), 0, flag=wx.EXPAND)
+                button = ToolButton(self._tools_panel, tool.getButtonIconName(), size=(53,38))
                 button.tool = tool
                 button.Bind(wx.EVT_BUTTON, self.onToolButton)
                 sizer.Add(button)

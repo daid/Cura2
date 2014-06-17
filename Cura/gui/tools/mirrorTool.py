@@ -7,6 +7,9 @@ class MirrorTool(ToolboxTool):
     def __init__(self, app):
         super(MirrorTool, self).__init__(app, None)
 
+    def getButtonIconName(self):
+        return 'mirror_button.png'
+
     def onKeyDown(self, key_code):
         return False
 
