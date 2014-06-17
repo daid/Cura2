@@ -7,6 +7,7 @@ from time import sleep
 from Cura.meshLoaders import meshLoader
 from Cura.gui.fdmMachineConfigDialog import FDMMachineConfigDialog
 from Cura.gui.widgets.gradientButton import GradientButton
+from Cura.gui.widgets.innerTitleBar import InnerTitleBar
 from Cura.gui.floatSizer import FloatingPanel
 from Cura.resources import getBitmap
 from Cura.preferences import getPreference
@@ -34,6 +35,7 @@ class FileBrowserPanel(FloatingPanel):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(sizer)
+        sizer.Add(InnerTitleBar(self, 'File browsing'), flag=wx.EXPAND)
         sizer.Add(self._local_file_panel)
         sizer.Add(self._machine_button, flag=wx.EXPAND)
 
