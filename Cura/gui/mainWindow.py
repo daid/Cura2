@@ -1,18 +1,16 @@
 import wx
 
-from Cura.meshLoaders import meshLoader
 from Cura.resources import getBitmap
 from Cura.gui.floatSizer import FloatSizer
 from Cura.gui.floatSizer import FloatingPanel
 from Cura.gui.openGLPanel import OpenGLPanel
 from Cura.gui.profilePanel import ProfilePanel
 from Cura.gui.settingPanel import SettingPanel
-from Cura.gui.fdmMachineConfigDialog import FDMMachineConfigDialog
 from Cura.gui.topBar import TopBarLeft
 from Cura.gui.topBar import TopBarRight
 from Cura.gui.widgets.innerTitleBar import InnerTitleBar
 from Cura.gui.widgets.toolButton import ToolButton
-from Cura.gui.widgets.gradientButton import GradientButton
+from Cura.gui.fileBrowser import FileBrowserPanel
 
 
 class MainOpenGLView(OpenGLPanel):
@@ -93,46 +91,6 @@ class NotificationPanel(FloatingPanel):  #TODO move to seperate file
         self._info.SetLabel(message)
         self.Show()
         self._hideTimer.Start(10000, False)
-
-
-class FileBrowserPanel(FloatingPanel):  #TODO move to seperate file
-    def __init__(self, parent, app):
-        super(FileBrowserPanel, self).__init__(parent)
-        self._app = app
-        self.SetSize((185, 400))
-        self._load_button = wx.Button(self, label='Load')
-        self._machine_button = GradientButton(self, 'Machine')
-
-        self._load_button.Bind(wx.EVT_BUTTON, self._onLoadFile)
-        self._machine_button.Bind(wx.EVT_BUTTON, self._onMachine)
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(sizer)
-        sizer.Add(self._load_button)
-        sizer.Add(self._machine_button)
-
-    def _onLoadFile(self, e):
-        dlg = wx.FileDialog(self, _("Open 3D model"), style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST|wx.FD_MULTIPLE)
-
-        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
-        wildcardFilter = "All (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
-        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
-        wildcardFilter += "|Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
-
-        dlg.SetWildcard(wildcardFilter)
-        if dlg.ShowModal() != wx.ID_OK:
-            dlg.Destroy()
-            return
-        filenames = dlg.GetPaths()
-        dlg.Destroy()
-        if len(filenames) < 1:
-            return
-
-        for filename in filenames:
-            self._app.getScene().loadFile(filename)
-
-    def _onMachine(self, e):
-        FDMMachineConfigDialog(self._app).ShowModal()
 
 
 class ToolsPanel(FloatingPanel): #TODO move to seperate file

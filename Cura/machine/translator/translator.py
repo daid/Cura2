@@ -94,6 +94,8 @@ class Translator(object):
                 except:  # Sometimes the process is already dead, at which point terminate will throw an exception, ignore that.
                     pass
             prevThread.join()
+        if threading.currentThread() != self._engine_thread:
+            return
 
         self._engine_process = None
         self._result_output = StringIO()
