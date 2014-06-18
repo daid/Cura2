@@ -11,7 +11,7 @@ from Cura.gui.topBar import TopBarRight
 from Cura.gui.widgets.innerTitleBar import InnerTitleBar
 from Cura.gui.widgets.toolButton import ToolButton
 from Cura.gui.fileBrowser import FileBrowserPanel
-
+from Cura.gui.tooltip import TooltipWindow
 
 class MainOpenGLView(OpenGLPanel):
     def __init__(self, parent, app):
@@ -143,6 +143,9 @@ class MainWindow(wx.Frame):
     def __init__(self, app):
         super(MainWindow, self).__init__(None, title='Cura - Pink Unicorn edition')
         self._app = app
+
+        #Create the global tooltip window so different parts can show tooltips.
+        TooltipWindow(self)
 
         self._mainView = MainOpenGLView(self, app)
         self._settingsPanel = None

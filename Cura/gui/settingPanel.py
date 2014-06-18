@@ -2,7 +2,8 @@ import wx
 
 from Cura.gui.floatSizer import FloatingPanel
 from Cura.gui.widgets.innerTitleBar import InnerTitleBar
-
+from Cura.gui.tooltip import showTooltip
+from Cura.gui.tooltip import hideTooltip
 
 class SettingPanel(FloatingPanel):
     """
@@ -59,7 +60,9 @@ class SettingPanel(FloatingPanel):
         ctrl.setting.setValue(ctrl.GetValue())
 
     def OnMouseEnter(self, e):
-        pass
+        ctrl = e.GetEventObject()
+        showTooltip(ctrl.setting.getTooltip(), ctrl)
 
     def OnMouseExit(self, e):
+        hideTooltip()
         e.Skip()
