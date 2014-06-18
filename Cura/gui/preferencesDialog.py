@@ -2,6 +2,8 @@ import wx
 from wx.lib.agw.customtreectrl import CustomTreeCtrl
 from wx.lib.agw.customtreectrl import EVT_TREE_ITEM_CHECKED
 
+from Cura.preferences import getPreference
+from Cura.preferences import setPreference
 
 class MachineViewCustomizeDialog(wx.Dialog):
     def __init__(self, parent, app, setting_view_preset):
@@ -153,19 +155,30 @@ class PreferencesDialog(wx.Dialog):
         self._setting_view_selection = wx.ComboBox(self._main_panel, choices=setting_view_options, style=wx.CB_DROPDOWN | wx.CB_READONLY)
         self._setting_view_selection.SetSelection(self._app.getSettingsViewPresets().index(self._app.getActiveSettingsViewPreset()))
         self._setting_view_customize = wx.Button(self._main_panel, label='Customize')
+        self._legacy_rendering = wx.CheckBox(self._main_panel)
+        self._legacy_rendering.SetValue(getPreference('legacy_rendering', 'False') == 'True')
         sizer.Add(wx.StaticText(self._main_panel, -1, 'Settings view preset'), pos=(0, 0), border=5, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(self._setting_view_selection, pos=(0, 1), border=5, flag=wx.ALL | wx.EXPAND)
         sizer.Add(self._setting_view_customize, pos=(0, 2), border=5, flag=wx.ALL)
+        sizer.Add(wx.StaticText(self._main_panel, -1, 'Safemode 3D rendering'), pos=(1, 0), border=5, flag=wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self._legacy_rendering, pos=(1, 1), border=5, flag=wx.ALL | wx.EXPAND)
         sizer.AddGrowableCol(1)
 
         self._main_panel.Layout()
 
         self.Bind(wx.EVT_BUTTON, self.onCustomizeButton, self._setting_view_customize)
         self._setting_view_selection.Bind(wx.EVT_COMBOBOX, self.onSettingsViewChange)
+        self.Bind(wx.EVT_CLOSE, self.onClose)
 
     def onCloseButton(self, e):
         self._app.setActiveSettingsView(self._app.getSettingsViewPresets()[self._setting_view_selection.GetSelection()])
         self.Close()
+
+    def onClose(self, e):
+        if (getPreference('legacy_rendering', 'False') == 'True') != self._legacy_rendering.GetValue():
+            setPreference('legacy_rendering', self._legacy_rendering.GetValue())
+            wx.MessageBox('When changing [Safemode 3D rendering] a restart of Cura is required.', 'Safemode 3D rendering')
+        self.Destroy()
 
     def onCustomizeButton(self, e):
         MachineViewCustomizeDialog(self, self._app, self._app.getSettingsViewPresets()[self._setting_view_selection.GetSelection()]).ShowModal()

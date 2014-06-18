@@ -21,7 +21,7 @@ def setPreference(key, value, section='preferences'):
         preferences = configParser.ConfigParser()
     if not preferences.has_section(section):
         preferences.add_section(section)
-    preferences.set(section, key, value)
+    preferences.set(section, key, str(value))
 
 
 def savePreferences(filename):

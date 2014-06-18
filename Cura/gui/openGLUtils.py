@@ -6,10 +6,11 @@ import atexit
 from OpenGL.GL import *
 from OpenGL.GL import shaders
 from ctypes import c_void_p
+from Cura.preferences import getPreference
 from Cura.resources import getResourcePath
 from Cura.resources import getBitmap
 
-legacyMode = False
+legacyMode = getPreference('legacy_rendering', 'False') == 'True'
 shuttingDown = False
 contextSource = None
 
@@ -60,7 +61,7 @@ class GLShader(object):
                 self.release()
                 self._loadFromFile(self._filename)
 
-        if self._program is None and self._vertexString is not None:
+        if self._program is None and self._vertexString is not None and not legacyMode:
             global contextSource
             self._contextSource = contextSource
             vertexString = self._vertexString
@@ -140,7 +141,7 @@ class VertexRenderer(object):
                 glNormalPointer(GL_FLOAT, 2 * 3 * 4, self._vertexData.reshape(len(self._vertexData) * 6)[3:])
             else:
                 glVertexPointer(3, GL_FLOAT, 3 * 4, self._vertexData)
-            if self._hasIndices:
+            if self._indices is not None:
                 glDrawElements(self._renderType, self._indices.size, GL_UNSIGNED_INT, self._indices)
             else:
                 glDrawArrays(self._renderType, 0, len(self._vertexData))
