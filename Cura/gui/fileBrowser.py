@@ -63,6 +63,7 @@ class FileBrowserPanel(FloatingPanel):
         for filename in filenames:
             self._app.getScene().loadFile(filename)
             setPreference('last_file_path', os.path.dirname(filename))
+            self._timeout = 0
 
     def _onLocalFileDoubleClick(self, e):
         if self._local_file_list.GetSelection() >= 0:
@@ -97,4 +98,7 @@ class FileBrowserPanel(FloatingPanel):
                 pass
             fileList.sort(reverse=True)
             wx.CallAfter(self._updateFileList, map(lambda n: n[1], fileList[:20]))
-            sleep(5.0)
+            self._timeout = 50
+            while self._timeout > 0:
+                sleep(0.1)
+                self._timeout -= 1

@@ -10,7 +10,7 @@ def showTooltip(text, ctrl=None):
     popupWindow.setText(text)
 
     if ctrl is None:
-        position = wx.GetMousePosition() + (5, 5)
+        position = wx.GetMousePosition() + (25, 25)
     else:
         position = ctrl.ClientToScreen(ctrl.GetSizeTuple())
     w = popupWindow.GetSize().GetWidth()
@@ -18,7 +18,6 @@ def showTooltip(text, ctrl=None):
         position = position - (w, 0)
 
     popupWindow.SetPosition(position)
-
     popupWindow.Show()
 
 
@@ -35,14 +34,16 @@ class TooltipWindow(wx.PopupWindow):
         self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INFOBK))
         self._text = wx.StaticText(self, -1, 'XXX')
         self._text.SetForegroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INFOTEXT))
-        self._sizer = wx.BoxSizer()
-        self._sizer.Add(self._text, flag=wx.EXPAND | wx.ALL, border=1)
+        self._sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self._sizer.Add(self._text, 1, border=3, flag=wx.ALL)
         self.SetSizer(self._sizer)
+        self.Layout()
 
         global popupWindow
         popupWindow = self
 
     def setText(self, text):
-        self._text.SetLabel(text)
-        self._text.Wrap(350)
-        self.Fit()
+        if text != self._text.GetLabel():
+            self._text.SetLabel(text)
+            self._text.Wrap(350)
+            self.Fit()

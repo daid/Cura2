@@ -1,5 +1,7 @@
 import wx
 
+from Cura.gui.tooltip import showTooltip
+from Cura.gui.tooltip import hideTooltip
 from Cura.resources import getBitmap
 from Cura.gui.floatSizer import FloatSizer
 from Cura.gui.floatSizer import FloatingPanel
@@ -12,6 +14,7 @@ from Cura.gui.widgets.innerTitleBar import InnerTitleBar
 from Cura.gui.widgets.toolButton import ToolButton
 from Cura.gui.fileBrowser import FileBrowserPanel
 from Cura.gui.tooltip import TooltipWindow
+
 
 class MainOpenGLView(OpenGLPanel):
     def __init__(self, parent, app):
@@ -48,6 +51,12 @@ class MainOpenGLView(OpenGLPanel):
         if self._activeTool is not None:
             dx, dy = (e.GetX() - self._mousePos[0], e.GetY() - self._mousePos[1])
             self._activeTool.onMouseMove(e.GetX(), e.GetY(), dx, dy)
+
+        focusObj = self._app.getView().getFocusObject()
+        if focusObj is not None and self._activeTool is None:
+            showTooltip(focusObj.getName())
+        else:
+            hideTooltip()
         self._mousePos = (e.GetX(), e.GetY())
 
     def onMouseUp(self, e):
