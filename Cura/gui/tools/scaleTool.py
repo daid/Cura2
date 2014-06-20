@@ -31,7 +31,6 @@ class ScaleTool(ToolboxTool):
 
     def onMouseUp(self, x, y, button):
         matrix = self.calculateMatrix(x, y)
-        print matrix
         for obj in self._app.getScene().getObjects():
             if obj.isSelected():
                 obj.applyMatrix(matrix)
@@ -40,6 +39,7 @@ class ScaleTool(ToolboxTool):
     def calculateMatrix(self, x, y):
         obj = self._scale_info.getObject()
         axis = self._scale_info.getAxis()
+        center_position = numpy.array([obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2.0], numpy.float32)
 
         if axis == 'X':
             axisNr = 0
@@ -48,16 +48,20 @@ class ScaleTool(ToolboxTool):
         elif axis == 'Z':
             axisNr = 2
         else:
-            return numpy.eye(3, dtype=numpy.float64)
+            axisNr = 2
+            center_position[2] -= 10.0 * (self._app.getView().getZoom() / 150.0)
         direction = numpy.array([0, 0, 0], numpy.float32)
         direction[axisNr] = 1.0
-        center_position = numpy.array([obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[2] / 2.0], numpy.float32)
         axisRay = Ray(center_position, direction)
         mouseRay = self._app.getView().projectScreenPositionToRay(x, y)
         intersection = mouseRay.intersectWithRay(axisRay)
-        scale = (intersection[axisNr] - center_position[axisNr]) / 20.0
+        scale = (intersection[axisNr] - center_position[axisNr]) / 10.0 / (self._app.getView().getZoom() / 150.0)
+        scale = round(scale, 1)
 
-        matrix = numpy.eye(3, dtype=numpy.float64)
-        matrix[axisNr, axisNr] = scale
+        if axis == 'uniform':
+            matrix = numpy.eye(3, dtype=numpy.float64) * scale
+        else:
+            matrix = numpy.eye(3, dtype=numpy.float64)
+            matrix[axisNr, axisNr] = scale
 
         return matrix
