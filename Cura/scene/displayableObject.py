@@ -48,6 +48,12 @@ class DisplayableObject(object):
     def applyMatrix(self, matrix):
         self.setMatrix(self._matrix * matrix)
 
+    def getScale(self):
+        return numpy.array([
+            numpy.linalg.norm(self._matrix[::,0].getA().flatten()),
+            numpy.linalg.norm(self._matrix[::,1].getA().flatten()),
+            numpy.linalg.norm(self._matrix[::,2].getA().flatten())], numpy.float64);
+
     def setScene(self, scene):
         self._scene = scene
 

@@ -56,7 +56,12 @@ class ScaleTool(ToolboxTool):
         mouseRay = self._app.getView().projectScreenPositionToRay(x, y)
         intersection = mouseRay.intersectWithRay(axisRay)
         scale = (intersection[axisNr] - center_position[axisNr]) / 10.0 / (self._app.getView().getZoom() / 150.0)
-        scale = round(scale, 1)
+        objScale = obj.getScale()
+        if axis == 'uniform':
+            objScale = (objScale[0] + objScale[1] + objScale[2]) / 3.0
+        else:
+            objScale = objScale[axisNr]
+        scale = round(objScale * scale, 1) / objScale
 
         if axis == 'uniform':
             matrix = numpy.eye(3, dtype=numpy.float64) * scale
