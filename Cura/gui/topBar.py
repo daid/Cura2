@@ -71,7 +71,9 @@ class TopBarRight(FloatingPanel):
         sizer.Add(wx.Panel(self, size=(10, 1)), 0, flag=wx.EXPAND)
         sizer.Add(wx.StaticText(self, label='View settings'), 0, flag=wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(wx.Panel(self, size=(10, 1)), 0, flag=wx.EXPAND)
-        sizer.Add(wx.ComboBox(self, style=wx.CB_DROPDOWN|wx.CB_READONLY), 0, flag=wx.ALIGN_CENTER_VERTICAL)
+        viewOptions = [_('Normal'), _('Toolpaths')]
+        self._view_mode_combo = wx.ComboBox(self, value=viewOptions[0], choices=viewOptions, style=wx.CB_DROPDOWN|wx.CB_READONLY)
+        sizer.Add(self._view_mode_combo, 0, flag=wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(wx.Panel(self, size=(10, 1)), 0, flag=wx.EXPAND)
         sizer.Add(wx.StaticBitmap(self, bitmap=getBitmap('top_bar_line.png')), 0, flag=wx.EXPAND)
         sizer.Add(self._settingsButton, 0, flag=wx.ALIGN_CENTER_VERTICAL)
@@ -81,8 +83,12 @@ class TopBarRight(FloatingPanel):
         self.SetSizer(sizer)
         self.SetMinSize((-1, 39))
 
+        self._view_mode_combo.Bind(wx.EVT_COMBOBOX, self._onViewChange)
         self.Bind(wx.EVT_BUTTON, self.onPreferences, self._settingsButton)
 
     def onPreferences(self, e):
         PreferencesDialog(self._app).ShowModal()
         self._settingsButton.SetValue(False)
+
+    def _onViewChange(self, e):
+        self._app.getView().setViewMode(self._view_mode_combo.GetValue())

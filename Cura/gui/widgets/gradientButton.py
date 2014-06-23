@@ -1,12 +1,19 @@
 import wx
 from wx.lib.buttons import GenButton
 
+from Cura.resources import getBitmap
+
 
 class GradientButton(GenButton):
-    def __init__(self, parent, label):
+    def __init__(self, parent, label, icon, icon_align=wx.ALIGN_LEFT):
         self._small = False
+        self._icon = icon
+        self._icon_align = icon_align
         super(GradientButton, self).__init__(parent, label=label)
         self.SetMinSize((-1, 42))
+        self.SetForegroundColour((255, 255, 255))
+        f = self.GetFont()
+        self.SetFont(wx.Font(16, f.Family, f.Style, wx.FONTWEIGHT_NORMAL, False, f.FaceName))
 
         self._colorTop = wx.Colour(71, 188, 221)
         self._colorBottom = wx.Colour(109, 204, 226)
@@ -16,6 +23,10 @@ class GradientButton(GenButton):
         self._colorTopGray = wx.Colour(gray, gray, gray)
         gray = (self._colorBottom.Red() + self._colorBottom.Green() + self._colorBottom.Blue()) / 3
         self._colorBottomGray = wx.Colour(gray, gray, gray)
+
+    def setIcon(self, icon):
+        self._icon = icon
+        self.Refresh()
 
     def setSmall(self, small):
         self._small = small
@@ -40,8 +51,31 @@ class GradientButton(GenButton):
         dc.SetBrush(wx.Brush('#ffffff', wx.TRANSPARENT))
         dc.DrawRectangle(0, 0, width, height)
 
+        icon = getBitmap(self._icon)
         if not self._small:
-            self.DrawLabel(dc, width, height)
+            dc.SetFont(self.GetFont())
+            label = self.GetLabel()
+            tw, th = dc.GetTextExtent(label)
+            icon_spacing = 8
+            if self._icon_align == wx.ALIGN_RIGHT:
+                x = (width - tw - icon.GetWidth() - icon_spacing) / 2
+            else:
+                x = (width - tw - icon.GetWidth() - icon_spacing) / 2 + icon.GetWidth() + icon_spacing
+
+            dc.SetTextForeground(wx.SystemSettings.GetColour(wx.SYS_COLOUR_GRAYTEXT))
+            dc.DrawText(label, x + 1, (height-th)/2 + 1)
+            if self.IsEnabled():
+                dc.SetTextForeground(self.GetForegroundColour())
+            else:
+                dc.SetTextForeground((64, 64, 64))
+            dc.DrawText(label, x, (height-th)/2)
+            dc.DrawText(label, x, (height-th)/2)
+            if self._icon_align == wx.ALIGN_RIGHT:
+                dc.DrawBitmap(icon, x + tw + icon_spacing, (height - icon.GetHeight()) / 2)
+            else:
+                dc.DrawBitmap(icon, x - icon.GetWidth() - icon_spacing, (height - icon.GetHeight()) / 2)
+        else:
+            dc.DrawBitmap(icon, (width - icon.GetWidth()) / 2, (height - icon.GetHeight()) / 2)
 
     def DoGetBestSize(self):
         w, h = super(GenButton, self).DoGetBestSize()

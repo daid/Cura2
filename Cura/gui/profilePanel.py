@@ -11,12 +11,13 @@ class PrintSaveButton(GradientButton):
     # TODO: This does not belong here. Move to seperate file
     def __init__(self, parent, app):
         self._app = app
-        super(PrintSaveButton, self).__init__(parent, label='Save GCode')
+        super(PrintSaveButton, self).__init__(parent, label='Save on', icon='save_sd_button.png', icon_align=wx.ALIGN_RIGHT)
         app.getTranslator().addProgressCallback(self._onProgressUpdate)
         self.Bind(wx.EVT_BUTTON, self._onSaveClick)
 
     def _onProgressUpdate(self, progress, ready):
         self.setFillAmount(progress)
+        self.Enable(ready)
 
     def _onSaveClick(self, e):
         # TODO: USB print, SD save

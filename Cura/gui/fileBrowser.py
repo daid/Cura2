@@ -20,7 +20,7 @@ class FileBrowserPanel(FloatingPanel):
         self._app = app
         self.SetSize((185, 400))
         self._local_file_panel = wx.Panel(self)
-        self._machine_button = GradientButton(self, 'Machine')
+        self._machine_button = GradientButton(self, 'Machine', 'save_button.png')
 
         self._load_button = wx.StaticBitmap(self._local_file_panel, bitmap=getBitmap('icon_open_model.png'))
         self._local_file_list = wx.ListBox(self._local_file_panel, size=(164, 248))
