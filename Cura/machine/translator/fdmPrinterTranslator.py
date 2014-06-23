@@ -22,58 +22,61 @@ class FDMPrinterTranslator(Printer3DTranslator):
                 return 'C:/Software/Cura_SteamEngine/_bin/Release/Cura_SteamEngine.exe'
         return super(FDMPrinterTranslator, self).findExecutable()
 
-    CMD_SETTING = struct.pack('@i', 0x0001)
-    CMD_MATRIX = struct.pack('@i', 0x0002)
-    CMD_PROCESS = struct.pack('@i', 0x0003)
-    CMD_START_MESH = struct.pack('@i', 0x1000)
-    CMD_START_VOLUME = struct.pack('@i', 0x1001)
-    CMD_VOLUME_VERTEX_POSITION = struct.pack('@i', 0x1002)
-    CMD_VOLUME_VERTEX_NORMAL = struct.pack('@i', 0x1003)
-    CMD_FINISHED = struct.pack('@i', 0x9000)
+    CMD_SETTING = 0x00100004
+    CMD_MATRIX = 0x00300002
+    CMD_PROCESS = 0x00300000
+    CMD_OBJECT_LIST = 0x00200000
+    CMD_MESH_LIST = 0x00200001
+    CMD_VERTEX_LIST = 0x00200002
+    CMD_NORMAL_LIST = 0x00200003
+    CMD_INDEX_LIST = 0x00200004
+    CMD_FINISHED = 0x00300003
 
-    CMD_PROGRESS_UPDATE = struct.pack('@i', 0x10000)
+    CMD_PROGRESS_UPDATE = 0x00300001
 
     def communicate(self):
         for k, v in self.getEngineSettings().items():
-            self.sendData(self.CMD_SETTING + str(k) + '=' + str(v))
+            self.sendData(self.CMD_SETTING, str(k) + '\x00' + str(v))
         all_at_once = True
         if all_at_once:
-            self.sendData(self.CMD_START_MESH)
+            mesh_count = 0
             for obj in self._scene.getObjects():
-                self.sendData(self.CMD_SETTING + 'posx=' + str(obj.getPosition()[0] * 1000))
-                self.sendData(self.CMD_SETTING + 'posy=' + str(obj.getPosition()[1] * 1000))
-                self.sendData(self.CMD_MATRIX + obj.getMatrix().getA1().astype(numpy.float32).tostring())
-                mesh = obj.getMesh()
-                for volume in mesh.getVolumes():
-                    self.sendData(self.CMD_START_VOLUME)
-                    self.sendData(self.CMD_VOLUME_VERTEX_POSITION + volume.getVertexPositionData().tostring())
-                    # self.sendData(self.CMD_VOLUME_VERTEX_NORMAL + volume.getVertexNormalData().tostring())
+                mesh_count += len(obj.getMesh().getVolumes())
+            self.sendData(self.CMD_OBJECT_LIST, struct.pack("@i", mesh_count))
+            for obj in self._scene.getObjects():
+                self.sendData(self.CMD_SETTING, 'posx\x00' + str(obj.getPosition()[0] * 1000))
+                self.sendData(self.CMD_SETTING, 'posy\x00' + str(obj.getPosition()[1] * 1000))
+                self.sendData(self.CMD_MATRIX, obj.getMatrix().getA1().astype(numpy.float32).tostring())
+                for volume in obj.getMesh().getVolumes():
+                    self.sendData(self.CMD_MESH_LIST, struct.pack("@i", 1))
+                    self.sendData(self.CMD_VERTEX_LIST, volume.getVertexPositionData().tostring())
+                    # self.sendData(self.CMD_NORMAL_LIST + volume.getVertexNormalData().tostring())
             if self._machine.getSettingValueByKey('machine_center_is_zero') == 'True':
-                self.sendData(self.CMD_SETTING + 'posx=0')
-                self.sendData(self.CMD_SETTING + 'posy=0')
+                self.sendData(self.CMD_SETTING, 'posx\x000')
+                self.sendData(self.CMD_SETTING, 'posy\x000')
             else:
-                self.sendData(self.CMD_SETTING + 'posx=' + str(self._machine.getSettingValueByKeyFloat('machine_width') / 2 * 1000))
-                self.sendData(self.CMD_SETTING + 'posy=' + str(self._machine.getSettingValueByKeyFloat('machine_depth') / 2 * 1000))
+                self.sendData(self.CMD_SETTING, 'posx\x00' + str(self._machine.getSettingValueByKeyFloat('machine_width') / 2 * 1000))
+                self.sendData(self.CMD_SETTING, 'posy\x00' + str(self._machine.getSettingValueByKeyFloat('machine_depth') / 2 * 1000))
             self.sendData(self.CMD_PROCESS)
         else:
             for obj in self._scene.getObjects():
-                self.sendData(self.CMD_SETTING + 'posx=' + str(obj.getPosition()[0] * 1000))
-                self.sendData(self.CMD_SETTING + 'posy=' + str(obj.getPosition()[1] * 1000))
-                self.sendData(self.CMD_MATRIX + obj.getMatrix().getA1().astype(numpy.float32).tostring())
+                self.sendData(self.CMD_SETTING, 'posx\x00' + str(obj.getPosition()[0] * 1000))
+                self.sendData(self.CMD_SETTING, 'posy\x00' + str(obj.getPosition()[1] * 1000))
+                self.sendData(self.CMD_MATRIX, obj.getMatrix().getA1().astype(numpy.float32).tostring())
                 mesh = obj.getMesh()
-                self.sendData(self.CMD_START_MESH)
+                self.sendData(self.CMD_OBJECT_LIST, struct.pack("@i", len(mesh.getVolumes())))
                 for volume in mesh.getVolumes():
-                    self.sendData(self.CMD_START_VOLUME)
-                    self.sendData(self.CMD_VOLUME_VERTEX_POSITION + volume.getVertexPositionData().tostring())
-                    # self.sendData(self.CMD_VOLUME_VERTEX_NORMAL + volume.getVertexNormalData().tostring())
+                    self.sendData(self.CMD_MESH_LIST, struct.pack("@i", 1))
+                    self.sendData(self.CMD_VERTEX_LIST, volume.getVertexPositionData().tostring())
+                    # self.sendData(self.CMD_NORMAL_LIST, volume.getVertexNormalData().tostring())
                 self.sendData(self.CMD_PROCESS)
         self.sendData(self.CMD_FINISHED)
 
-    def receivedData(self, data):
-        if data[0:4] == self.CMD_PROGRESS_UPDATE:
-            self.progressUpdate(struct.unpack('@f', data[4:8])[0], False)
+    def receivedData(self, commandNr, data):
+        if commandNr == self.CMD_PROGRESS_UPDATE:
+            self.progressUpdate(struct.unpack('@f', data)[0], False)
         else:
-            print 'Unhandled engine message:', len(data)
+            print 'Unhandled engine message:', hex(commandNr), len(data)
 
     def canTranslate(self):
         if len(self._scene.getObjects()) < 1:

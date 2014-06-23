@@ -136,7 +136,7 @@ class Translator(object):
         returnCode = self._engine_process.wait()
         self.finish(returnCode == 0)
         self._engine_process = None
-        if returnCode != 0:
+        if returnCode != -10:
             print self._result_log.getvalue()
 
     def _communicate(self):
@@ -153,9 +153,9 @@ class Translator(object):
     def addConnection(self, connection):
         self._connections.append(connection)
 
-    def sendData(self, data):
+    def sendData(self, commandNr, data = None):
         for connection in self._connections:
-            if connection.sendData(data):
+            if connection.sendData(commandNr, data):
                 return
 
     def addProgressCallback(self, callback):
@@ -181,7 +181,7 @@ class Translator(object):
         """ Override in subclass """
         pass
 
-    def receivedData(self, data):
+    def receivedData(self, commandNr, data):
         """ Override in subclass """
         pass
 

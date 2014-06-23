@@ -51,9 +51,10 @@ class SocketConnection(EngineConnection):
     def _socketConnectionFunction(self):
         try:
             while self._dataSocket is not None:
+                command = self.readInt32()
                 size = self.readInt32()
                 data = self.read(size)
-                self.received(data)
+                self.received(command, data)
         except IOError:
             pass
         self._close()
@@ -85,11 +86,15 @@ class SocketConnection(EngineConnection):
                 raise IOError()
         return data
 
-    def sendData(self, data):
+    def sendData(self, commandNr, data):
         if self._dataSocket is None:
             return False
-        self._dataSocket.sendall(struct.pack('@i', len(data)))
-        self._dataSocket.sendall(data)
+        self._dataSocket.sendall(struct.pack('@i', commandNr))
+        if data is not None:
+            self._dataSocket.sendall(struct.pack('@i', len(data)))
+            self._dataSocket.sendall(data)
+        else:
+            self._dataSocket.sendall(struct.pack('@i', 0))
         return True
 
     def setup(self):

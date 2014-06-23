@@ -8,8 +8,8 @@ class EngineConnection(object):
     def __init__(self, translator):
         self._translator = translator
 
-    def received(self, data):
-        self._translator.receivedData(data)
+    def received(self, commandNr, data):
+        self._translator.receivedData(commandNr, data)
 
     def setup(self):
         """
@@ -37,6 +37,6 @@ class EngineConnection(object):
         """
         return []
 
-    def sendData(self, data):
+    def sendData(self, commandNr, data):
         """ Override in subclass """
         return False
