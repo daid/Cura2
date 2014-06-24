@@ -30,6 +30,8 @@ class Printer3DScene(Scene):
         super(Printer3DScene,self).__init__()
         self._result_object = Printer3DResult()
         self._is_in_update = False
+        self._want_to_print_one_at_a_time = True
+        self._print_one_at_a_time = True
 
     def loadFile(self, filename):
         if not os.path.isfile(filename):
@@ -43,17 +45,31 @@ class Printer3DScene(Scene):
     def sceneUpdated(self, updatedObject=None):
         super(Printer3DScene, self).sceneUpdated(updatedObject)
 
+        self._print_one_at_a_time = self._want_to_print_one_at_a_time
+        if self._print_one_at_a_time:
+            for obj in self._object_list:
+                if not self.checkPlatform(obj):
+                    continue
+                if obj.getSize()[2] >= self._machine.getSettingValueByKeyFloat('machine_nozzle_gantry_distance'):
+                    self._print_one_at_a_time = False
+                    break
+
         if updatedObject is not None and self.checkPlatform(updatedObject):
             self._is_in_update = True
             for obj in self._object_list:
                 if obj == updatedObject or not self.checkPlatform(obj):
                     continue
-                v = polygon.polygonCollisionPushVector(obj.getHeadHitShapeMin(), updatedObject.getObjectBoundary())
-                if type(v) is bool:
-                    v = polygon.polygonCollisionPushVector(updatedObject.getHeadHitShapeMin(), obj.getObjectBoundary())
+                if self._print_one_at_a_time:
+                    v = polygon.polygonCollisionPushVector(obj.getHeadHitShapeMin(), updatedObject.getObjectBoundary())
+                    if type(v) is bool:
+                        v = polygon.polygonCollisionPushVector(updatedObject.getHeadHitShapeMin(), obj.getObjectBoundary())
+                        if type(v) is bool:
+                            continue
+                        v = -v
+                else:
+                    v = polygon.polygonCollisionPushVector(obj.getObjectBoundary(), updatedObject.getObjectBoundary())
                     if type(v) is bool:
                         continue
-                    v = -v
                 posDiff = obj.getPosition() - updatedObject.getPosition()
                 if numpy.dot(posDiff, v) < 0:
                     v = -v

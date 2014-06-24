@@ -44,6 +44,7 @@ class FDMMachineConfigDialog(wx.Dialog):
         self.addSetting(self._head_panel, self._app.getMachine().getSettingByKey('machine_head_shape_min_y'), 1)
         self.addSetting(self._head_panel, self._app.getMachine().getSettingByKey('machine_head_shape_max_x'), 2)
         self.addSetting(self._head_panel, self._app.getMachine().getSettingByKey('machine_head_shape_max_y'), 3)
+        self.addSetting(self._head_panel, self._app.getMachine().getSettingByKey('machine_nozzle_gantry_distance'), 4)
         for n in xrange(1, self._app.getMachine().getMaxNozzles()):
             self.addSetting(self._head_panel, self._app.getMachine().getSettingByKey('machine_nozzle_offset_x_%d' % (n)), n * 2 - 2, 1)
             self.addSetting(self._head_panel, self._app.getMachine().getSettingByKey('machine_nozzle_offset_y_%d' % (n)), n * 2 - 1, 1)
