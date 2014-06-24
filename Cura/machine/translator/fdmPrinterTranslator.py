@@ -35,27 +35,79 @@ class FDMPrinterTranslator(Printer3DTranslator):
 
     CMD_PROGRESS_UPDATE = 0x00300001
 
+    def _findPrintOrder(self):
+        #Construct a hit map, where object_hit_map[n][m] == True says when printing object N the head will hit object M
+        object_list = self._scene.getObjects()
+        use_list = [False] * len(object_list)
+        object_hit_map = [[]] * len(object_list)
+        for n in xrange(0, len(object_list)):
+            object_hit_map[n] = [False] * len(object_list)
+            use_list[n] = self._scene.checkPlatform(object_list[n])
+        for n in xrange(0, len(object_list)):
+            if use_list[n]:
+                for m in xrange(0, len(object_list)):
+                    if n == m or not use_list[m]:
+                        object_hit_map[n][m] = False
+                    else:
+                        object_hit_map[n][m] = polygon.polygonCollision(object_list[n].getHeadHitShape(), object_list[m].getObjectBoundary())
+
+        for n in xrange(0, len(object_list)):
+            for m in xrange(0, len(object_list)):
+                if n != m and use_list[n] and use_list[m] and object_hit_map[n][m] and object_hit_map[m][n]:
+                    return False
+
+        #Generate a list of which indexes we all need to print and sort in a proper print order.
+        index_list = []
+        for n in xrange(0, len(object_list)):
+            if use_list[n]:
+                index_list.append(n)
+
+        #Sort from least to most hit objects.
+        index_list.sort(lambda a, b: sum(object_hit_map[a]) - sum(object_hit_map[b]))
+
+        todo_list = [([], index_list)]
+        while len(todo_list) > 0:
+            done_list, index_list = todo_list.pop()
+            for add_index in index_list:
+                can_add = True
+                #Check if this to-add object does not hit an already placed object.
+                for idx in done_list:
+                    if object_hit_map[add_index][idx]:
+                        can_add = False
+                        break
+                if not can_add:
+                    continue
+                #Check if this to-add object does not block the placing of a later object.
+                for idx in index_list:
+                    if add_index != idx and object_hit_map[idx][add_index]:
+                        can_add = False
+                        break
+                if not can_add:
+                    continue
+
+                if len(index_list) == 1:
+                    #We are done, all items added. Return the order we found
+                    return done_list + [add_index]
+
+                #Add this option to the todo_list so it gets evaluated deeper.
+                new_index_list = index_list[:]
+                new_index_list.remove(add_index)
+                todo_list.append((done_list + [add_index], new_index_list))
+        return False
+
     def communicate(self):
         for k, v in self.getEngineSettings().items():
             self.sendData(self.CMD_SETTING, str(k) + '\x00' + str(v))
         one_at_a_time = self._scene.getOneAtATimeActive()
         if one_at_a_time:
             ## Find out printing order
+            order = self._findPrintOrder()
+            print order
 
-            #Construct a hit map, where object_hit_map[n][m] == True says when printing object N the head will hit object M
-            object_list = self._scene.getObjects()
-            object_hit_map = [[]] * len(object_list)
-            for n in xrange(0, len(object_list)):
-                object_hit_map[n] = [False] * len(object_list)
-                for m in xrange(0, len(object_list)):
-                    if n == m:
-                        object_hit_map[n][m] = None
-                    else:
-                        object_hit_map[n][m] = polygon.polygonCollision(object_list[n].getHeadHitShape(), object_list[m].getObjectBoundary())
-            print object_hit_map
-
+        if one_at_a_time and order:
             ## Print objects in that order
-            for obj in object_list:
+            for idx in order:
+                obj = self._scene.getObjects()[idx]
                 self.sendData(self.CMD_SETTING, 'posx\x00' + str(obj.getPosition()[0] * 1000))
                 self.sendData(self.CMD_SETTING, 'posy\x00' + str(obj.getPosition()[1] * 1000))
                 self.sendData(self.CMD_MATRIX, obj.getMatrix().getA1().astype(numpy.float32).tostring())
