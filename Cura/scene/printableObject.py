@@ -37,6 +37,8 @@ class PrintableObject(DisplayableObject):
         self._drawOffset = numpy.zeros((3,), numpy.float32)
 
         self._convex2dBoundary = numpy.zeros((2, 1), numpy.float32)
+        self._head_hit_shape = numpy.zeros((2, 1), numpy.float32)
+        self._head_hit_shape_min = numpy.zeros((2, 1), numpy.float32)
 
     def loadMesh(self, filename):
         self._thread = threading.Thread(target=self._loadMeshThread, args=(filename,))
@@ -78,9 +80,19 @@ class PrintableObject(DisplayableObject):
 
         self._vMin = transformedMin
         self._vMax = transformedMax
+        size = transformedMax - transformedMin
         self._boundarySphere = boundarySphere
         self._drawOffset = numpy.array([-center[0], -center[1], -transformedMin[2]])
         self._convex2dBoundary = polygon.minkowskiHull((hull.astype(numpy.float32) + self._drawOffset[0:2]), numpy.array([[-1,-1],[-1,1],[1,1],[1,-1]],numpy.float32))
+
+        head_shape = self._scene.getMachine().getHeadShape()
+        head_min_x, head_min_y = self._scene.getMachine().getHeadSizeMin()
+        self._head_hit_shape = polygon.minkowskiHull(self._convex2dBoundary, head_shape)
+        square_x = head_min_x + size[0] / 2.0
+        square_y = head_min_x + size[0] / 2.0
+        square = numpy.array([[square_x, square_y], [square_x, -square_y], [-square_x, -square_y], [-square_x, square_y]])
+        self._head_hit_shape_min = polygon.clipConvex(self._head_hit_shape, square)
+        print self._head_hit_shape_min
         self._updated()
 
     def getSize(self):
@@ -91,3 +103,23 @@ class PrintableObject(DisplayableObject):
 
     def getDrawOffset(self):
         return self._drawOffset
+
+    def getObjectBoundary(self):
+        """
+        Return a 2D convex polygon which is a convex hull around the 2D X/Y projection of the object.
+        """
+        return self._convex2dBoundary + self._position
+
+    def getHeadHitShape(self):
+        """
+        Return a 2D convex polygon which is a convex hull around the 2D X/Y projection of the object, increased by the size of the printer head.
+        This are will be hit by the head while this object is printed.
+        """
+        return self._head_hit_shape + self._position
+
+    def getHeadHitShapeMin(self):
+        """
+        Return a 2D convex polygon which is a convex hull around the 2D X/Y projection of the object, increased by the size of the printer head. But cut off by the minimal head size.
+        This is the area that needs to be kept free if you want to print objects one-at-a-time
+        """
+        return self._head_hit_shape_min + self._position

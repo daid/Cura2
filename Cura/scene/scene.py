@@ -19,6 +19,9 @@ class Scene(object):
     def setMachine(self, machine):
         self._machine = machine
 
+    def getMachine(self):
+        return self._machine
+
     def addObject(self, object):
         self._object_list.append(object)
         object.setScene(self)

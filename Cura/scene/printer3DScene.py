@@ -43,14 +43,17 @@ class Printer3DScene(Scene):
     def sceneUpdated(self, updatedObject=None):
         super(Printer3DScene, self).sceneUpdated(updatedObject)
 
-        if updatedObject is not None:
+        if updatedObject is not None and self.checkPlatform(updatedObject):
             self._is_in_update = True
             for obj in self._object_list:
-                if obj == updatedObject:
+                if obj == updatedObject or not self.checkPlatform(obj):
                     continue
-                v = polygon.polygonCollisionPushVector(obj._convex2dBoundary + obj.getPosition(), updatedObject._convex2dBoundary + updatedObject.getPosition())
+                v = polygon.polygonCollisionPushVector(obj.getHeadHitShapeMin(), updatedObject.getObjectBoundary())
                 if type(v) is bool:
-                    continue
+                    v = polygon.polygonCollisionPushVector(updatedObject.getHeadHitShapeMin(), obj.getObjectBoundary())
+                    if type(v) is bool:
+                        continue
+                    v = -v
                 posDiff = obj.getPosition() - updatedObject.getPosition()
                 if numpy.dot(posDiff, v) < 0:
                     v = -v
@@ -59,3 +62,17 @@ class Printer3DScene(Scene):
 
     def getResult(self):
         return self._result_object
+
+    def checkPlatform(self, obj):
+        area = obj.getObjectBoundary()
+        if self._machine is None:
+            return False
+        if obj.getSize()[2] > self._machine.getSettingValueByKeyFloat('machine_height'):
+            return False
+        if not polygon.fullInside(area, self._machine.getShape()):
+            return False
+        #Check the "no go zones"
+        for poly in self._machine.getDisallowedZones():
+            if polygon.polygonCollision(poly, area):
+                return False
+        return True

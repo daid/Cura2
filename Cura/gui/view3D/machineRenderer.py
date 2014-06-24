@@ -39,8 +39,6 @@ class MachineRenderer(Renderer):
         if self.machine is None:
             return
 
-        w = self.machine.getSettingValueByKeyFloat('machine_width')
-        d = self.machine.getSettingValueByKeyFloat('machine_depth')
         h = self.machine.getSettingValueByKeyFloat('machine_height')
         shape = self.machine.getShape()
 

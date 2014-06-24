@@ -38,6 +38,7 @@ class CuraApp(wx.App):
         self._scene.setView(self._view)
         self._machine.setTranslator(self._translator)
         self._scene.setTranslator(self._translator)
+        self._scene.setMachine(self._machine)
         self._translator.setScene(self._scene)
         self._translator.setMachine(self._machine)
 

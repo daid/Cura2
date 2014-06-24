@@ -41,9 +41,13 @@ class FDMPrinterTranslator(Printer3DTranslator):
         if all_at_once:
             mesh_count = 0
             for obj in self._scene.getObjects():
+                if not self._scene.checkPlatform(obj):
+                    continue
                 mesh_count += len(obj.getMesh().getVolumes())
             self.sendData(self.CMD_OBJECT_LIST, struct.pack("@i", mesh_count))
             for obj in self._scene.getObjects():
+                if not self._scene.checkPlatform(obj):
+                    continue
                 self.sendData(self.CMD_SETTING, 'posx\x00' + str(obj.getPosition()[0] * 1000))
                 self.sendData(self.CMD_SETTING, 'posy\x00' + str(obj.getPosition()[1] * 1000))
                 self.sendData(self.CMD_MATRIX, obj.getMatrix().getA1().astype(numpy.float32).tostring())

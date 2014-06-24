@@ -141,3 +141,17 @@ class FDMPrinter(printer3D.Printer3D):
 
     def getMaxNozzles(self):
         return 8
+
+    def getHeadShape(self):
+        x_min = self.getSettingValueByKeyFloat('machine_head_shape_min_x')
+        y_min = self.getSettingValueByKeyFloat('machine_head_shape_min_y')
+        x_max = self.getSettingValueByKeyFloat('machine_head_shape_max_x')
+        y_max = self.getSettingValueByKeyFloat('machine_head_shape_max_y')
+        return numpy.array([[-x_min,-y_min],[x_max,-y_min],[x_max, y_max], [-x_min, y_max]], numpy.float32)
+
+    def getHeadSizeMin(self):
+        x_min = self.getSettingValueByKeyFloat('machine_head_shape_min_x')
+        y_min = self.getSettingValueByKeyFloat('machine_head_shape_min_y')
+        x_max = self.getSettingValueByKeyFloat('machine_head_shape_max_x')
+        y_max = self.getSettingValueByKeyFloat('machine_head_shape_max_y')
+        return min(x_min, x_max), min(y_min, y_max)
