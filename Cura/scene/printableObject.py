@@ -88,11 +88,10 @@ class PrintableObject(DisplayableObject):
         head_shape = self._scene.getMachine().getHeadShape()
         head_min_x, head_min_y = self._scene.getMachine().getHeadSizeMin()
         self._head_hit_shape = polygon.minkowskiHull(self._convex2dBoundary, head_shape)
-        square_x = head_min_x + size[0] / 2.0
-        square_y = head_min_x + size[0] / 2.0
+        square_x = head_min_x + size[0] / 2.0 + 1
+        square_y = head_min_y + size[1] / 2.0 + 1
         square = numpy.array([[square_x, square_y], [square_x, -square_y], [-square_x, -square_y], [-square_x, square_y]])
         self._head_hit_shape_min = polygon.clipConvex(self._head_hit_shape, square)
-        print self._head_hit_shape_min
         self._updated()
 
     def getSize(self):

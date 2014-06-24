@@ -13,6 +13,20 @@ class PrintableObjectRenderer(Renderer):
         self._shader = openGLUtils.GLShader(filename='objectShader.glsl')
 
     def render(self):
+        glDepthMask(False)
+        for obj in self.scene.getObjects():
+            glColor4f(0, 0, 0, 0.2)
+            glBegin(GL_TRIANGLE_FAN)
+            for p in obj.getObjectBoundary():
+                glVertex3f(p[0], p[1], 0.1)
+            glEnd()
+            if self.scene.getOneAtATimeActive():
+                glBegin(GL_TRIANGLE_FAN)
+                for p in obj.getHeadHitShapeMin():
+                    glVertex3f(p[0], p[1], 0.1)
+                glEnd()
+        glDepthMask(True)
+
         self._shader.bind()
         for obj in self.scene.getObjects():
             mesh = obj.getMesh()
@@ -26,8 +40,6 @@ class PrintableObjectRenderer(Renderer):
             colorStrength = 0.8
             if obj.isSelected():
                 colorStrength = 1.0
-            if not self.scene.checkPlatform(obj):
-                colorStrength *= 0.5
             if mesh is not None:
                 for v in mesh.getVolumes():
                     if 'VertexRenderer' not in v.metaData:

@@ -4,6 +4,7 @@ import os
 import struct
 import numpy
 
+from Cura.geometry import polygon
 from Cura.machine.translator.printer3DTranslator import Printer3DTranslator
 from Cura.machine.engineCommunication.socketConnection import SocketConnection
 
@@ -37,8 +38,35 @@ class FDMPrinterTranslator(Printer3DTranslator):
     def communicate(self):
         for k, v in self.getEngineSettings().items():
             self.sendData(self.CMD_SETTING, str(k) + '\x00' + str(v))
-        all_at_once = True
-        if all_at_once:
+        one_at_a_time = self._scene.getOneAtATimeActive()
+        if one_at_a_time:
+            ## Find out printing order
+
+            #Construct a hit map, where object_hit_map[n][m] == True says when printing object N the head will hit object M
+            object_list = self._scene.getObjects()
+            object_hit_map = [[]] * len(object_list)
+            for n in xrange(0, len(object_list)):
+                object_hit_map[n] = [False] * len(object_list)
+                for m in xrange(0, len(object_list)):
+                    if n == m:
+                        object_hit_map[n][m] = None
+                    else:
+                        object_hit_map[n][m] = polygon.polygonCollision(object_list[n].getHeadHitShape(), object_list[m].getObjectBoundary())
+            print object_hit_map
+
+            ## Print objects in that order
+            for obj in object_list:
+                self.sendData(self.CMD_SETTING, 'posx\x00' + str(obj.getPosition()[0] * 1000))
+                self.sendData(self.CMD_SETTING, 'posy\x00' + str(obj.getPosition()[1] * 1000))
+                self.sendData(self.CMD_MATRIX, obj.getMatrix().getA1().astype(numpy.float32).tostring())
+                mesh = obj.getMesh()
+                self.sendData(self.CMD_OBJECT_LIST, struct.pack("@i", len(mesh.getVolumes())))
+                for volume in mesh.getVolumes():
+                    self.sendData(self.CMD_MESH_LIST, struct.pack("@i", 1))
+                    self.sendData(self.CMD_VERTEX_LIST, volume.getVertexPositionData().tostring())
+                    # self.sendData(self.CMD_NORMAL_LIST, volume.getVertexNormalData().tostring())
+                self.sendData(self.CMD_PROCESS)
+        else:
             mesh_count = 0
             for obj in self._scene.getObjects():
                 if not self._scene.checkPlatform(obj):
@@ -62,18 +90,6 @@ class FDMPrinterTranslator(Printer3DTranslator):
                 self.sendData(self.CMD_SETTING, 'posx\x00' + str(self._machine.getSettingValueByKeyFloat('machine_width') / 2 * 1000))
                 self.sendData(self.CMD_SETTING, 'posy\x00' + str(self._machine.getSettingValueByKeyFloat('machine_depth') / 2 * 1000))
             self.sendData(self.CMD_PROCESS)
-        else:
-            for obj in self._scene.getObjects():
-                self.sendData(self.CMD_SETTING, 'posx\x00' + str(obj.getPosition()[0] * 1000))
-                self.sendData(self.CMD_SETTING, 'posy\x00' + str(obj.getPosition()[1] * 1000))
-                self.sendData(self.CMD_MATRIX, obj.getMatrix().getA1().astype(numpy.float32).tostring())
-                mesh = obj.getMesh()
-                self.sendData(self.CMD_OBJECT_LIST, struct.pack("@i", len(mesh.getVolumes())))
-                for volume in mesh.getVolumes():
-                    self.sendData(self.CMD_MESH_LIST, struct.pack("@i", 1))
-                    self.sendData(self.CMD_VERTEX_LIST, volume.getVertexPositionData().tostring())
-                    # self.sendData(self.CMD_NORMAL_LIST, volume.getVertexNormalData().tostring())
-                self.sendData(self.CMD_PROCESS)
         self.sendData(self.CMD_FINISHED)
 
     def receivedData(self, commandNr, data):

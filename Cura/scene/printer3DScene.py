@@ -1,4 +1,5 @@
 
+import wx
 import os
 import numpy
 
@@ -32,6 +33,7 @@ class Printer3DScene(Scene):
         self._is_in_update = False
         self._want_to_print_one_at_a_time = True
         self._print_one_at_a_time = True
+        self._update_thread = None
 
     def loadFile(self, filename):
         if not os.path.isfile(filename):
@@ -73,8 +75,11 @@ class Printer3DScene(Scene):
                 posDiff = obj.getPosition() - updatedObject.getPosition()
                 if numpy.dot(posDiff, v) < 0:
                     v = -v
-                obj.setPosition(obj.getPosition() + v * 1.01)
+                wx.CallAfter(obj.setPosition, obj.getPosition() + v * 1.01)
             self._is_in_update = False
+
+    def getOneAtATimeActive(self):
+        return self._print_one_at_a_time
 
     def getResult(self):
         return self._result_object
