@@ -11,3 +11,11 @@ def setup():
     locale_path = os.path.normpath(locale_path)
     translation = gettext.translation('Cura', locale_path, languages, fallback=True)
     translation.install(unicode=True)
+
+
+def formatMaterial(amount_in_mm):
+    return '%0.1fm' % (amount_in_mm / 1000.0)
+
+
+def formatTime(time_in_seconds):
+    return '%d hours %d minutes' % (int(time_in_seconds / 60.0 / 60.0), int(time_in_seconds / 60.0 % 60.0))

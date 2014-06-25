@@ -4,6 +4,8 @@ import os
 import struct
 import numpy
 
+from Cura.localization import formatTime
+from Cura.localization import formatMaterial
 from Cura.geometry import polygon
 from Cura.machine.translator.printer3DTranslator import Printer3DTranslator
 from Cura.machine.engineCommunication.socketConnection import SocketConnection
@@ -13,6 +15,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
     def __init__(self):
         super(FDMPrinterTranslator, self).__init__()
         self._engine_executable_name = 'CuraEngine'
+        self._object_index_mapping = None   # Mapping from indexes reported by the engine to objects on the build-plate.
 
         self.addConnection(SocketConnection(self))
 
@@ -34,6 +37,8 @@ class FDMPrinterTranslator(Printer3DTranslator):
     CMD_INDEX_LIST = 0x00200004
 
     CMD_PROGRESS_UPDATE = 0x00300001
+    CMD_OBJECT_PRINT_TIME = 0x00300004
+    CMD_OBJECT_PRINT_MATERIAL = 0x00300005
 
     def _findPrintOrder(self):
         #Construct a hit map, where object_hit_map[n][m] == True says when printing object N the head will hit object M
@@ -103,7 +108,14 @@ class FDMPrinterTranslator(Printer3DTranslator):
             ## Find out printing order
             order = self._findPrintOrder()
 
+        for obj in self._scene.getObjects():
+            obj.clearInfo()
+        self._object_index_mapping = None
+
         if one_at_a_time and order:
+            self._object_index_mapping = []
+            for idx in order:
+                self._object_index_mapping.append(self._scene.getObjects()[idx])
             ## Print objects in that order
             self.sendData(self.CMD_OBJECT_COUNT, struct.pack("@i", len(order)))
             for idx in order:
@@ -144,11 +156,25 @@ class FDMPrinterTranslator(Printer3DTranslator):
                 self.sendData(self.CMD_SETTING, 'posy\x00' + str(self._machine.getSettingValueByKeyFloat('machine_depth') / 2 * 1000))
             self.sendData(self.CMD_PROCESS)
 
-    def receivedData(self, commandNr, data):
-        if commandNr == self.CMD_PROGRESS_UPDATE:
+    def receivedData(self, command_nr, data):
+        if command_nr == self.CMD_PROGRESS_UPDATE:
             self.progressUpdate(struct.unpack('@f', data)[0], False)
+        elif command_nr == self.CMD_OBJECT_PRINT_TIME:
+            index, print_time = struct.unpack('@if', data)
+            if self._object_index_mapping is not None:
+                self._object_index_mapping[index].setInfo('Print time', formatTime(print_time))
+            else:
+                for obj in self._scene.getObjects():
+                    obj.setInfo('Total print time', formatTime(print_time))
+        elif command_nr == self.CMD_OBJECT_PRINT_MATERIAL:
+            index, extruder_nr, material_amount = struct.unpack('@iif', data)
+            if self._object_index_mapping is not None:
+                self._object_index_mapping[index].setInfo('Material', formatMaterial(material_amount))
+            else:
+                for obj in self._scene.getObjects():
+                    obj.setInfo('Total material', formatMaterial(material_amount))
         else:
-            print 'Unhandled engine message:', hex(commandNr), len(data)
+            print 'Unhandled engine message:', hex(command_nr), len(data)
 
     def canTranslate(self):
         if len(self._scene.getObjects()) < 1:
@@ -215,7 +241,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
             'infillSpeed': int(fbk('speed_infill')),
             'infillPattern': int(0),
 
-            'minimalLayerTime': int(fbk('cool_min_layer_time') * 1000),
+            'minimalLayerTime': int(fbk('cool_min_layer_time')),
             'minimalFeedrate': int(fbk('cool_min_speed')),
             'coolHeadLift': 1 if vbk('cool_lift_head') == 'True' else 0,
             'fanSpeedMin': int(fbk('cool_fan_speed_min')),

@@ -54,7 +54,10 @@ class MainOpenGLView(OpenGLPanel):
 
         focusObj = self._app.getView().getFocusObject()
         if focusObj is not None and hasattr(focusObj, 'getName') and self._activeTool is None:
-            showTooltip(focusObj.getName())
+            if hasattr(focusObj, 'getInfoString'):
+                showTooltip(focusObj.getName() + '\n' + focusObj.getInfoString())
+            else:
+                showTooltip(focusObj.getName())
         else:
             hideTooltip()
         self._mousePos = (e.GetX(), e.GetY())

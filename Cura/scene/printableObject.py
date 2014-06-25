@@ -29,6 +29,7 @@ class PrintableObject(DisplayableObject):
         if '.' in self._name:
             self._name = os.path.splitext(self._name)[0]
         self._mesh = None
+        self._info = {}
 
         # Mesh information.
         self._vMin = numpy.array([-1, -1, -1], numpy.float32)
@@ -122,3 +123,15 @@ class PrintableObject(DisplayableObject):
         This is the area that needs to be kept free if you want to print objects one-at-a-time
         """
         return self._head_hit_shape_min + self._position
+
+    def clearInfo(self):
+        self._info = {}
+
+    def setInfo(self, key, value):
+        self._info[key] = value
+
+    def getInfoString(self):
+        ret = ''
+        for k, v in self._info.items():
+            ret += '%s: %s\n' % (k, v)
+        return ret

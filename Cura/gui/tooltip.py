@@ -7,6 +7,7 @@ def showTooltip(text, ctrl=None):
     global popupWindow
     if popupWindow is None:
         return
+    text = text.strip()
     popupWindow.setText(text)
 
     if ctrl is None:
