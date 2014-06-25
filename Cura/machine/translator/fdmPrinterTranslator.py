@@ -26,12 +26,12 @@ class FDMPrinterTranslator(Printer3DTranslator):
     CMD_SETTING = 0x00100004
     CMD_MATRIX = 0x00300002
     CMD_PROCESS = 0x00300000
+    CMD_OBJECT_COUNT = 0x00300003
     CMD_OBJECT_LIST = 0x00200000
     CMD_MESH_LIST = 0x00200001
     CMD_VERTEX_LIST = 0x00200002
     CMD_NORMAL_LIST = 0x00200003
     CMD_INDEX_LIST = 0x00200004
-    CMD_FINISHED = 0x00300003
 
     CMD_PROGRESS_UPDATE = 0x00300001
 
@@ -102,10 +102,10 @@ class FDMPrinterTranslator(Printer3DTranslator):
         if one_at_a_time:
             ## Find out printing order
             order = self._findPrintOrder()
-            print order
 
         if one_at_a_time and order:
             ## Print objects in that order
+            self.sendData(self.CMD_OBJECT_COUNT, struct.pack("@i", len(order)))
             for idx in order:
                 obj = self._scene.getObjects()[idx]
                 self.sendData(self.CMD_SETTING, 'posx\x00' + str(obj.getPosition()[0] * 1000))
