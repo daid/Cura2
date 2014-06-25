@@ -119,6 +119,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
                     # self.sendData(self.CMD_NORMAL_LIST, volume.getVertexNormalData().tostring())
                 self.sendData(self.CMD_PROCESS)
         else:
+            self.sendData(self.CMD_OBJECT_COUNT, struct.pack("@i", 1))
             mesh_count = 0
             for obj in self._scene.getObjects():
                 if not self._scene.checkPlatform(obj):
@@ -142,7 +143,6 @@ class FDMPrinterTranslator(Printer3DTranslator):
                 self.sendData(self.CMD_SETTING, 'posx\x00' + str(self._machine.getSettingValueByKeyFloat('machine_width') / 2 * 1000))
                 self.sendData(self.CMD_SETTING, 'posy\x00' + str(self._machine.getSettingValueByKeyFloat('machine_depth') / 2 * 1000))
             self.sendData(self.CMD_PROCESS)
-        self.sendData(self.CMD_FINISHED)
 
     def receivedData(self, commandNr, data):
         if commandNr == self.CMD_PROGRESS_UPDATE:
