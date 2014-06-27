@@ -39,6 +39,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
     CMD_PROGRESS_UPDATE = 0x00300001
     CMD_OBJECT_PRINT_TIME = 0x00300004
     CMD_OBJECT_PRINT_MATERIAL = 0x00300005
+    CMD_POLYGON = 0x00300006
 
     def _findPrintOrder(self):
         #Construct a hit map, where object_hit_map[n][m] == True says when printing object N the head will hit object M
@@ -116,6 +117,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
             self._object_index_mapping = []
             for idx in order:
                 self._object_index_mapping.append(self._scene.getObjects()[idx])
+                self._scene.getObjects()[idx].setInfo('Order', '%d' % (order.index(idx) + 1))
             ## Print objects in that order
             self.sendData(self.CMD_OBJECT_COUNT, struct.pack("@i", len(order)))
             for idx in order:
@@ -173,6 +175,20 @@ class FDMPrinterTranslator(Printer3DTranslator):
             else:
                 for obj in self._scene.getObjects():
                     obj.setInfo('Total material', formatMaterial(material_amount))
+        elif command_nr == self.CMD_POLYGON:
+            n = data.index('\x00')
+            name = data[0:n]
+            n += 1
+            object_number, layer_nr, z_height, polygon_count = struct.unpack("@iiii", data[n:n + 4 * 4])
+            n += 4 * 4
+            z_height = float(z_height) / 1000.0
+            polygons = []
+            for cnt in xrange(0, polygon_count):
+                point_count = struct.unpack("@i", data[n:n + 4])[0]
+                n += 4
+                polygons.append(numpy.fromstring(data[n:n + 16 * point_count], numpy.int64))
+                n += 16 * point_count
+
         else:
             print 'Unhandled engine message:', hex(command_nr), len(data)
 
