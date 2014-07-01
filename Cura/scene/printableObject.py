@@ -11,6 +11,18 @@ import numpy
 numpy.seterr(all='ignore')
 
 
+class ToolpathLayer(object):
+    def __init__(self, z_height, layer_height):
+        self._z_height = z_height
+        self._layer_height = layer_height
+        self._polygons = {}
+
+    def add(self, type, polygons):
+        if type not in self._polygons:
+            self._polygons[type] = []
+        self._polygons[type] += polygons
+
+
 class PrintableObject(DisplayableObject):
     """
     A printable object is an object that can be printed and is on the build platform.
@@ -30,6 +42,7 @@ class PrintableObject(DisplayableObject):
             self._name = os.path.splitext(self._name)[0]
         self._mesh = None
         self._info = {}
+        self._toolpath_layers = []
 
         # Mesh information.
         self._vMin = numpy.array([-1, -1, -1], numpy.float32)
@@ -126,6 +139,7 @@ class PrintableObject(DisplayableObject):
 
     def clearInfo(self):
         self._info = {}
+        self._toolpath_layers = []
 
     def setInfo(self, key, value):
         self._info[key] = value
@@ -135,3 +149,19 @@ class PrintableObject(DisplayableObject):
         for k, v in self._info.items():
             ret += '%s: %s\n' % (k, v)
         return ret
+
+    def addToolpathLayer(self, layer_nr, z_height, layer_height):
+        while len(self._toolpath_layers) <= layer_nr:
+            self._toolpath_layers.append(None)
+        self._toolpath_layers[layer_nr] = ToolpathLayer(z_height, layer_height)
+
+    def addToolpathPolygons(self, name, layer_nr, polygons):
+        if layer_nr >= len(self._toolpath_layers):
+            return
+        self._toolpath_layers[layer_nr].add(name, polygons)
+
+    def getToolpathLayerCount(self):
+        return len(self._toolpath_layers)
+
+    def getToolpathLayer(self, layer_nr):
+        return self._toolpath_layers[layer_nr]

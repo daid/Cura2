@@ -40,6 +40,8 @@ class PrintableObjectRenderer(Renderer):
             colorStrength = 0.8
             if obj.isSelected():
                 colorStrength = 1.0
+            if not self.scene.checkPlatform(obj):
+                colorStrength *= 0.5
             if mesh is not None:
                 for v in mesh.getVolumes():
                     if 'VertexRenderer' not in v.metaData:

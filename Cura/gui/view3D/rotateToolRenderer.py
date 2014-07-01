@@ -35,7 +35,8 @@ def _generateCircle(pointCount=64, thickness=0.05):
 
 
 class RotateFocusObject(object):
-    def __init__(self, axis, obj):
+    def __init__(self, axis_name, axis, obj):
+        self._axis_name = axis_name
         self._axis = axis
         self._obj = obj
 
@@ -45,6 +46,8 @@ class RotateFocusObject(object):
     def getObject(self):
         return self._obj
 
+    def getName(self):
+        return 'Rotate around %s' % (self._axis_name)
 
 class RotateToolRenderer(Renderer):
     def __init__(self):
@@ -122,12 +125,12 @@ class RotateToolRenderer(Renderer):
             glTranslatef(centerPosition[0], centerPosition[1], centerPosition[2])
             s = self.view.getZoom() / 10.0
             glScalef(s, s, s)
-            self.setCurrentFocusRenderObject(RotateFocusObject(self._axisList[0], obj))
+            self.setCurrentFocusRenderObject(RotateFocusObject('Z', self._axisList[0], obj))
             self._circle.render()
-            self.setCurrentFocusRenderObject(RotateFocusObject(self._axisList[1], obj))
+            self.setCurrentFocusRenderObject(RotateFocusObject('Y', self._axisList[1], obj))
             glRotatef(90, 1, 0, 0)
             self._circle.render()
-            self.setCurrentFocusRenderObject(RotateFocusObject(self._axisList[2], obj))
+            self.setCurrentFocusRenderObject(RotateFocusObject('X', self._axisList[2], obj))
             glRotatef(90, 0, 1, 0)
             self._circle.render()
             glPopMatrix()
@@ -140,12 +143,12 @@ class RotateToolRenderer(Renderer):
             glTranslatef(centerPosition[0], centerPosition[1], centerPosition[2])
             s = self.view.getZoom() / 10.0
             glScalef(s, s, s)
-            self.setCurrentFocusRenderObject(RotateFocusObject(self._axisList[0], obj))
+            self.setCurrentFocusRenderObject(RotateFocusObject('Z', self._axisList[0], obj))
             self._circle.render()
-            self.setCurrentFocusRenderObject(RotateFocusObject(self._axisList[1], obj))
+            self.setCurrentFocusRenderObject(RotateFocusObject('Y', self._axisList[1], obj))
             glRotatef(90, 1, 0, 0)
             self._circle.render()
-            self.setCurrentFocusRenderObject(RotateFocusObject(self._axisList[2], obj))
+            self.setCurrentFocusRenderObject(RotateFocusObject('X', self._axisList[2], obj))
             glRotatef(90, 0, 1, 0)
             self._circle.render()
             glPopMatrix()

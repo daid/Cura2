@@ -39,6 +39,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
     CMD_PROGRESS_UPDATE = 0x00300001
     CMD_OBJECT_PRINT_TIME = 0x00300004
     CMD_OBJECT_PRINT_MATERIAL = 0x00300005
+    CMD_LAYER_INFO = 0x00300007
     CMD_POLYGON = 0x00300006
 
     def _findPrintOrder(self):
@@ -175,20 +176,30 @@ class FDMPrinterTranslator(Printer3DTranslator):
             else:
                 for obj in self._scene.getObjects():
                     obj.setInfo('Total material', formatMaterial(material_amount))
+        elif command_nr == self.CMD_LAYER_INFO:
+            object_index, layer_nr, z_height, layer_height = struct.unpack("@iiii", data)
+            z_height /= 1000.0
+            layer_height /= 1000.0
+            if self._object_index_mapping is not None:
+                self._object_index_mapping[object_index].addToolpathLayer(layer_nr, z_height, layer_height)
+            else:
+                self._scene.getObjects()[0].addToolpathLayer(layer_nr, z_height, layer_height)
         elif command_nr == self.CMD_POLYGON:
             n = data.index('\x00')
             name = data[0:n]
             n += 1
-            object_number, layer_nr, z_height, polygon_count = struct.unpack("@iiii", data[n:n + 4 * 4])
-            n += 4 * 4
-            z_height = float(z_height) / 1000.0
+            object_index, layer_nr, polygon_count = struct.unpack("@iii", data[n:n + 3 * 4])
+            n += 3 * 4
             polygons = []
             for cnt in xrange(0, polygon_count):
                 point_count = struct.unpack("@i", data[n:n + 4])[0]
                 n += 4
-                polygons.append(numpy.fromstring(data[n:n + 16 * point_count], numpy.int64))
+                polygons.append(numpy.fromstring(data[n:n + 16 * point_count], numpy.int64).astype(numpy.float32).reshape((point_count, 2)) / 1000.0)
                 n += 16 * point_count
-
+            if self._object_index_mapping is not None:
+                self._object_index_mapping[object_index].addToolpathPolygons(name, layer_nr, polygons)
+            else:
+                self._scene.getObjects()[0].addToolpathPolygons(name, layer_nr, polygons)
         else:
             print 'Unhandled engine message:', hex(command_nr), len(data)
 
