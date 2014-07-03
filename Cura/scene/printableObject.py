@@ -28,6 +28,7 @@ class ToolpathLayer(object):
     def getVertexRenderer(self, type):
         if type in self._renderer:
             return self._renderer[type]
+
         polygons = self._polygons[type]
         point_count = 0
         indices_count = 0

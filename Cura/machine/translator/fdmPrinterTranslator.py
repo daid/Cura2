@@ -295,6 +295,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
             settings['raftAirGap'] = int(fbk('raft_airgap') * 1000)
             settings['skirtLineCount'] = 0
         if vbk('adhesion_type') == 'brim':
+            settings['skirtDistance'] = 0
             settings['skirtLineCount'] = int(fbk('brim_line_count'))
         if vbk('support_type') == '':
             settings['supportType'] = 0
