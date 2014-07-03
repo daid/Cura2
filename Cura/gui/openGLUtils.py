@@ -200,7 +200,7 @@ class VertexRenderer(object):
         if not legacyMode and self._buffers is not None:
             for info in self._buffers:
                 glDeleteBuffers(1, [info['buffer']])
-            if self._indices:
+            if self._indices is not None:
                 glDeleteBuffers(1, [self._bufferIndices])
             self._buffers = None
             self._bufferIndices = None

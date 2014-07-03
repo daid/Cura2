@@ -1,9 +1,11 @@
-
 import os
 import math
 import threading
+from OpenGL.GL import *
+from OpenGL.GLU import *
 
 from Cura.geometry import polygon
+from Cura.gui.openGLUtils import VertexRenderer
 from Cura.meshLoaders.meshLoader import loadMeshes
 from Cura.scene.displayableObject import DisplayableObject
 
@@ -16,11 +18,40 @@ class ToolpathLayer(object):
         self._z_height = z_height
         self._layer_height = layer_height
         self._polygons = {}
+        self._renderer = {}
 
     def add(self, type, polygons):
         if type not in self._polygons:
             self._polygons[type] = []
         self._polygons[type] += polygons
+
+    def getVertexRenderer(self, type):
+        if type in self._renderer:
+            return self._renderer[type]
+        polygons = self._polygons[type]
+        point_count = 0
+        indices_count = 0
+        for poly in polygons:
+            point_count += len(poly)
+            indices_count += len(poly) * 2
+        points = numpy.zeros((point_count, 2), numpy.float32)
+        indices = numpy.zeros(indices_count, dtype=numpy.int32)
+        point_index = 0
+        indices_index = 0
+        for poly in polygons:
+            n = len(poly)
+            points[point_index:point_index + n] = poly
+            i = numpy.arange(n, dtype=numpy.int32).reshape((n, 1)) + point_index
+            indices[indices_index:indices_index + (n * 2)] = numpy.concatenate((i, i + 1), 1).reshape((n * 2))
+            indices[indices_index + (n * 2) - 1] = i[0]
+
+            point_index += n
+            indices_index += n * 2
+        z_pos = numpy.zeros((point_count, 1), numpy.float32)
+        z_pos.fill(self._z_height)
+        points = numpy.concatenate((points, z_pos), 1)
+        self._renderer[type] = VertexRenderer(GL_LINES, points, False, indices)
+        return self._renderer[type]
 
 
 class PrintableObject(DisplayableObject):

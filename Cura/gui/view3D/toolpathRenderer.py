@@ -21,13 +21,9 @@ class ToolpathRenderer(Renderer):
                 if layer is None:
                     continue
                 z = layer._z_height
+                glColor3f(z % 1.0, z % 1.0, z % 1.0)
                 for key in layer._polygons.keys():
-                    for path in layer._polygons[key]:
-                        points = path
-                        glBegin(GL_LINE_LOOP)
-                        for p in points:
-                            glVertex3f(p[0], p[1], z)
-                        glEnd()
+                    layer.getVertexRenderer(key).render()
         glPopMatrix()
 
     def focusRender(self):
