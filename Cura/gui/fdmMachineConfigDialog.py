@@ -71,7 +71,7 @@ class FDMMachineConfigDialog(wx.Dialog):
             except KeyError:
                 value = s.getType().values()[0]
             ctrl = wx.ComboBox(panel, value=value, choices=s.getType().values(), style=wx.CB_DROPDOWN|wx.CB_READONLY)
-            ctrl.Bind(wx.EVT_COMBOBOX, self.OnSettingChange)
+            ctrl.Bind(wx.EVT_COMBOBOX, self.OnComboSettingChange)
             ctrl.Bind(wx.EVT_LEFT_DOWN, self.OnMouseExit)
         else:
             print 'Unknown settings type:', s.getType()
@@ -100,6 +100,12 @@ class FDMMachineConfigDialog(wx.Dialog):
     def OnSettingChange(self, e):
         ctrl = e.GetEventObject()
         ctrl.setting.setValue(ctrl.GetValue())
+
+    def OnComboSettingChange(self, e):
+        ctrl = e.GetEventObject()
+        for k, v in ctrl.setting.getType().items():
+            if v == ctrl.GetValue():
+                ctrl.setting.setValue(k)
 
     def onCloseButton(self, e):
         self.Close()
