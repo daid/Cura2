@@ -79,7 +79,9 @@ class Machine(object):
         s = self.getSettingByKey(key)
         if s is not None:
             return s.getValue()
-        print 'Setting key not found:', key
+        import traceback, sys
+        traceback.print_stack()
+        sys.stderr.write('Setting key not found: %s' % key)
         return ''
 
     def getSettingValueByKeyFloat(self, key):

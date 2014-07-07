@@ -62,6 +62,7 @@ class PrintableObject(DisplayableObject):
 
         self._convex2dBoundary = numpy.zeros((2, 1), numpy.float32)
         self._head_hit_shape = numpy.zeros((2, 1), numpy.float32)
+        self._head_hit_shape_min_no_extension = numpy.zeros((2, 1), numpy.float32)
         self._head_hit_shape_min = numpy.zeros((2, 1), numpy.float32)
 
     def loadMesh(self, filename):
@@ -115,8 +116,13 @@ class PrintableObject(DisplayableObject):
         square_x = head_min_x + size[0] / 2.0 + 1
         square_y = head_min_y + size[1] / 2.0 + 1
         square = numpy.array([[square_x, square_y], [square_x, -square_y], [-square_x, -square_y], [-square_x, square_y]])
-        self._head_hit_shape_min = polygon.clipConvex(self._head_hit_shape, square)
+        self._head_hit_shape_min_no_extension = polygon.clipConvex(self._head_hit_shape, square)
+        self.updatePrintExtension()
         self._updated()
+
+    def updatePrintExtension(self):
+        extra_print_area_shape = self._scene.getMachine().getExtraPrintAreaShape()
+        self._head_hit_shape_min = polygon.minkowskiHull(self._head_hit_shape_min_no_extension, extra_print_area_shape)
 
     def getSize(self):
         return self._vMax - self._vMin
