@@ -123,8 +123,12 @@ class FDMPrinterTranslator(Printer3DTranslator):
             self.sendData(self.CMD_OBJECT_COUNT, struct.pack("@i", len(order)))
             for idx in order:
                 obj = self._scene.getObjects()[idx]
-                self.sendData(self.CMD_SETTING, 'posx\x00' + str(obj.getPosition()[0] * 1000))
-                self.sendData(self.CMD_SETTING, 'posy\x00' + str(obj.getPosition()[1] * 1000))
+                pos = obj.getPosition().copy()
+                if self._machine.getSettingValueByKey('machine_center_is_zero') == 'False':
+                    pos[0] += self._machine.getSettingValueByKeyFloat('machine_width') / 2
+                    pos[1] += self._machine.getSettingValueByKeyFloat('machine_depth') / 2
+                self.sendData(self.CMD_SETTING, 'posx\x00' + str(pos[0] * 1000))
+                self.sendData(self.CMD_SETTING, 'posy\x00' + str(pos[1] * 1000))
                 self.sendData(self.CMD_MATRIX, obj.getMatrix().getA1().astype(numpy.float32).tostring())
                 mesh = obj.getMesh()
                 self.sendData(self.CMD_OBJECT_LIST, struct.pack("@i", len(mesh.getVolumes())))

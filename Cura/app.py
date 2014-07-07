@@ -88,10 +88,11 @@ class CuraFDMApp(CuraApp):
         self._toolbox.append(MirrorTool(self))
         self._toolbox.append(SelectAndMoveTool(self))
 
-        self._scene.loadFile('C:/Models/D&D/Box.stl')
-
         self._machine.loadSettings(getDefaultPreferenceStoragePath('settings.ini'))
         self.setActiveSettingsView(self._active_setting_view)
+
+        self._scene.loadFile('C:/Models/D&D/Box.stl')
+
         return True
 
     def finished(self):
