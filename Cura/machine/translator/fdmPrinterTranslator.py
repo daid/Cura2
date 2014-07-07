@@ -291,13 +291,13 @@ class FDMPrinterTranslator(Printer3DTranslator):
             settings['raftBaseSpeed'] = int(fbk('raft_base_speed') * 1000)
             settings['raftInterfaceThickness'] = int(fbk('raft_interface_thickness') * 1000)
             settings['raftInterfaceLinewidth'] = int(fbk('raft_interface_linewidth') * 1000)
-            settings['raftInterfaceLineSpacing'] = int(fbk('') * 1000)
-            settings['raftFanSpeed'] = int(fbk('') * 1000)
-            settings['raftSurfaceThickness'] = int(fbk('') * 1000)
-            settings['raftSurfaceLinewidth'] = int(fbk('') * 1000)
-            settings['raftSurfaceLineSpacing'] = int(fbk('') * 1000)
+            settings['raftInterfaceLineSpacing'] = int(fbk('raft_line_spacing') * 1000)
+            settings['raftFanSpeed'] = 0
+            settings['raftSurfaceThickness'] = int(fbk('layer_height_0') * 1000)
+            settings['raftSurfaceLinewidth'] = int(fbk('wall_line_width_x') * 1000)
+            settings['raftSurfaceLineSpacing'] = int(fbk('wall_line_width_x') * 1000)
             settings['raftSurfaceLayers'] = int(fbk('raft_surface_layers'))
-            settings['raftSurfaceSpeed'] = int(fbk('') * 1000)
+            settings['raftSurfaceSpeed'] = int(fbk('speed_layer_0') * 1000)
             settings['raftAirGap'] = int(fbk('raft_airgap') * 1000)
             settings['skirtLineCount'] = 0
         if vbk('adhesion_type') == 'brim':
