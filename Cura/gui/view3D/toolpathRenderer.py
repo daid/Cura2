@@ -1,6 +1,7 @@
 import numpy
 import re
 import math
+import threading
 from OpenGL.GL import *
 
 from Cura.gui import openGLUtils
@@ -201,6 +202,13 @@ class GCodeLayerRenderer(object):
 
 class GCodeRenderer(object):
     def __init__(self, gcode):
+        self._layers = []
+
+        thread = threading.Thread(target=self._process, args=(gcode,))
+        thread.daemon = True
+        thread.start()
+
+    def _process(self, gcode):
         G = re.compile('G([0-9]+)')
         M = re.compile('M([0-9]+)')
         X = re.compile('X([0-9\\.]+)')
@@ -211,8 +219,6 @@ class GCodeRenderer(object):
         S = re.compile('S([0-9]+)')
 
         current_layer = GCodeLayerRenderer()
-        self._layers = []
-
         for line in gcode.split('\n'):
             if line.startswith(';'):
                 if line.startswith(';LAYER:'):
@@ -385,10 +391,7 @@ class ToolpathRenderer(Renderer):
         gcode = self.scene.getResult().getGCode()
         if gcode is not None:
             if not hasattr(self.scene.getResult(), 'renderer'):
-                import time
-                t = time.time()
                 self.scene.getResult().renderer = GCodeRenderer(gcode)
-                print time.time() - t
             self.scene.getResult().renderer.render()
         glPopMatrix()
 
