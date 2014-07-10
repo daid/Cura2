@@ -219,6 +219,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
         self.progressUpdate(0.0, False)
         for obj in self._scene.getObjects():
             obj.updatePrintExtension()
+        self._scene.clearResult()
 
     def finish(self, success):
         self._scene.getResult().setLog(self._result_log.getvalue())

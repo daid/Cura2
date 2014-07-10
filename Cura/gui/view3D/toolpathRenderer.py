@@ -1,9 +1,319 @@
 import numpy
+import re
+import math
 from OpenGL.GL import *
 
 from Cura.gui import openGLUtils
 from Cura.gui.view3D.renderer import Renderer
 
+
+class GCodeLayerRenderer(object):
+    def __init__(self, prev_layer = None):
+        self._x = 0
+        self._y = 0
+        self._z = 0
+        self._e = 0
+        self._last_extrusion_z = 0
+        self._prev_last_extrusion_z = 0
+        self._feedrate = 0
+        self._retracted = False
+        self._move_points = []
+        self._inset0_extrude_points = []
+        self._insetX_extrude_points = []
+        self._infill_extrude_points = []
+        self._support_extrude_points = []
+        self._inset0_extrude_amounts = []
+        self._insetX_extrude_amounts = []
+        self._infill_extrude_amounts = []
+        self._support_extrude_amounts = []
+
+        self._retract_marks = []
+        self._prime_marks = []
+        self._layer_height = 0.1
+        self._active_extrude_points = self._support_extrude_points
+        self._active_extrude_amounts = self._support_extrude_amounts
+
+        if prev_layer is not None:
+            self._x = prev_layer._x
+            self._y = prev_layer._y
+            self._z = prev_layer._z
+            self._e = prev_layer._e
+            self._feedrate = prev_layer._feedrate
+            self._retracted = prev_layer._retracted
+
+    def setPosition(self, x, y, z, e):
+        if x is not None:
+            self._x = x
+        if y is not None:
+            self._y = y
+        if z is not None:
+            self._z = z
+        if e is not None:
+            self._e = e
+
+    def addMove(self, x, y, z, e, f):
+        new_x = self._x
+        new_y = self._y
+        new_z = self._z
+        new_e = self._e
+        if f is not None:
+            self._feedrate = f
+        if x is not None:
+            new_x = x
+        if y is not None:
+            new_y = y
+        if z is not None:
+            new_z = z
+        if e is not None:
+            new_e = e
+        if new_e > self._e:
+            if self._retracted:
+                self._retracted = False
+                self._addPrimeMark(new_x, new_y, new_z)
+                if new_x != self._x or new_y != self._y or new_z != self._z:
+                    self._move_points.append([self._x, self._y, self._z])
+                    self._move_points.append([new_x, new_y, new_z])
+            else:
+                # Extrusion
+                if new_x != self._x or new_y != self._y or new_z != self._z:
+                    self._last_extrusion_z = new_z
+                    self._active_extrude_points.append([self._x, self._y, self._z, new_x, new_y, new_z])
+                    self._active_extrude_amounts.append(new_e - self._e)
+        elif new_e < self._e:
+            self._retracted = True
+            self._addRetractionMark(self._x, self._y, self._z)
+            if new_x != self._x or new_y != self._y or new_z != self._z:
+                self._move_points.append([self._x, self._y, self._z])
+                self._move_points.append([new_x, new_y, new_z])
+        else:
+            self._move_points.append([self._x, self._y, self._z])
+            self._move_points.append([new_x, new_y, new_z])
+        self._x = new_x
+        self._y = new_y
+        self._z = new_z
+        self._e = new_e
+
+    def setFanSpeed(self, speed):
+        pass
+
+    def setTemperature(self, temperature):
+        pass
+
+    def setBedTemperature(self, temperature):
+        pass
+
+    def setExtrusionType(self, e_type):
+        if e_type == 'WALL-OUTER':
+            self._active_extrude_points = self._inset0_extrude_points
+            self._active_extrude_amounts = self._inset0_extrude_amounts
+        elif e_type == 'WALL-INNER':
+            self._active_extrude_points = self._insetX_extrude_points
+            self._active_extrude_amounts = self._insetX_extrude_amounts
+        elif e_type == 'FILL':
+            self._active_extrude_points = self._infill_extrude_points
+            self._active_extrude_amounts = self._infill_extrude_amounts
+        else:
+            self._active_extrude_points = self._support_extrude_points
+            self._active_extrude_amounts = self._support_extrude_amounts
+
+    def _addRetractionMark(self, x, y, z):
+        size = 1.0
+        z += self._layer_height / 2.0
+        self._retract_marks.append([x - size, y, z])
+        self._retract_marks.append([x, y - size, z])
+        self._retract_marks.append([x + size, y, z])
+        self._retract_marks.append([x, y + size, z])
+
+    def _addPrimeMark(self, x, y, z):
+        size = 1.0
+        z += self._layer_height / 2.0
+        self._prime_marks.append([x - size, y, z])
+        self._prime_marks.append([x, y - size, z])
+        self._prime_marks.append([x + size, y, z])
+        self._prime_marks.append([x, y + size, z])
+
+    def _extrusion_to_renderer(self, points, amounts):
+        if len(points) < 1:
+            return None
+        points = numpy.array(points, numpy.float32)
+        xdiff = (points[::,0] - points[::,3])
+        ydiff = (points[::,1] - points[::,4])
+        lengths = numpy.sqrt((xdiff * xdiff) + (ydiff * ydiff))
+        amounts /= lengths
+        #Amounts is amount of E per mm now. Calculate the extrusion width by "width = E / layer_height"
+        amounts *= self._e_correction_factor
+        normals = (points[::, 3:6] - points[::, 0:3])
+        normals[::,0] /= lengths
+        normals[::,1] /= lengths
+        normals[::,2] /= lengths
+        tmp = -normals[::,1]
+        normals[::,1] = normals[::,0]
+        normals[::,0] = tmp
+        normals[::,0] *= amounts
+        normals[::,1] *= amounts
+        normals[::,2] *= amounts
+        verts = numpy.concatenate((points, points[::, 3:6], points[::, 0:3], points[::, 0:3] + normals, points[::, 3:6] + normals, points[::, 3:6] - normals, points[::, 0:3] - normals), 1)
+        verts[::, 8] -= self._layer_height
+        verts[::, 11] -= self._layer_height
+        return openGLUtils.VertexRenderer(GL_QUADS, numpy.array(verts, numpy.float32).reshape((len(verts) * 8, 3)), False)
+
+    def finalize(self):
+        filamentRadius = 2.95 / 2.0
+        filamentArea = math.pi * filamentRadius * filamentRadius
+        self._layer_height = self._last_extrusion_z - self._prev_last_extrusion_z
+        if self._layer_height <= 0.0:
+            self._layer_height = self._last_extrusion_z
+        if self._layer_height <= 0.0:
+            self._layer_height = 0.1
+        self._e_correction_factor = (filamentArea / self._layer_height / 2.0)
+
+        self._move_points = openGLUtils.VertexRenderer(GL_LINES, numpy.array(self._move_points, numpy.float32), False)
+        self._inset0_extrude_points = self._extrusion_to_renderer(self._inset0_extrude_points, self._inset0_extrude_amounts)
+        self._insetX_extrude_points = self._extrusion_to_renderer(self._insetX_extrude_points, self._insetX_extrude_amounts)
+        self._infill_extrude_points = self._extrusion_to_renderer(self._infill_extrude_points, self._infill_extrude_amounts)
+        self._support_extrude_points = self._extrusion_to_renderer(self._support_extrude_points, self._support_extrude_amounts)
+        self._retract_marks = openGLUtils.VertexRenderer(GL_QUADS, numpy.array(self._retract_marks, numpy.float32), False)
+        self._prime_marks = openGLUtils.VertexRenderer(GL_QUADS, numpy.array(self._prime_marks, numpy.float32), False)
+
+    def render(self, c):
+        glColor3f(0, 0, c)
+        self._move_points.render()
+
+        if self._inset0_extrude_points is not None:
+            glColor3f(c, 0, 0)
+            self._inset0_extrude_points.render()
+        if self._insetX_extrude_points is not None:
+            glColor3f(0, c, 0)
+            self._insetX_extrude_points.render()
+        if self._infill_extrude_points is not None:
+            glColor3f(c, c, 0)
+            self._infill_extrude_points.render()
+        if self._support_extrude_points is not None:
+            glColor3f(0, c, c)
+            self._support_extrude_points.render()
+
+        glColor3f(0, 0, 0.5 * c)
+        self._retract_marks.render()
+
+        glColor3f(0.5 * c, 0, 0.5 * c)
+        self._prime_marks.render()
+
+
+class GCodeRenderer(object):
+    def __init__(self, gcode):
+        G = re.compile('G([0-9]+)')
+        M = re.compile('M([0-9]+)')
+        X = re.compile('X([0-9\\.]+)')
+        Y = re.compile('Y([0-9\\.]+)')
+        Z = re.compile('Z([0-9\\.]+)')
+        E = re.compile('E([0-9\\.]+)')
+        F = re.compile('F([0-9\\.]+)')
+        S = re.compile('S([0-9]+)')
+
+        current_layer = GCodeLayerRenderer()
+        self._layers = []
+
+        for line in gcode.split('\n'):
+            if line.startswith(';'):
+                if line.startswith(';LAYER:'):
+                    current_layer.finalize()
+                    self._layers.append(current_layer)
+                    current_layer = GCodeLayerRenderer(current_layer)
+                    current_layer._prev_last_extrusion_z = self._layers[-1]._last_extrusion_z
+                if line.startswith(';TYPE:'):
+                    current_layer.setExtrusionType(line[6:].strip())
+            else:
+                g = G.search(line)
+                if g:
+                    g = int(g.group(1))
+                    if g == 0 or g == 1:
+                        x = X.search(line)
+                        y = Y.search(line)
+                        z = Z.search(line)
+                        e = E.search(line)
+                        f = F.search(line)
+                        if x:
+                            x = float(x.group(1))
+                        if y:
+                            y = float(y.group(1))
+                        if z:
+                            z = float(z.group(1))
+                        if e:
+                            e = float(e.group(1))
+                        if f:
+                            f = float(f.group(1))
+                        current_layer.addMove(x, y, z, e, f)
+                    elif g == 21:
+                        pass # Metric
+                    elif g == 28:
+                        pass # Home
+                    elif g == 90:
+                        pass # Absolute positioning
+                    elif g == 91:
+                        pass # Relative positioning
+                    elif g == 92:
+                        x = X.search(line)
+                        y = Y.search(line)
+                        z = Z.search(line)
+                        e = E.search(line)
+                        if x:
+                            x = float(x.group(1))
+                        if y:
+                            y = float(y.group(1))
+                        if z:
+                            z = float(z.group(1))
+                        if e:
+                            e = float(e.group(1))
+                        current_layer.setPosition(x, y, z, e)
+                    else:
+                        print 'G', g
+                else:
+                    m = M.search(line)
+                    if m:
+                        m = int(m.group(1))
+                        if m == 104:
+                            s = S.search(line)
+                            if s:
+                                s = int(s.group(1))
+                                current_layer.setTemperature(s)
+                        elif m == 140:
+                            s = S.search(line)
+                            if s:
+                                s = int(s.group(1))
+                                current_layer.setBedTemperature(s)
+                        elif m == 109:
+                            s = S.search(line)
+                            if s:
+                                s = int(s.group(1))
+                                current_layer.setTemperature(s)
+                        elif m == 190:
+                            s = S.search(line)
+                            if s:
+                                s = int(s.group(1))
+                                current_layer.setBedTemperature(s)
+                        elif m == 106:
+                            s = S.search(line)
+                            if s:
+                                s = int(s.group(1))
+                                current_layer.setFanSpeed(s)
+                            else:
+                                current_layer.setFanSpeed(255)
+                        elif m == 107:
+                            current_layer.setFanSpeed(0)
+                        elif m == 84:
+                            pass # Steppers off
+                        else:
+                            print 'M', m
+        current_layer.finalize()
+        self._layers.append(current_layer)
+
+    def render(self):
+        f = 0.5
+        for layer in self._layers:
+            layer.render(f)
+            f += 0.1
+            if f > 1.0:
+                f = 0.5
 
 class ToolpathLayerRenderer(object):
     COLORS = {
@@ -70,7 +380,16 @@ class ToolpathRenderer(Renderer):
                     continue
                 if not hasattr(layer, 'renderer'):
                     layer.renderer = ToolpathLayerRenderer(layer)
-                layer.renderer.render()
+                # layer.renderer.render()
+
+        gcode = self.scene.getResult().getGCode()
+        if gcode is not None:
+            if not hasattr(self.scene.getResult(), 'renderer'):
+                import time
+                t = time.time()
+                self.scene.getResult().renderer = GCodeRenderer(gcode)
+                print time.time() - t
+            self.scene.getResult().renderer.render()
         glPopMatrix()
 
     def focusRender(self):

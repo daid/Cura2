@@ -39,6 +39,7 @@ class Printer3DScene(Scene):
         if not os.path.isfile(filename):
             return None
         obj = PrintableObject(filename)
+        obj.setScene(self)
         obj.loadMesh(filename)
         self.addObject(obj)
         self.deselectAll()
@@ -87,6 +88,9 @@ class Printer3DScene(Scene):
 
     def getResult(self):
         return self._result_object
+
+    def clearResult(self):
+        self._result_object = Printer3DResult()
 
     def checkPlatform(self, obj):
         area = obj.getObjectBoundary()

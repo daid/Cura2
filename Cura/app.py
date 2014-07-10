@@ -91,7 +91,7 @@ class CuraFDMApp(CuraApp):
         self._machine.loadSettings(getDefaultPreferenceStoragePath('settings.ini'))
         self.setActiveSettingsView(self._active_setting_view)
 
-        self._scene.loadFile('C:/Models/D&D/Box.stl')
+        wx.CallAfter(self._scene.loadFile, 'C:/Models/D&D/Box.stl')
 
         return True
 

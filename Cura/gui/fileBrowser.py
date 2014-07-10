@@ -101,4 +101,6 @@ class FileBrowserPanel(FloatingPanel):
             self._timeout = 50
             while self._timeout > 0:
                 sleep(0.1)
+                if not self:
+                    return
                 self._timeout -= 1
