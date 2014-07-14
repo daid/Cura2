@@ -164,6 +164,9 @@ class Translator(object):
     def addProgressCallback(self, callback):
         self._progress_callbacks.append(callback)
 
+    def removeProgressCallback(self, callback):
+        self._progress_callbacks.remove(callback)
+
     def progressUpdate(self, progress, ready):
         for callback in self._progress_callbacks:
             callback(progress, ready)

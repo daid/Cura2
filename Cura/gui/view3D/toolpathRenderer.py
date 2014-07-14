@@ -329,6 +329,7 @@ class GCodeRenderer(object):
             if f < 0.5:
                 f = 1.0
 
+
 class ToolpathLayerRenderer(object):
     COLORS = {
         'skirt': (0, 0.5, 0.5),

@@ -32,6 +32,8 @@ class PrintSaveButton(GradientButton):
         with open(filename, "wb") as f:
             f.write(self._app.getScene().getResult().getGCode())
 
+    def __del__(self):
+        self._app.getTranslator().removeProgressCallback(self._onProgressUpdate)
 
 class ProfilePanel(FloatingPanel):
     """

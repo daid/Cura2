@@ -21,7 +21,6 @@ def _calculateLineInfo(machine, value):
         return line_count + 1, line_width_alt
     return line_count, line_width
 
-
 class FDMPrinter(printer3D.Printer3D):
     """
     Class that holds settings for any kind of FDMPrinter
@@ -67,6 +66,7 @@ class FDMPrinter(printer3D.Printer3D):
         self.addSetting('top_bottom_thickness', Setting('bottom_thickness', 0.8, 'float').setRange(0).setLabel(_("Bottom thickness (mm)"), _("This controls the thickness of the bottom layers, the amount of solid layers put down is calculated by the layer thickness and this value.\nHaving this value a multiple of the layer thickness makes sense. And keep it near your wall thickness to make an evenly strong part.")))
         self.addSetting('top_thickness', Setting('top_layers', 4, 'int').setRange(0).setLabel(_("Top layers"), _("This controls the amount of top layers.")))
         self.addSetting('bottom_thickness', Setting('bottom_layers', 4, 'int').setRange(0).setLabel(_("Bottom layers"), _("This controls the amount of bottom layers.")))
+        self.addSetting('resolution', Setting('top_bottom_pattern', 'lines', {'lines': _('Lines'), 'concentric': _('Concentric')}).setLabel(_('Bottom/Top pattern'), _('Pattern of the top/bottom filling. This normally is done with lines to get the best possible filling. But in some cases a concentric fill gives a nicer end result finish.')))
         self.getSettingByKey('top_layers').setCopyFromParentFunction(lambda machine, value: math.ceil(float(value) / machine.getSettingValueByKeyFloat('layer_height')))
         self.getSettingByKey('bottom_layers').setCopyFromParentFunction(lambda machine, value: math.ceil(float(value) / machine.getSettingValueByKeyFloat('layer_height')))
 
@@ -93,6 +93,9 @@ class FDMPrinter(printer3D.Printer3D):
         self.addSettingCategory(SettingCategory('infill', order=15).setLabel('Infill'))
         self.addSetting('infill', Setting('fill_sparse_density', 20.0, 'float').setRange(0, 100).setLabel(_("Fill Density (%)"), _("This controls how densely filled the insides of your print will be. For a solid part use 100%, for an empty part use 0%. A value around 20% is usually enough.\nThis won't affect the outside of the print and only adjusts how strong the part becomes.")))
         self.addSetting('infill', Setting('fill_overlap', 15.0, 'float').setRange(0,100).setLabel(_("Infill overlap (%)"), _("Amount of overlap between the infill and the walls. There is a slight overlap with the walls and the infill so the walls connect firmly to the infill.")))
+        self.addSetting('fill_sparse_density', Setting('fill_pattern', 'grid', {'grid': 'Grid', 'lines': 'Lines', 'concentric': 'Concentric'}).setLabel(_('Infill pattern.'), _('Cura defaults to switch between grid and line infill. But with this setting visible you can control this yourself.\nThe line infill is cross hatched every other layer, while the grid is cross-hatched each layer.')))
+        self.getSettingByKey('fill_sparse_density').setAlwaysVisible()
+        self.getSettingByKey('fill_pattern').setCopyFromParentFunction(lambda m, v: 'lines' if float(v) > 25 else 'grid')
 
         self.addSettingCategory(SettingCategory('platform_adhesion', order=16).setLabel('Skirt/Brim/Raft'))
         self.addSetting('platform_adhesion', Setting('adhesion_type', '', {'': 'None', 'brim': 'Brim', 'raft': 'Raft'}).setLabel(_("Platform adhesion type"), _("Different options that help in preventing corners from lifting due to warping.\nBrim adds a single layer thick flat area around your object which is easy to cut off afterwards, and it is the recommended option.\nRaft adds a thick raster below the object and a thin interface between this and your object.\n(Note that enabling the brim or raft disables the skirt)")))

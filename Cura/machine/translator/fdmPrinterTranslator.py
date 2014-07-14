@@ -273,7 +273,6 @@ class FDMPrinterTranslator(Printer3DTranslator):
 
             'infillOverlap': int(fbk('fill_overlap')),
             'infillSpeed': int(fbk('speed_infill')),
-            'infillPattern': int(0),
 
             'minimalLayerTime': int(fbk('cool_min_layer_time')),
             'minimalFeedrate': int(fbk('cool_min_speed')),
@@ -283,6 +282,18 @@ class FDMPrinterTranslator(Printer3DTranslator):
 
             'spiralizeMode': 1 if vbk('magic_spiralize') == 'True' else 0,
         }
+
+        if vbk('top_bottom_pattern') == 'lines':
+            settings['skinPattern'] = 0
+        elif vbk('top_bottom_pattern') == 'concentric':
+            settings['skinPattern'] = 1
+
+        if vbk('fill_pattern') == 'grid':
+            settings['infillPattern'] = 0
+        elif vbk('fill_pattern') == 'lines':
+            settings['infillPattern'] = 1
+        elif vbk('fill_pattern') == 'concentric':
+            settings['infillPattern'] = 2
 
         if vbk('adhesion_type') == 'raft':
             settings['raftMargin'] = int(fbk('raft_margin') * 1000)
@@ -315,6 +326,10 @@ class FDMPrinterTranslator(Printer3DTranslator):
             settings['supportXYDistance'] = int(fbk('support_xy_distance') * 1000)
             settings['supportZDistance'] = int(fbk('support_z_distance') * 1000)
             settings['supportExtruder'] = -1
+            if vbk('support_pattern') == 'grid':
+                settings['supportType'] = 0
+            elif vbk('support_pattern') == 'lines':
+                settings['supportType'] = 1
 
         settings['sparseInfillLineDistance'] = -1
         if fbk('fill_sparse_density') >= 100:

@@ -85,8 +85,8 @@ class Machine(object):
         return ''
 
     def getSettingValueByKeyFloat(self, key):
-        value = self.getSettingValueByKey(key)
         try:
+            value = self.getSettingValueByKey(key)
             value = value.replace(',', '.')
             return float(eval(value, {}, {}))
         except:
