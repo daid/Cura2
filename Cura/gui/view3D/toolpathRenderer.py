@@ -319,7 +319,11 @@ class GCodeRenderer(object):
 
     def render(self, main_renderer):
         f = 1.0
-        for layer in self._layers[::-1]:
+        bottom_layer_nr = 0
+        top_layer_nr = main_renderer._top_layer_nr
+        if main_renderer._is_single_layer:
+            bottom_layer_nr = top_layer_nr - 1
+        for layer in self._layers[top_layer_nr:bottom_layer_nr:-1]:
             layer.render(main_renderer, f)
             f -= 0.05
             if f < 0.5:
@@ -383,6 +387,9 @@ class ToolpathRenderer(Renderer):
         self._show_support = True
         self._show_moves = False
         self._show_retraction = True
+        self._is_single_layer = False
+
+        self._top_layer_nr = 1
 
     def render(self):
         glPushMatrix()
@@ -426,3 +433,9 @@ class ToolpathRenderer(Renderer):
 
     def showRetraction(self, show):
         self._show_retraction = show
+
+    def setTopShowLayerNr(self, nr):
+        self._top_layer_nr = nr
+
+    def setSingleLayer(self, is_single_layer):
+        self._is_single_layer = is_single_layer

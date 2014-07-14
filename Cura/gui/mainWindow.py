@@ -163,6 +163,11 @@ class ToolpathToolsPanel(FloatingPanel): #TODO move to seperate file
         self._moves_check = wx.CheckBox(self, -1, '')
         self._retraction_check = wx.CheckBox(self, -1, '')
 
+        self._layer_text = wx.StaticText(self, -1, 'Layer: ?/?')
+
+        self._all_layers = wx.RadioButton(self, -1, 'All layers')
+        self._single_layer = wx.RadioButton(self, -1, 'Single layer')
+
         self._outer_wall_check.SetValue(True)
         self._inner_wall_check.SetValue(True)
         self._infill_check.SetValue(True)
@@ -170,8 +175,10 @@ class ToolpathToolsPanel(FloatingPanel): #TODO move to seperate file
         self._moves_check.SetValue(False)
         self._retraction_check.SetValue(True)
 
+        self._all_layers.SetValue(True)
+
         self._layer_scroll = wx.ScrollBar(self, -1, style=wx.SB_VERTICAL)
-        self._layer_scroll.SetScrollbar(0, 1, 300, 10)
+        self._layer_scroll.SetScrollbar(0, 0, 1, 10)
 
         sizer = wx.GridBagSizer(2, 2)
         sizer.Add(wx.StaticText(self, -1, 'Show:'), pos=(0, 0), border=5, flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
@@ -181,15 +188,18 @@ class ToolpathToolsPanel(FloatingPanel): #TODO move to seperate file
         sizer.Add(wx.StaticText(self, -1, 'Support:'), pos=(4, 0), border=5, flag=wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(wx.StaticText(self, -1, 'Moves:'), pos=(5, 0), border=5, flag=wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(wx.StaticText(self, -1, 'Retraction:'), pos=(6, 0), border=5, flag=wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
-        sizer.Add(wx.StaticText(self, -1, 'Layer: XXX'), pos=(7, 0), span=(1, 2), border=5, flag=wx.TOP | wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
-
         sizer.Add(self._outer_wall_check, pos=(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(self._inner_wall_check, pos=(2, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(self._infill_check, pos=(3, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(self._support_check, pos=(4, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(self._moves_check, pos=(5, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(self._retraction_check, pos=(6, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        sizer.Add(self._layer_scroll, pos=(0, 2), span=(8, 1), border=5, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
+
+        sizer.Add(self._layer_text, pos=(7, 0), span=(1, 2), border=5, flag=wx.TOP | wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self._all_layers, pos=(8, 0), span=(1, 2), border=5, flag=wx.TOP | wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self._single_layer, pos=(9, 0), span=(1, 2), border=5, flag=wx.BOTTOM | wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
+
+        sizer.Add(self._layer_scroll, pos=(0, 2), span=(10, 1), border=5, flag=wx.ALL | wx.EXPAND)
 
         self.SetSizer(sizer)
         self.Layout()
@@ -202,11 +212,19 @@ class ToolpathToolsPanel(FloatingPanel): #TODO move to seperate file
         self.Bind(wx.EVT_CHECKBOX, self._updateView, self._support_check)
         self.Bind(wx.EVT_CHECKBOX, self._updateView, self._moves_check)
         self.Bind(wx.EVT_CHECKBOX, self._updateView, self._retraction_check)
+        self.Bind(wx.EVT_SCROLL, self._updateView, self._layer_scroll)
+        self.Bind(wx.EVT_RADIOBUTTON, self._updateView, self._all_layers)
+        self.Bind(wx.EVT_RADIOBUTTON, self._updateView, self._single_layer)
 
     def _translateProgressUpdate(self, progress, ready):
-        pass
+        if ready:
+            layer_count = 0
+            for obj in self._app.getScene().getObjects():
+                layer_count += obj.getToolpathLayerCount()
+            wx.CallAfter(self._layer_scroll.SetThumbPosition, 0)
+            wx.CallAfter(self._setLayerCount, layer_count)
 
-    def _updateView(self, e):
+    def _updateView(self, e=None):
         renderer = self._app.getView().getToolpathRenderer()
         renderer.showOuterWall(self._outer_wall_check.GetValue())
         renderer.showInnerWall(self._inner_wall_check.GetValue())
@@ -214,7 +232,14 @@ class ToolpathToolsPanel(FloatingPanel): #TODO move to seperate file
         renderer.showSupport(self._support_check.GetValue())
         renderer.showMoves(self._moves_check.GetValue())
         renderer.showRetraction(self._retraction_check.GetValue())
+        renderer.setTopShowLayerNr(self._layer_scroll.GetRange() - self._layer_scroll.GetThumbPosition() + 1)
+        renderer.setSingleLayer(self._single_layer.GetValue())
+        self._layer_text.SetLabel("Layer: %d/%d" % (self._layer_scroll.GetRange() - self._layer_scroll.GetThumbPosition() + 1, self._layer_scroll.GetRange() + 1))
         self._app.getView().refresh()
+
+    def _setLayerCount(self, count):
+        self._layer_scroll.SetScrollbar(0, self._layer_scroll.GetThumbPosition(), count - 1, 10)
+        self._updateView()
 
 
 class MainWindow(wx.Frame):
