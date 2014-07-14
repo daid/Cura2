@@ -112,3 +112,7 @@ class CuraFDMApp(CuraApp):
         settings_view.applyPreset(self._machine)
         if self._mainWindow is not None:
             self._mainWindow.refreshProfilePanel()
+
+    def setViewMode(self, mode):
+        self.getView().setViewMode(mode)
+        self._mainWindow.setViewMode(mode)

@@ -2,10 +2,11 @@ import wx
 
 
 class FloatingPanel(wx.Frame): #TODO: Move to seperate file; this has nothing to do with a sizer.
-    def __init__(self, parent):
+    def __init__(self, parent, show=True):
         super(FloatingPanel, self).__init__(parent, style=wx.FRAME_FLOAT_ON_PARENT | wx.NO_BORDER | wx.FRAME_NO_TASKBAR | wx.FRAME_SHAPED)
         self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE))
-        wx.CallAfter(self.Show)
+        if show:
+            wx.CallAfter(self.Show)
 
 
 class FloatSizer(wx.PySizer):

@@ -151,6 +151,72 @@ class ToolsPanel(FloatingPanel): #TODO move to seperate file
         self._app.getView().refresh()
 
 
+class ToolpathToolsPanel(FloatingPanel): #TODO move to seperate file
+    def __init__(self, parent, app):
+        self._app = app
+        super(ToolpathToolsPanel, self).__init__(parent, False)
+
+        self._outer_wall_check = wx.CheckBox(self, -1, '')
+        self._inner_wall_check = wx.CheckBox(self, -1, '')
+        self._infill_check = wx.CheckBox(self, -1, '')
+        self._support_check = wx.CheckBox(self, -1, '')
+        self._moves_check = wx.CheckBox(self, -1, '')
+        self._retraction_check = wx.CheckBox(self, -1, '')
+
+        self._outer_wall_check.SetValue(True)
+        self._inner_wall_check.SetValue(True)
+        self._infill_check.SetValue(True)
+        self._support_check.SetValue(True)
+        self._moves_check.SetValue(False)
+        self._retraction_check.SetValue(True)
+
+        self._layer_scroll = wx.ScrollBar(self, -1, style=wx.SB_VERTICAL)
+        self._layer_scroll.SetScrollbar(0, 1, 300, 10)
+
+        sizer = wx.GridBagSizer(2, 2)
+        sizer.Add(wx.StaticText(self, -1, 'Show:'), pos=(0, 0), border=5, flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(wx.StaticText(self, -1, 'Outer walls:'), pos=(1, 0), border=5, flag=wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(wx.StaticText(self, -1, 'Inner walls:'), pos=(2, 0), border=5, flag=wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(wx.StaticText(self, -1, 'Infill/Skin:'), pos=(3, 0), border=5, flag=wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(wx.StaticText(self, -1, 'Support:'), pos=(4, 0), border=5, flag=wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(wx.StaticText(self, -1, 'Moves:'), pos=(5, 0), border=5, flag=wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(wx.StaticText(self, -1, 'Retraction:'), pos=(6, 0), border=5, flag=wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(wx.StaticText(self, -1, 'Layer: XXX'), pos=(7, 0), span=(1, 2), border=5, flag=wx.TOP | wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
+
+        sizer.Add(self._outer_wall_check, pos=(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self._inner_wall_check, pos=(2, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self._infill_check, pos=(3, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self._support_check, pos=(4, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self._moves_check, pos=(5, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self._retraction_check, pos=(6, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self._layer_scroll, pos=(0, 2), span=(8, 1), border=5, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
+
+        self.SetSizer(sizer)
+        self.Layout()
+
+        self._app.getTranslator().addProgressCallback(self._translateProgressUpdate)
+
+        self.Bind(wx.EVT_CHECKBOX, self._updateView, self._outer_wall_check)
+        self.Bind(wx.EVT_CHECKBOX, self._updateView, self._inner_wall_check)
+        self.Bind(wx.EVT_CHECKBOX, self._updateView, self._infill_check)
+        self.Bind(wx.EVT_CHECKBOX, self._updateView, self._support_check)
+        self.Bind(wx.EVT_CHECKBOX, self._updateView, self._moves_check)
+        self.Bind(wx.EVT_CHECKBOX, self._updateView, self._retraction_check)
+
+    def _translateProgressUpdate(self, progress, ready):
+        pass
+
+    def _updateView(self, e):
+        renderer = self._app.getView().getToolpathRenderer()
+        renderer.showOuterWall(self._outer_wall_check.GetValue())
+        renderer.showInnerWall(self._inner_wall_check.GetValue())
+        renderer.showInfill(self._infill_check.GetValue())
+        renderer.showSupport(self._support_check.GetValue())
+        renderer.showMoves(self._moves_check.GetValue())
+        renderer.showRetraction(self._retraction_check.GetValue())
+        self._app.getView().refresh()
+
+
 class MainWindow(wx.Frame):
     def __init__(self, app):
         super(MainWindow, self).__init__(None, title='Cura - Pink Unicorn edition')
@@ -166,6 +232,7 @@ class MainWindow(wx.Frame):
         self._app.getView().setOpenGLWindow(self._mainView)
 
         self._fileBrowser = FileBrowserPanel(self._mainView, app)
+        self._toolpathTools = ToolpathToolsPanel(self._mainView, app)
 
         self._toolsPanel = ToolsPanel(self._mainView, app)
 
@@ -182,6 +249,7 @@ class MainWindow(wx.Frame):
         self._floatSizer.Add(self._topBarLeft, userData={'top': 0, 'left': 0, 'width': self._toolsPanel})
         self._floatSizer.Add(self._topBarRight, userData={'top': 0, 'right': 0, 'width': self._toolsPanel})
         self._floatSizer.Add(self._fileBrowser, userData={'left': 0, 'top': 72})
+        self._floatSizer.Add(self._toolpathTools, userData={'left': 0, 'top': 72})
         self._floatSizer.Add(self._profilePanel, userData={'right': 0, 'top': 72})
         self._floatSizer.Add(self._notification, userData={'bottom': 32})
         self._mainView.SetSizer(self._floatSizer)
@@ -214,3 +282,11 @@ class MainWindow(wx.Frame):
 
     def _onMove(self, e):
         self._mainView.Layout()
+
+    def setViewMode(self, mode):
+        if mode == 'Toolpaths':
+            self._fileBrowser.Hide()
+            self._toolpathTools.Show()
+        else:
+            self._fileBrowser.Show()
+            self._toolpathTools.Hide()

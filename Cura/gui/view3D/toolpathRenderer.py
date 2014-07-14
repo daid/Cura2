@@ -2,6 +2,7 @@ import numpy
 import re
 import math
 import threading
+import time
 from OpenGL.GL import *
 
 from Cura.gui import openGLUtils
@@ -126,7 +127,7 @@ class GCodeLayerRenderer(object):
         self._retract_marks.append([x, y + size, z])
 
     def _addPrimeMark(self, x, y, z):
-        size = 1.0
+        size = 0.8
         z += self._layer_height / 2.0
         self._prime_marks.append([x - size, y, z])
         self._prime_marks.append([x, y - size, z])
@@ -176,28 +177,30 @@ class GCodeLayerRenderer(object):
         self._retract_marks = openGLUtils.VertexRenderer(GL_QUADS, numpy.array(self._retract_marks, numpy.float32), False)
         self._prime_marks = openGLUtils.VertexRenderer(GL_QUADS, numpy.array(self._prime_marks, numpy.float32), False)
 
-    def render(self, c):
-        glColor3f(0, 0, c)
-        self._move_points.render()
+    def render(self, main_renderer, c):
+        if main_renderer._show_moves:
+            glColor3f(0, 0, c)
+            self._move_points.render()
 
-        if self._inset0_extrude_points is not None:
+        if main_renderer._show_outer_wall and self._inset0_extrude_points is not None:
             glColor3f(c, 0, 0)
             self._inset0_extrude_points.render()
-        if self._insetX_extrude_points is not None:
+        if main_renderer._show_inner_wall and self._insetX_extrude_points is not None:
             glColor3f(0, c, 0)
             self._insetX_extrude_points.render()
-        if self._infill_extrude_points is not None:
+        if main_renderer._show_infill and self._infill_extrude_points is not None:
             glColor3f(c, c, 0)
             self._infill_extrude_points.render()
-        if self._support_extrude_points is not None:
+        if main_renderer._show_support and self._support_extrude_points is not None:
             glColor3f(0, c, c)
             self._support_extrude_points.render()
 
-        glColor3f(0, 0, 0.5 * c)
-        self._retract_marks.render()
+        if main_renderer._show_retraction:
+            glColor3f(0, 0, 0.5 * c)
+            self._retract_marks.render()
 
-        glColor3f(0.5 * c, 0, 0.5 * c)
-        self._prime_marks.render()
+            glColor3f(0.5 * c, 0, 0.5 * c)
+            self._prime_marks.render()
 
 
 class GCodeRenderer(object):
@@ -223,6 +226,7 @@ class GCodeRenderer(object):
             if line.startswith(';'):
                 if line.startswith(';LAYER:'):
                     current_layer.finalize()
+                    time.sleep(0.001)
                     self._layers.append(current_layer)
                     current_layer = GCodeLayerRenderer(current_layer)
                     current_layer._prev_last_extrusion_z = self._layers[-1]._last_extrusion_z
@@ -313,13 +317,13 @@ class GCodeRenderer(object):
         current_layer.finalize()
         self._layers.append(current_layer)
 
-    def render(self):
-        f = 0.5
-        for layer in self._layers:
-            layer.render(f)
-            f += 0.1
-            if f > 1.0:
-                f = 0.5
+    def render(self, main_renderer):
+        f = 1.0
+        for layer in self._layers[::-1]:
+            layer.render(main_renderer, f)
+            f -= 0.05
+            if f < 0.5:
+                f = 1.0
 
 class ToolpathLayerRenderer(object):
     COLORS = {
@@ -373,6 +377,13 @@ class ToolpathRenderer(Renderer):
     def __init__(self):
         super(ToolpathRenderer,self).__init__()
 
+        self._show_outer_wall = True
+        self._show_inner_wall = True
+        self._show_infill = True
+        self._show_support = True
+        self._show_moves = False
+        self._show_retraction = True
+
     def render(self):
         glPushMatrix()
         if self.machine.getSettingValueByKey('machine_center_is_zero') == 'False':
@@ -386,14 +397,32 @@ class ToolpathRenderer(Renderer):
                     continue
                 if not hasattr(layer, 'renderer'):
                     layer.renderer = ToolpathLayerRenderer(layer)
-                # layer.renderer.render()
+                # layer.renderer.render(self)
 
         gcode = self.scene.getResult().getGCode()
         if gcode is not None:
             if not hasattr(self.scene.getResult(), 'renderer'):
                 self.scene.getResult().renderer = GCodeRenderer(gcode)
-            self.scene.getResult().renderer.render()
+            self.scene.getResult().renderer.render(self)
         glPopMatrix()
 
     def focusRender(self):
         pass
+
+    def showOuterWall(self, show):
+        self._show_outer_wall = show
+
+    def showInnerWall(self, show):
+        self._show_inner_wall = show
+
+    def showInfill(self, show):
+        self._show_infill = show
+
+    def showSupport(self, show):
+        self._show_support = show
+
+    def showMoves(self, show):
+        self._show_moves = show
+
+    def showRetraction(self, show):
+        self._show_retraction = show

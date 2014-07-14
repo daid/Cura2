@@ -19,3 +19,6 @@ class PrinterView3D(View3D):
         self._printable_object_renderer.active = (mode == 'Normal')
         self._toolpath_renderer.active = (mode == 'Toolpaths')
         self.refresh()
+
+    def getToolpathRenderer(self):
+        return self._toolpath_renderer

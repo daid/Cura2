@@ -91,4 +91,4 @@ class TopBarRight(FloatingPanel):
         self._settingsButton.SetValue(False)
 
     def _onViewChange(self, e):
-        self._app.getView().setViewMode(self._view_mode_combo.GetValue())
+        self._app.setViewMode(self._view_mode_combo.GetValue())
