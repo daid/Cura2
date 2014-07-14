@@ -338,5 +338,6 @@ class FDMPrinterTranslator(Printer3DTranslator):
             settings['upSkinCount'] = 10000
         elif fbk('fill_sparse_density') > 0:
             settings['sparseInfillLineDistance'] = int(100 * fbk('wall_line_width_x') * 1000 / fbk('fill_sparse_density'))
+        settings['sparseInfillCombineCount'] = int(round(fbk('fill_sparse_combine')))
 
         return settings
