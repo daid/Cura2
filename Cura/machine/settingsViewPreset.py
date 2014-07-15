@@ -4,6 +4,7 @@ class SettingsViewPreset(object):
     def __init__(self):
         self._name = 'No name'
         self._setting_key_map = {}
+        self._build_in = False
 
     def copy(self):
         svp = SettingsViewPreset()
@@ -16,6 +17,12 @@ class SettingsViewPreset(object):
 
     def setName(self, name):
         self._name = name
+
+    def setBuildIn(self):
+        self._build_in = True
+
+    def isBuildIn(self):
+        return self._build_in
 
     def setSettingVisible(self, key, visible):
         self._setting_key_map[key] = visible

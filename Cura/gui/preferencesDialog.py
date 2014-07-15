@@ -170,6 +170,8 @@ class PreferencesDialog(wx.Dialog):
         self._setting_view_selection.Bind(wx.EVT_COMBOBOX, self.onSettingsViewChange)
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
+        self.onSettingsViewChange()
+
     def onCloseButton(self, e):
         self._app.setActiveSettingsView(self._app.getSettingsViewPresets()[self._setting_view_selection.GetSelection()])
         self.Close()
@@ -183,10 +185,13 @@ class PreferencesDialog(wx.Dialog):
     def onCustomizeButton(self, e):
         MachineViewCustomizeDialog(self, self._app, self._app.getSettingsViewPresets()[self._setting_view_selection.GetSelection()]).ShowModal()
 
-    def onSettingsViewChange(self, e):
+    def onSettingsViewChange(self, e = None):
         if self._setting_view_selection.GetSelection() == self._setting_view_selection.GetCount() - 1:
             AddCustomViewPresetDialog(self._app).ShowModal()
             setting_view_options = map(lambda svp: svp.getName(), self._app.getSettingsViewPresets())
             setting_view_options.append('+Add custom')
             self._setting_view_selection.SetItems(setting_view_options)
             self._setting_view_selection.SetSelection(self._setting_view_selection.GetCount() - 2)
+            self._setting_view_customize.Enable(True)
+        else:
+            self._setting_view_customize.Enable(not self._app.getSettingsViewPresets()[self._setting_view_selection.GetSelection()].isBuildIn())

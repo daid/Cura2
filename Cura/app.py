@@ -73,10 +73,7 @@ class CuraFDMApp(CuraApp):
         super(CuraFDMApp, self).__init__()
 
     def OnInit(self):
-        self._settings_view_presets = [SettingsViewPreset()]
-        self._active_setting_view = self._settings_view_presets[0]
-        self._active_setting_view.setName('Normal')
-        self._active_setting_view.importFromFile(getResourcePath('view_presets/normal_view.ini'))
+        self._settings_view_presets = []
 
         self._scene = Printer3DScene()
         self._view = PrinterView3D()
@@ -89,7 +86,13 @@ class CuraFDMApp(CuraApp):
         self._toolbox.append(SelectAndMoveTool(self))
 
         self._machine.loadSettings(getDefaultPreferenceStoragePath('settings.ini'))
-        self.setActiveSettingsView(self._active_setting_view)
+
+        svp = SettingsViewPreset()
+        svp.setName('Normal')
+        svp.importFromFile(getResourcePath('view_presets/normal_view.ini'))
+        svp.setBuildIn()
+        self.addSettingsViewPreset(svp)
+        self.setActiveSettingsView(svp)
 
         wx.CallAfter(self._scene.loadFile, 'C:/Models/D&D/Box.stl')
 
