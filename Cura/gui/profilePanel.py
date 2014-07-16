@@ -11,7 +11,7 @@ class PrintSaveButton(GradientButton):
     # TODO: This does not belong here. Move to seperate file
     def __init__(self, parent, app):
         self._app = app
-        super(PrintSaveButton, self).__init__(parent, label='Save on', icon='save_sd_button.png', icon_align=wx.ALIGN_RIGHT)
+        super(PrintSaveButton, self).__init__(parent, label='Save on', icon='save_button.png', icon_align=wx.ALIGN_RIGHT)
         app.getTranslator().addProgressCallback(self._onProgressUpdate)
         self.Bind(wx.EVT_BUTTON, self._onSaveClick)
 
@@ -71,6 +71,7 @@ class ProfilePanel(FloatingPanel):
         self._pluginsButton = ProfileCategoryButton(self, 'Plugins', 'icon_plugin.png')
         self._pluginsButton.Hide()
         self._loadProfileButton = ProfileCategoryButton(self, 'Load profile', 'icon_load_profile.png')
+        self._loadProfileButton.Hide()
         self._saveButton = PrintSaveButton(self, app)
         self._pluginsButton.Bind(wx.EVT_BUTTON, self.onPluginButton)
         self._loadProfileButton.Bind(wx.EVT_BUTTON, self.onLoadProfileButton)
