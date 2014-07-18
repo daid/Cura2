@@ -170,3 +170,6 @@ class FDMPrinter(printer3D.Printer3D):
         x_max = self.getSettingValueByKeyFloat('machine_head_shape_max_x')
         y_max = self.getSettingValueByKeyFloat('machine_head_shape_max_y')
         return min(x_min, x_max), min(y_min, y_max)
+
+    def getExportExtension(self):
+        return 'gcode'

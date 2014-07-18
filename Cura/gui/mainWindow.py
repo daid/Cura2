@@ -98,7 +98,7 @@ class NotificationPanel(FloatingPanel):  #TODO move to seperate file
     def _onHideTimer(self, e):
         self.Hide()
 
-    def notify(self, title, message):
+    def showNotification(self, title, message):
         self._title.SetLabel(title)
         self._info.SetLabel(message)
         self.Show()
@@ -315,3 +315,6 @@ class MainWindow(wx.Frame):
         else:
             self._fileBrowser.Show()
             self._toolpathTools.Hide()
+
+    def showNotification(self, title, message):
+        self._notification.showNotification(title, message)

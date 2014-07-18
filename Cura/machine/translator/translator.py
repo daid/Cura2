@@ -49,10 +49,6 @@ class Translator(object):
         :return: The full path to the engine executable.
         """
         name = self._engine_executable_name
-        if platform.system() == 'Windows':
-            name += '.exe'
-            if os.path.exists('C:/Software/Cura_SteamEngine/_bin/Release/Cura_SteamEngine.exe'):
-                return 'C:/Software/Cura_SteamEngine/_bin/Release/Cura_SteamEngine.exe'
         searchPaths = [
             os.path.join(os.path.dirname(__file__), '../..'),
             os.path.join(os.path.dirname(__file__), '../../../../..'),

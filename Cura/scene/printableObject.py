@@ -43,7 +43,6 @@ class PrintableObject(DisplayableObject):
     """
     def __init__(self, originFilename):
         super(PrintableObject,self).__init__()
-        self._originFilename = originFilename
         if originFilename is None:
             self._name = 'None'
         else:

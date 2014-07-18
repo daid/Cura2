@@ -67,6 +67,9 @@ class CuraApp(wx.App):
     def getTools(self):
         return self._toolbox
 
+    def showNotification(self, title, message):
+        self._mainWindow.showNotification(title, message)
+
 
 class CuraFDMApp(CuraApp):
     def __init__(self):

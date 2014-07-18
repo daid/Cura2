@@ -12,6 +12,7 @@ class Printer3DResult(object):
     def __init__(self):
         self._gcode = None
         self._log = None
+        self._default_filename = None
 
     def getGCode(self):
         return self._gcode
@@ -24,6 +25,12 @@ class Printer3DResult(object):
 
     def setLog(self, log):
         self._log = log
+
+    def setDefaultFilename(self, filename):
+        self._default_filename = filename
+
+    def getDefaultFilename(self):
+        return self._default_filename
 
 
 class Printer3DScene(Scene):

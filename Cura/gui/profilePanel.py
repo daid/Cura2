@@ -1,6 +1,8 @@
 import wx
+import os
 
 from Cura import preferences
+from Cura.removableStorage import getStorageDevices
 from Cura.gui.floatSizer import FloatingPanel
 from Cura.gui.widgets.profileCategoryButton import ProfileCategoryButton
 from Cura.gui.widgets.innerTitleBar import InnerTitleBar
@@ -14,26 +16,55 @@ class PrintSaveButton(GradientButton):
         super(PrintSaveButton, self).__init__(parent, label='Save on', icon='save_button.png', icon_align=wx.ALIGN_RIGHT)
         app.getTranslator().addProgressCallback(self._onProgressUpdate)
         self.Bind(wx.EVT_BUTTON, self._onSaveClick)
+        self._updateButton()
 
     def _onProgressUpdate(self, progress, ready):
         self.setFillAmount(progress)
         self.Enable(ready)
 
-    def _onSaveClick(self, e):
-        # TODO: USB print, SD save
-        dlg = wx.FileDialog(self, _("Save toolpath"), style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
-        dlg.SetWildcard('Toolpath (*.gcode)|*.gcode')
-        if dlg.ShowModal() != wx.ID_OK:
-            dlg.Destroy()
-            return
-        filename = dlg.GetPath()
-        dlg.Destroy()
+        self._updateButton()
 
-        with open(filename, "wb") as f:
-            f.write(self._app.getScene().getResult().getGCode())
+    def _updateButton(self):
+        if len(getStorageDevices()) > 0:
+            self.SetLabel('Save on')
+            self.setIcon('save_sd_button.png')
+        else:
+            self.SetLabel('Save')
+            self.setIcon('save_button.png')
+
+    def _onSaveClick(self, e):
+        storage_devices = getStorageDevices()
+        if len(storage_devices) > 0:
+            if len(storage_devices) == 1:
+                path = storage_devices[0][1]
+            else:
+                dlg = wx.SingleChoiceDialog(self, _("Select SD drive"), _("Multiple removable drives have been found,\nplease select your SD card drive"), map(lambda n: n[0], storage_devices))
+                if dlg.ShowModal() != wx.ID_OK:
+                    dlg.Destroy()
+                    return
+                path = storage_devices[dlg.GetSelection()][1]
+                dlg.Destroy()
+            filename = os.path.join(path, self._app.getScene().getResult().getDefaultFilename())
+
+            with open(filename, "wb") as f:
+                f.write(self._app.getScene().getResult().getGCode())
+            self._app.showNotification('Saved', 'Saved as %s' % (filename))
+        else:
+            dlg = wx.FileDialog(self, _("Save toolpath"), style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            dlg.SetFilename(self._app.getScene().getResult().getDefaultFilename())
+            dlg.SetWildcard('Toolpath (*.gcode)|*.gcode')
+            if dlg.ShowModal() != wx.ID_OK:
+                dlg.Destroy()
+                return
+            filename = dlg.GetPath()
+            dlg.Destroy()
+
+            with open(filename, "wb") as f:
+                f.write(self._app.getScene().getResult().getGCode())
 
     def __del__(self):
         self._app.getTranslator().removeProgressCallback(self._onProgressUpdate)
+
 
 class ProfilePanel(FloatingPanel):
     """

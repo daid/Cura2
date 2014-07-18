@@ -221,6 +221,22 @@ class FDMPrinterTranslator(Printer3DTranslator):
             obj.updatePrintExtension()
         self._scene.clearResult()
 
+        names = {}
+        for obj in self._scene.getObjects():
+            if self._scene.checkPlatform(obj) and 'filename' in obj.getMesh().metaData:
+                name = os.path.splitext(os.path.basename(obj.getMesh().metaData['filename']))[0]
+                if not name in names:
+                    names[name] = 1
+                else:
+                    names[name] += 1
+        default_filename = ""
+        for name, count in names.items():
+            if count == 1:
+                default_filename += '%s ' % (name)
+            else:
+                default_filename += '%dx %s ' % (count, name)
+        self._scene.getResult().setDefaultFilename('%s.%s' % (default_filename.strip(), self._machine.getExportExtension()))
+
     def finish(self, success):
         self._scene.getResult().setLog(self._result_log.getvalue())
         self._scene.getResult().setGCode(self._result_output.getvalue())
