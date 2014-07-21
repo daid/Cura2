@@ -80,29 +80,41 @@ class NotificationPanel(FloatingPanel):  #TODO move to seperate file
         self.SetBackgroundColour((160, 160, 160))
         self._title = wx.StaticText(self, label='Big and bold')
         self._info = wx.StaticText(self, label='That\'s what she said,\n!!!')
+        self._callback_button = wx.Button(self, label='E', style=wx.BU_EXACTFIT)
+        self._close_button = wx.Button(self, label='X', style=wx.BU_EXACTFIT)
+        self._callback = None
 
         f = self._title.GetFont()
         self._title.SetFont(wx.Font(f.PointSize * 2, f.Family, f.Style, wx.FONTWEIGHT_BOLD, False, f.FaceName))
         self._title.SetForegroundColour((255, 255, 255))
         self._info.SetForegroundColour((255, 255, 255))
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self._title, flag=wx.TOP|wx.LEFT|wx.RIGHT, border=16)
-        sizer.Add(wx.StaticLine(self), flag=wx.TOP|wx.LEFT|wx.RIGHT, border=4)
-        sizer.Add(self._info, flag=wx.BOTTOM|wx.LEFT|wx.RIGHT, border=16)
+        sizer = wx.GridBagSizer(2, 2)
+        sizer.Add(self._title, pos=(0, 0), flag=wx.TOP|wx.LEFT|wx.RIGHT|wx.EXPAND, border=8)
+        sizer.Add(self._callback_button, pos=(0, 1), flag=wx.TOP|wx.LEFT|wx.RIGHT|wx.ALIGN_RIGHT, border=8)
+        sizer.Add(self._close_button, pos=(0, 2), flag=wx.TOP|wx.LEFT|wx.RIGHT, border=8)
+        sizer.Add(wx.StaticLine(self), pos=(1, 0), span=(1, 3), flag=wx.TOP|wx.LEFT|wx.RIGHT|wx.EXPAND, border=4)
+        sizer.Add(self._info, pos=(2, 0), span=(1, 3), flag=wx.BOTTOM|wx.LEFT|wx.RIGHT, border=8)
         self.SetSizer(sizer)
 
         self._hideTimer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self._onHideTimer, self._hideTimer)
+        self.Bind(wx.EVT_BUTTON, lambda e: self.Hide(), self._close_button)
+        self.Bind(wx.EVT_BUTTON, lambda e: self._callback(), self._callback_button)
         wx.CallAfter(self.Hide)
 
     def _onHideTimer(self, e):
         self.Hide()
 
-    def showNotification(self, title, message):
+    def showNotification(self, title, message, callback=None):
+        wx.CallAfter(self._showNotification, title, message, callback)
+
+    def _showNotification(self, title, message, callback=None):
         self._title.SetLabel(title)
         self._info.SetLabel(message)
+        self._callback_button.Show(callback is not None)
         self.Show()
         self._hideTimer.Start(10000, False)
+        self._callback = callback
 
 
 class ToolsPanel(FloatingPanel): #TODO move to seperate file
@@ -316,5 +328,5 @@ class MainWindow(wx.Frame):
             self._fileBrowser.Show()
             self._toolpathTools.Hide()
 
-    def showNotification(self, title, message):
-        self._notification.showNotification(title, message)
+    def showNotification(self, title, message, callback=None):
+        self._notification.showNotification(title, message, callback)

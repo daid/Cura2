@@ -1,8 +1,10 @@
 import wx
 import os
+import threading
 
 from Cura import preferences
 from Cura.removableStorage import getStorageDevices
+from Cura.removableStorage import ejectDrive
 from Cura.gui.floatSizer import FloatingPanel
 from Cura.gui.widgets.profileCategoryButton import ProfileCategoryButton
 from Cura.gui.widgets.innerTitleBar import InnerTitleBar
@@ -14,14 +16,13 @@ class PrintSaveButton(GradientButton):
     def __init__(self, parent, app):
         self._app = app
         super(PrintSaveButton, self).__init__(parent, label='Save on', icon='save_button.png', icon_align=wx.ALIGN_RIGHT)
-        app.getTranslator().addProgressCallback(self._onProgressUpdate)
         self.Bind(wx.EVT_BUTTON, self._onSaveClick)
         self._updateButton()
+        app.getTranslator().addProgressCallback(self._onProgressUpdate)
 
     def _onProgressUpdate(self, progress, ready):
         self.setFillAmount(progress)
         self.Enable(ready)
-
         self._updateButton()
 
     def _updateButton(self):
@@ -48,7 +49,7 @@ class PrintSaveButton(GradientButton):
 
             with open(filename, "wb") as f:
                 f.write(self._app.getScene().getResult().getGCode())
-            self._app.showNotification('Saved', 'Saved as %s' % (filename))
+            self._app.showNotification('Saved', 'Saved as %s' % (filename), lambda : threading.Thread(target=self._eject, args=(path,)).start())
         else:
             dlg = wx.FileDialog(self, _("Save toolpath"), style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             dlg.SetFilename(self._app.getScene().getResult().getDefaultFilename())
@@ -61,6 +62,10 @@ class PrintSaveButton(GradientButton):
 
             with open(filename, "wb") as f:
                 f.write(self._app.getScene().getResult().getGCode())
+
+    def _eject(self, drive):
+        ejectDrive(drive)
+        self._app.showNotification('Ejected', 'You can now remove the card')
 
     def __del__(self):
         self._app.getTranslator().removeProgressCallback(self._onProgressUpdate)
