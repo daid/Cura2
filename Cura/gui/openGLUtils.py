@@ -36,8 +36,6 @@ class GLShader(object):
         self._contextSource = None
 
     def _loadFromFile(self, filename):
-        self._filename = filename
-        self._filetime = os.stat(os.path.join(getResourcePath('shaders'), filename)).st_mtime
         vertexProgram = ''
         fragmentProgram = ''
         type = 'BOTH'
@@ -56,11 +54,6 @@ class GLShader(object):
         self._fragmentString = fragmentProgram
 
     def bind(self):
-        if self._filename is not None:
-            if self._filetime != os.stat(os.path.join(getResourcePath('shaders'), self._filename)).st_mtime:
-                self.release()
-                self._loadFromFile(self._filename)
-
         if self._program is None and self._vertexString is not None and not legacyMode:
             global contextSource
             self._contextSource = contextSource
