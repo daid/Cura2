@@ -208,19 +208,21 @@ class FDMPrinterTranslator(Printer3DTranslator):
             print 'Unhandled engine message:', hex(command_nr), len(data)
 
     def canTranslate(self):
-        if len(self._scene.getObjects()) < 1:
-            return False
+        count = 0
         for obj in self._scene.getObjects():
+            if self._scene.checkPlatform(obj):
+                count += 1
             if obj.getMesh() is None:
                 return False
-        return True
+        return count > 0
 
-    def setup(self):
+    def presetup(self):
         self.progressUpdate(0.0, False)
         for obj in self._scene.getObjects():
             obj.updatePrintExtension()
         self._scene.clearResult()
 
+    def setup(self):
         names = {}
         for obj in self._scene.getObjects():
             if self._scene.checkPlatform(obj) and 'filename' in obj.getMesh().metaData:

@@ -97,6 +97,8 @@ class Translator(object):
         self._result_output = StringIO()
         self._result_log = StringIO()
 
+        self.presetup()
+
         if not self.canTranslate():
             return
 
@@ -174,6 +176,10 @@ class Translator(object):
     def getCommandParameters(self):
         """ Override in subclass """
         return []
+
+    def presetup(self):
+        """ Override in subclass """
+        pass
 
     def setup(self):
         """ Override in subclass """
