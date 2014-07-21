@@ -13,6 +13,9 @@ class ScaleTool(ToolboxTool):
     def getButtonIconName(self):
         return 'scale_button.png'
 
+    def getName(self):
+        return "Scale"
+
     def onKeyDown(self, key_code):
         return False
 

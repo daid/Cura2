@@ -17,6 +17,9 @@ class RotateTool(ToolboxTool):
     def getButtonIconName(self):
         return 'rotate_button.png'
 
+    def getName(self):
+        return "Rotate"
+
     def onKeyDown(self, key_code):
         return False
 

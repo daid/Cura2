@@ -20,12 +20,16 @@ def showTooltip(text, ctrl=None):
 
     popupWindow.SetPosition(position)
     popupWindow.Show()
+    popupWindow.owner_ctrl = ctrl
 
 
-def hideTooltip():
+def hideTooltip(ctrl=None):
     global popupWindow
     if popupWindow is None:
         return
+    if ctrl is not None:
+        if ctrl != popupWindow.owner_ctrl:
+            return
     popupWindow.Hide()
 
 
@@ -39,6 +43,7 @@ class TooltipWindow(wx.PopupWindow):
         self._sizer.Add(self._text, 1, border=3, flag=wx.ALL)
         self.SetSizer(self._sizer)
         self.Layout()
+        self.owner_ctrl = None
 
         global popupWindow
         popupWindow = self

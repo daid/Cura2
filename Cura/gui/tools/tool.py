@@ -46,6 +46,9 @@ class ToolboxTool(Tool):
     def hasActiveButton(self):
         return True
 
+    def getName(self):
+        return 'No name'
+
     def getButtonIconName(self):
         return 'rotate_button.png'
 

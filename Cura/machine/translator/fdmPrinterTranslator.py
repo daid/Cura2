@@ -216,7 +216,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
                 return False
         return count > 0
 
-    def presetup(self):
+    def preSetup(self):
         self.progressUpdate(0.0, False)
         for obj in self._scene.getObjects():
             obj.updatePrintExtension()

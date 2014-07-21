@@ -21,3 +21,6 @@ class MirrorTool(ToolboxTool):
 
     def onMouseUp(self, x, y, button):
         pass
+
+    def getName(self):
+        return "Mirror"

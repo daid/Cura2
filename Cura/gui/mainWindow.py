@@ -144,7 +144,7 @@ class ToolsPanel(FloatingPanel): #TODO move to seperate file
                     firstButton = False
                 else:
                     sizer.Add(wx.StaticBitmap(self._tools_panel, bitmap=getBitmap('top_bar_line.png')), 0, flag=wx.EXPAND)
-                button = ToolButton(self._tools_panel, tool.getButtonIconName(), size=(53,38))
+                button = ToolButton(self._tools_panel, tool.getName(), tool.getButtonIconName(), size=(53,38))
                 button.tool = tool
                 button.Bind(wx.EVT_BUTTON, self.onToolButton)
                 sizer.Add(button)

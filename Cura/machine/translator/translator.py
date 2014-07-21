@@ -97,7 +97,7 @@ class Translator(object):
         self._result_output = StringIO()
         self._result_log = StringIO()
 
-        self.presetup()
+        self.preSetup()
 
         if not self.canTranslate():
             return
@@ -177,7 +177,7 @@ class Translator(object):
         """ Override in subclass """
         return []
 
-    def presetup(self):
+    def preSetup(self):
         """ Override in subclass """
         pass
 
