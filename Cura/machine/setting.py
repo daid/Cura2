@@ -14,9 +14,10 @@ class SettingCategory(object):
         self._visible = True
         self._settings = []
 
-    def setLabel(self, label, tooltip=''):
+    def setLabel(self, label, tooltip=None):
         self._label = label
-        self._tooltip = tooltip
+        if tooltip is not None:
+            self._tooltip = tooltip
         return self
 
     def setVisible(self, visible):

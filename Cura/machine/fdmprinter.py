@@ -21,6 +21,7 @@ def _calculateLineInfo(machine, value):
         return line_count + 1, line_width_alt
     return line_count, line_width
 
+
 class FDMPrinter(printer3D.Printer3D):
     """
     Class that holds settings for any kind of FDMPrinter
