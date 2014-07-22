@@ -8,20 +8,23 @@ from Cura.gui.widgets.gradientButton import GradientButton
 
 
 class PrintSaveButton(GradientButton):
-    # TODO: This does not belong here. Move to seperate file
     def __init__(self, parent, app):
         self._app = app
         super(PrintSaveButton, self).__init__(parent, label='Save on', icon='save_button.png', icon_align=wx.ALIGN_RIGHT)
         self.Bind(wx.EVT_BUTTON, self._onSaveClick)
         self._updateButton()
         app.getTranslator().addProgressCallback(self._onProgressUpdate)
+        self._timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self._updateButton)
+        self._timer.Start(2000)
 
     def _onProgressUpdate(self, progress, ready):
         self.setFillAmount(progress)
         self.Enable(ready)
-        self._updateButton()
+        if ready:
+            self._updateButton()
 
-    def _updateButton(self):
+    def _updateButton(self, e=None):
         if len(getStorageDevices()) > 0:
             self.SetLabel('Save on')
             self.setIcon('save_sd_button.png')
