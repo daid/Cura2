@@ -40,11 +40,14 @@ class SettingsViewPreset(object):
 
     def exportToFile(self, filename):
         config = configParser.ConfigParser()
-        config.add_section('view_preset')
-        for k, v in self._setting_key_map.items():
-            config.set('view_preset', k, str(v))
+        self.addToConfigParser(config, 'view_preset')
         with open(filename, "w") as f:
             config.write(f)
+
+    def addToConfigParser(self, config_parser, section_name):
+        config_parser.add_section(section_name)
+        for k, v in self._setting_key_map.items():
+            config_parser.set(section_name, k, str(v))
 
     def importFromFile(self, filename):
         config = configParser.ConfigParser()
