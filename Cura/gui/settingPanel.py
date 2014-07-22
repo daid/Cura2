@@ -41,14 +41,18 @@ class SettingPanel(FloatingPanel):
                 print 'Unknown settings type:', s.getType()
                 ctrl = wx.TextCtrl(self, value=s.getValue())
 
+            label = wx.StaticText(self, label=s.getLabel())
             ctrl.setting = s
+            label.setting = s
             sizer.Add(wx.Panel(self, size=(10, 10)), pos=(n, 0), span=(1, 1))
-            sizer.Add(wx.StaticText(self, label=s.getLabel()), pos=(n, 1), span=(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+            sizer.Add(label, pos=(n, 1), span=(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
             sizer.Add(ctrl, pos=(n, 2), span=(1, 1), flag=flag)
             sizer.Add(wx.Panel(self, size=(10, 10)), pos=(n, 3), span=(1, 1))
 
             ctrl.Bind(wx.EVT_ENTER_WINDOW, self.OnMouseEnter)
             ctrl.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseExit)
+            label.Bind(wx.EVT_ENTER_WINDOW, self.OnMouseEnter)
+            label.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseExit)
 
             n += 1
 
@@ -70,5 +74,6 @@ class SettingPanel(FloatingPanel):
         showTooltip(ctrl.setting.getTooltip(), ctrl)
 
     def OnMouseExit(self, e):
-        hideTooltip()
+        ctrl = e.GetEventObject()
+        hideTooltip(ctrl)
         e.Skip()

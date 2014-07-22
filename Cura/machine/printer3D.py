@@ -17,8 +17,8 @@ class Printer3D(machine.Machine):
         self.getSettingByKey('machine_depth').setLabel('Print area depth (mm)')
         self.getSettingByKey('machine_height').setLabel('Print area height (mm)')
 
-        self.addSettingCategory(SettingCategory('support', order=5).setLabel('Support Material'))
-        self.addSetting('support', Setting('support_enable', False, 'bool'))
+        self.addSettingCategory(SettingCategory('support', order=5).setLabel('Support Material', 'Exterior support material to support models that are otherwise unprintable.'))
+        self.addSetting('support', Setting('support_enable', False, 'bool').setLabel(_("Enable exterior support"), _("Enable exterior support material. This will build up structures below the model to prevent the model from sacking.")))
         self.addSetting('support_enable', Setting('support_type', '', {'': 'None', 'buildplate': 'Touching buildplate', 'everywhere': 'Everywhere'}).setLabel(_("Structure type"), _("The type of support structure.\nGrid is very strong and can come off in 1 piece, however, sometimes it is too strong.\nLines are single walled lines that break off one at a time. Which is more work to remove, but as it is less strong it does work better on tricky prints.")))
         self.addSetting('support', Setting('support_angle', 60, 'float').setRange(0, 90).setLabel(_("Overhang angle for support (deg)"), _("The minimal angle that overhangs need to have to get support. With 0 degree being horizontal and 90 degree being vertical.")))
         self.addSetting('support', Setting('support_fill_rate', 15, 'float').setRange(0, 100).setLabel(_("Fill amount (%)"), _("Amount of infill structure in the support material, less material gives weaker support which is easier to remove. 15% seems to be a good average.")))

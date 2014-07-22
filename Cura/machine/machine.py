@@ -7,11 +7,11 @@ from ConfigParser import ConfigParser
 from Cura.machine.setting import Setting
 from Cura.machine.setting import SettingCategory
 
+
 class Machine(object):
     """
     Machine is an low level object that holds settings. These settings are shared by all types of machines.
     """
-
     def __init__(self):
         self._setting_category_list = []  # List of SettingCategories, each category holds settings.
         self._translator = None
@@ -20,9 +20,9 @@ class Machine(object):
 
         self.addSettingCategory(SettingCategory('machine').setLabel('Machine configuration').setVisible(False))
 
-        self.addSetting('machine', Setting('machine_width', 200, 'float').setRange(0.0001))
-        self.addSetting('machine', Setting('machine_height', 200, 'float').setRange(0.0001))
-        self.addSetting('machine', Setting('machine_depth', 200, 'float').setRange(0.0001))
+        self.addSetting('machine', Setting('machine_width', 200, 'float').setRange(0.0001).setLabel(_('Machine width'), _('Build area size of the machine along the X axis')))
+        self.addSetting('machine', Setting('machine_height', 200, 'float').setRange(0.0001).setLabel(_('Machine height'), _('Build area size of the machine along the Y axis')))
+        self.addSetting('machine', Setting('machine_depth', 200, 'float').setRange(0.0001).setLabel(_('Machine height'), _('Build area size of the machine along the Z axis')))
         self.addSetting('machine', Setting('machine_name', 'Machine', 'string'))
         self.addSetting('machine', Setting('machine_icon', '', 'string'))
         self.addSetting('machine', Setting('display_model', '', 'string'))
@@ -46,6 +46,8 @@ class Machine(object):
     def addSetting(self, parent_key, setting):
         assert(self.getSettingCategory(setting.getKey()) is None)
         assert(self.getSettingByKey(setting.getKey()) is None)
+        if setting.getLabel() == setting.getKey():
+            print 'No proper description for: %s' % (setting.getKey())
         setting.setMachine(self)
         category = self.getSettingCategory(parent_key)
         if category is not None:

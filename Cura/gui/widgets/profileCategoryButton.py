@@ -2,6 +2,7 @@ import wx
 from wx.lib.buttons import GenToggleButton
 
 from Cura.resources import getBitmap
+from Cura.gui.tooltip import showTooltip, hideTooltip
 
 
 class ProfileCategoryButton(GenToggleButton):
@@ -13,6 +14,9 @@ class ProfileCategoryButton(GenToggleButton):
         self._icon = getBitmap(icon)
         self._small = False
         super(ProfileCategoryButton, self).__init__(parent, label=label, style=wx.BORDER_NONE)
+
+        self.Bind(wx.EVT_ENTER_WINDOW, self._onEnter, self)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self._onExit, self)
 
     def setSmall(self, small):
         self._small = small
@@ -76,3 +80,10 @@ class ProfileCategoryButton(GenToggleButton):
             w = 46
         h = max(30, h)
         return w, h
+
+    def _onEnter(self, e):
+        if self._small:
+            showTooltip(self.GetLabel(), self)
+
+    def _onExit(self, e):
+        hideTooltip(self)
