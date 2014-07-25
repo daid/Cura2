@@ -2,7 +2,6 @@
 import wx
 import platform
 import os
-from ConfigParser import ConfigParser
 
 from Cura.resources import getDefaultPreferenceStoragePath
 from Cura.resources import getResourcePath
@@ -28,8 +27,9 @@ class CuraApp(wx.App):
         self._view = None
         self._translator = None
         self._machine = None
+        self._machine_list = []
 
-        self._mainWindow = None
+        self._main_window = None
 
         if platform.system() == "Windows" and not 'PYCHARM_HOSTED' in os.environ:
             super(CuraApp, self).__init__(redirect=True, filename='output.txt')
@@ -45,15 +45,29 @@ class CuraApp(wx.App):
         self._translator.setScene(self._scene)
         self._translator.setMachine(self._machine)
 
-        self._mainWindow = MainWindow(self)
-        self._mainWindow.Show()
-        self._mainWindow.Maximize()
+        self._main_window = MainWindow(self)
+        self._main_window.Show()
+        self._main_window.Maximize()
 
     def finished(self):
         pass
 
+    def addMachine(self, machine):
+        self._machine_list.append(machine)
+        if self._machine is None:
+            self.setMachine(machine)
+
+    def setMachine(self, machine):
+        self._machine = machine
+        self._view.setMachine(self._machine)
+        self._scene.setMachine(self._machine)
+        self._translator.setMachine(self._machine)
+
     def getMachine(self):
         return self._machine
+
+    def getMachineList(self):
+        return self._machine_list
 
     def getScene(self):
         return self._scene
@@ -65,13 +79,13 @@ class CuraApp(wx.App):
         return self._translator
 
     def getMainWindow(self):
-        return self._mainWindow
+        return self._main_window
 
     def getTools(self):
         return self._toolbox
 
     def showNotification(self, title, message, callback=None):
-        self._mainWindow.showNotification(title, message, callback)
+        self._main_window.showNotification(title, message, callback)
 
 
 class CuraFDMApp(CuraApp):
@@ -80,11 +94,13 @@ class CuraFDMApp(CuraApp):
 
     def OnInit(self):
         self._settings_view_presets = []
+        self._active_setting_view = None
 
         self._scene = Printer3DScene()
         self._view = PrinterView3D()
         self._translator = FDMPrinterTranslator()
-        self._machine = FDMPrinter()
+        self.addMachine(FDMPrinter())
+        self.addMachine(FDMPrinter())
 
         self._toolbox.append(RotateTool(self))
         self._toolbox.append(ScaleTool(self))
@@ -120,12 +136,19 @@ class CuraFDMApp(CuraApp):
     def getActiveSettingsViewPreset(self):
         return self._active_setting_view
 
+    def setMachine(self, machine):
+        super(CuraFDMApp, self).setMachine(machine)
+        if self._active_setting_view is not None:
+            self._active_setting_view.applyPreset(self._machine)
+        if self._main_window is not None:
+            self._main_window.refreshProfilePanel()
+
     def setActiveSettingsView(self, settings_view):
         self._active_setting_view = settings_view
         settings_view.applyPreset(self._machine)
-        if self._mainWindow is not None:
-            self._mainWindow.refreshProfilePanel()
+        if self._main_window is not None:
+            self._main_window.refreshProfilePanel()
 
     def setViewMode(self, mode):
         self.getView().setViewMode(mode)
-        self._mainWindow.setViewMode(mode)
+        self._main_window.setViewMode(mode)

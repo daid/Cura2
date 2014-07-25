@@ -5,8 +5,7 @@ from threading import Thread
 from time import sleep
 
 from Cura.meshLoaders import meshLoader
-from Cura.gui.fdmMachineConfigDialog import FDMMachineConfigDialog
-from Cura.gui.widgets.gradientButton import GradientButton
+from Cura.gui.widgets.machineButton import MachineButton
 from Cura.gui.widgets.innerTitleBar import InnerTitleBar
 from Cura.gui.floatSizer import FloatingPanel
 from Cura.resources import getBitmap
@@ -20,7 +19,7 @@ class FileBrowserPanel(FloatingPanel):
         self._app = app
         self.SetSize((185, 400))
         self._local_file_panel = wx.Panel(self)
-        self._machine_button = GradientButton(self, 'Machine', 'save_button.png')
+        self._machine_button = MachineButton(self, app)
 
         self._load_button = wx.StaticBitmap(self._local_file_panel, bitmap=getBitmap('icon_open_model.png'))
         self._local_file_list = wx.ListBox(self._local_file_panel, size=(164, 248))
@@ -31,7 +30,6 @@ class FileBrowserPanel(FloatingPanel):
 
         self._load_button.Bind(wx.EVT_LEFT_DOWN, self._onLoadFile)
         self._local_file_list.Bind(wx.EVT_LEFT_DCLICK, self._onLocalFileDoubleClick)
-        self._machine_button.Bind(wx.EVT_BUTTON, self._onMachine)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(sizer)
@@ -69,9 +67,6 @@ class FileBrowserPanel(FloatingPanel):
         if self._local_file_list.GetSelection() >= 0:
             filename = self._local_file_list.full_filename_list[self._local_file_list.GetSelection()]
             self._app.getScene().loadFile(filename)
-
-    def _onMachine(self, e):
-        FDMMachineConfigDialog(self._app).ShowModal()
 
     def _updateFileList(self, files):
         selection = self._local_file_list.GetSelection()

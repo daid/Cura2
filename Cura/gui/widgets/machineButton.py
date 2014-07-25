@@ -1,0 +1,36 @@
+import wx
+
+from Cura.gui.widgets.gradientButton import GradientButton
+from Cura.gui.fdmMachineConfigDialog import FDMMachineConfigDialog
+
+
+class MachineButton(GradientButton):
+    def __init__(self, parent, app):
+        super(MachineButton, self).__init__(parent, 'Machine', 'save_button.png')
+        self._app = app
+        self.Bind(wx.EVT_BUTTON, self._onMachine)
+
+    def _onMachine(self, e):
+        self._id_base = wx.NewId()
+        popup = wx.Menu()
+        machine_list = self._app.getMachineList()
+        for machine in machine_list:
+            wx.NewId()
+            i = popup.AppendRadioItem(self._id_base + machine_list.index(machine), machine.getSettingValueByKey('machine_name'))
+            if machine == self._app.getMachine():
+                i.Check(True)
+            i.machine = machine
+            self.Bind(wx.EVT_MENU, self._onSwitchMachine, i)
+        popup.AppendSeparator()
+        i = popup.Append(-1, _("Edit machine configuration"))
+        self.Bind(wx.EVT_MENU, self._onMachineEdit, i)
+        popup.Append(-1, _("Add new machine"))
+        self.PopupMenu(popup)
+
+    def _onMachineEdit(self, e):
+        FDMMachineConfigDialog(self._app).ShowModal()
+
+    def _onSwitchMachine(self, e):
+        machine = self._app.getMachineList()[e.GetId() - self._id_base]
+        if machine != self._app.getMachine():
+            self._app.setMachine(machine)
