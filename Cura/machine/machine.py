@@ -1,6 +1,4 @@
-__author__ = 'Jaime van Kessel'
 
-import threading
 import numpy
 from ConfigParser import ConfigParser
 
@@ -23,9 +21,9 @@ class Machine(object):
         self.addSetting('machine', Setting('machine_width', 200, 'float').setRange(0.0001).setLabel(_('Machine width'), _('Build area size of the machine along the X axis')))
         self.addSetting('machine', Setting('machine_height', 200, 'float').setRange(0.0001).setLabel(_('Machine height'), _('Build area size of the machine along the Y axis')))
         self.addSetting('machine', Setting('machine_depth', 200, 'float').setRange(0.0001).setLabel(_('Machine height'), _('Build area size of the machine along the Z axis')))
-        self.addSetting('machine', Setting('machine_name', 'Machine', 'string'))
-        self.addSetting('machine', Setting('machine_icon', '', 'string'))
-        self.addSetting('machine', Setting('display_model', '', 'string'))
+        self.addSetting('machine', Setting('machine_name', 'Machine', 'string').setLabel('Machine name'))
+        self.addSetting('machine', Setting('machine_icon', '', 'string').setLabel('Machine icon', 'Used for the machine button.'))
+        self.addSetting('machine', Setting('display_model', '', 'string').setLabel('Display model', 'Used in the 3D screen to possible show a 3D model of the machine.'))
 
         self._machine_shape = numpy.zeros((0, 2), numpy.float32)  # Polygon that forms the 'box' around the machine
 
