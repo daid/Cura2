@@ -93,22 +93,28 @@ class Machine(object):
             return 0.0
 
     def saveSettings(self, filename):
-        settingsStorage = ConfigParser()
-        settingsStorage.add_section('settings')
-        for cat in self._setting_category_list:
-            for setting in cat.getSettings():
-                settingsStorage.set('settings', setting.getKey(), setting.getValue())
+        settings_storage = ConfigParser()
+        self.saveSettingsToConfigParser(settings_storage, 'settings')
         with open(filename, "w") as f:
-            settingsStorage.write(f)
+            settings_storage.write(f)
 
     def loadSettings(self, filename):
-        settingsStorage = ConfigParser()
-        settingsStorage.read(filename)
-        if settingsStorage.has_section('settings'):
+        settings_storage = ConfigParser()
+        settings_storage.read(filename)
+        self.loadSettingsFromConfigParser(settings_storage, 'settings')
+
+    def saveSettingsToConfigParser(self, config_parser, section_name):
+        config_parser.add_section(section_name)
+        for cat in self._setting_category_list:
+            for setting in cat.getSettings():
+                config_parser.set(section_name, setting.getKey(), setting.getValue())
+
+    def loadSettingsFromConfigParser(self, config_parser, section_name):
+        if config_parser.has_section(section_name):
             for cat in self._setting_category_list:
                 for setting in cat.getSettings():
-                    if settingsStorage.has_option('settings', setting.getKey()):
-                        setting.setValue(settingsStorage.get('settings', setting.getKey()))
+                    if config_parser.has_option(section_name, setting.getKey()):
+                        setting.setValue(config_parser.get(section_name, setting.getKey()))
 
     def onSettingUpdated(self):
         """

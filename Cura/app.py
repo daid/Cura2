@@ -2,6 +2,7 @@
 import wx
 import platform
 import os
+from ConfigParser import ConfigParser
 
 from Cura.resources import getDefaultPreferenceStoragePath
 from Cura.resources import getResourcePath
@@ -99,15 +100,20 @@ class CuraFDMApp(CuraApp):
         self._scene = Printer3DScene()
         self._view = PrinterView3D()
         self._translator = FDMPrinterTranslator()
-        self.addMachine(FDMPrinter())
-        self.addMachine(FDMPrinter())
+
+        machine_storage = ConfigParser()
+        machine_storage.read(getDefaultPreferenceStoragePath('machines.ini'))
+        n = 0
+        while machine_storage.has_section('machine_%d' % n):
+            machine = FDMPrinter()
+            machine.loadSettingsFromConfigParser(machine_storage, 'machine_%d' % n)
+            self.addMachine(machine)
+            n += 1
 
         self._toolbox.append(RotateTool(self))
         self._toolbox.append(ScaleTool(self))
         self._toolbox.append(MirrorTool(self))
         self._toolbox.append(SelectAndMoveTool(self))
-
-        self._machine.loadSettings(getDefaultPreferenceStoragePath('settings.ini'))
 
         svp = SettingsViewPreset()
         svp.setName('Normal')
@@ -124,7 +130,11 @@ class CuraFDMApp(CuraApp):
         return True
 
     def finished(self):
-        self._machine.saveSettings(getDefaultPreferenceStoragePath('settings.ini'))
+        machine_storage = ConfigParser()
+        for machine in self._machine_list:
+            self._machine.saveSettingsToConfigParser(machine_storage, 'machine_%d' % (self._machine_list.index(machine)))
+        with open(getDefaultPreferenceStoragePath('machines.ini'), "w") as f:
+            machine_storage.write(f)
         saveSettingViewPresets(getDefaultPreferenceStoragePath('view_presets.ini'), self._settings_view_presets)
 
     def getSettingsViewPresets(self):
@@ -142,12 +152,14 @@ class CuraFDMApp(CuraApp):
             self._active_setting_view.applyPreset(self._machine)
         if self._main_window is not None:
             self._main_window.refreshProfilePanel()
+        self._translator.trigger()
 
     def setActiveSettingsView(self, settings_view):
         self._active_setting_view = settings_view
         settings_view.applyPreset(self._machine)
         if self._main_window is not None:
             self._main_window.refreshProfilePanel()
+        self._translator.trigger()
 
     def setViewMode(self, mode):
         self.getView().setViewMode(mode)
