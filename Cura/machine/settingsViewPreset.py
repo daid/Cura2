@@ -1,5 +1,44 @@
 import ConfigParser as configParser
 
+
+def loadSettingViewPresets(filename):
+    """
+    Returns a list of SettingsViewPresets
+    """
+    cp = configParser.ConfigParser()
+    cp.read(filename)
+    n = 1
+    ret = []
+    while cp.has_section('ViewPreset_%d' % (n)):
+        svp = SettingsViewPreset()
+        svp.setName(cp.get('ViewPreset_%d' % (n), 'view_preset_name'))
+        for key in cp.options('ViewPreset_%d' % (n)):
+            svp.setSettingVisible(key, cp.get('ViewPreset_%d' % (n), key) == 'True')
+        ret.append(svp)
+        n += 1
+    return ret
+
+
+def saveSettingViewPresets(filename, svp_list):
+    """
+    Save a list of SettingsViewPresets to an ini file.
+    Returns True on success
+    """
+    cp = configParser.ConfigParser()
+    n = 1
+    for svp in svp_list:
+        if not svp.isBuildIn():
+            svp.addToConfigParser(cp, 'ViewPreset_%d' % (n))
+            cp.set('ViewPreset_%d' % (n), 'view_preset_name', svp.getName())
+            n += 1
+    try:
+        with open(filename, "w") as f:
+            cp.write(f)
+    except IOError:
+        return False
+    return True
+
+
 class SettingsViewPreset(object):
     def __init__(self):
         self._name = 'No name'

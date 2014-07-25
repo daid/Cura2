@@ -9,6 +9,8 @@ from Cura.resources import getResourcePath
 from Cura.gui.mainWindow import MainWindow
 from Cura.scene.printer3DScene import Printer3DScene
 from Cura.machine.settingsViewPreset import SettingsViewPreset
+from Cura.machine.settingsViewPreset import loadSettingViewPresets
+from Cura.machine.settingsViewPreset import saveSettingViewPresets
 from Cura.machine.fdmprinter import FDMPrinter
 from Cura.machine.translator.fdmPrinterTranslator import FDMPrinterTranslator
 from Cura.gui.view3D.printerView3D import PrinterView3D
@@ -98,16 +100,8 @@ class CuraFDMApp(CuraApp):
         self.addSettingsViewPreset(svp)
         self.setActiveSettingsView(svp)
 
-        cp = ConfigParser()
-        cp.read(getDefaultPreferenceStoragePath('view_presets.ini'))
-        n = 1
-        while cp.has_section('ViewPreset_%d' % (n)):
-            svp = SettingsViewPreset()
-            svp.setName(cp.get('ViewPreset_%d' % (n), 'view_preset_name'))
-            for key in cp.options('ViewPreset_%d' % (n)):
-                svp.setSettingVisible(key, cp.get('ViewPreset_%d' % (n), key) == 'True')
+        for svp in loadSettingViewPresets(getDefaultPreferenceStoragePath('view_presets.ini')):
             self.addSettingsViewPreset(svp)
-            n += 1
 
         wx.CallAfter(self._scene.loadFile, 'C:/Models/D&D/Box.stl')
 
@@ -115,15 +109,7 @@ class CuraFDMApp(CuraApp):
 
     def finished(self):
         self._machine.saveSettings(getDefaultPreferenceStoragePath('settings.ini'))
-        cp = ConfigParser()
-        n = 1
-        for svp in self._settings_view_presets:
-            if not svp.isBuildIn():
-                svp.addToConfigParser(cp, 'ViewPreset_%d' % (n))
-                cp.set('ViewPreset_%d' % (n), 'view_preset_name', svp.getName())
-                n += 1
-        with open(getDefaultPreferenceStoragePath('view_presets.ini'), "w") as f:
-            cp.write(f)
+        saveSettingViewPresets(getDefaultPreferenceStoragePath('view_presets.ini'), self._settings_view_presets)
 
     def getSettingsViewPresets(self):
         return self._settings_view_presets
