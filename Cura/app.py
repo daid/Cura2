@@ -1,4 +1,5 @@
 
+import sys
 import wx
 import platform
 import os
@@ -105,7 +106,20 @@ class CuraFDMApp(CuraApp):
         machine_storage.read(getDefaultPreferenceStoragePath('machines.ini'))
         n = 0
         while machine_storage.has_section('machine_%d' % n):
-            machine = FDMPrinter()
+            machine = None
+            if machine_storage.has_option('machine_%d' % n, 'machine_class'):
+                try:
+                    class_name = machine_storage.get('machine_%d' % n, 'machine_class')
+                    module_name, class_name = class_name.rsplit('.', 1)
+                    __import__(module_name)
+                    module = sys.modules[module_name]
+                    machine = getattr(module, class_name)()
+                except:
+                    import traceback
+                    traceback.print_exc()
+                    machine = None
+            if machine is None:
+                machine = FDMPrinter()
             machine.loadSettingsFromConfigParser(machine_storage, 'machine_%d' % n)
             self.addMachine(machine)
             n += 1

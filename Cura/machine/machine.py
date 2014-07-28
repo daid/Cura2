@@ -105,6 +105,7 @@ class Machine(object):
 
     def saveSettingsToConfigParser(self, config_parser, section_name):
         config_parser.add_section(section_name)
+        config_parser.set(section_name, 'machine_class', '%s.%s' % (type(self).__module__, type(self).__name__))
         for cat in self._setting_category_list:
             for setting in cat.getSettings():
                 config_parser.set(section_name, setting.getKey(), setting.getValue())
