@@ -16,7 +16,13 @@ def getBitmap(name):
     global _image_cache
 
     if name not in _image_cache:
-        _image_cache[name] = wx.Bitmap(os.path.join(getResourcePath('images'), name))
+        full_filename = os.path.join(getResourcePath('images'), name)
+        if os.path.isfile(full_filename):
+            _image_cache[name] = wx.Bitmap(os.path.join(getResourcePath('images'), name))
+        else:
+            if name != '':
+                print '%s not found' % (full_filename)
+            _image_cache[name] = wx.EmptyBitmap(1, 1)
     return _image_cache[name]
 
 

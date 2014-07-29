@@ -41,6 +41,7 @@ class MachineRenderer(Renderer):
 
         h = self.machine.getSettingValueByKeyFloat('machine_height')
         shape = self.machine.getShape()
+        disallowedZones = self.machine.getDisallowedZones()
 
         glColor3f(1, 1, 1)
         glDisable(GL_LIGHTING)
@@ -54,19 +55,30 @@ class MachineRenderer(Renderer):
             glVertex3f(point[0], point[1], 0.02)
         glEnd()
         self._platformTexture.unbind()
+
+        glColor3f(0.5, 0.5, 0.5)
+        for polygon in disallowedZones:
+            glBegin(GL_TRIANGLE_FAN)
+            for point in polygon:
+                glVertex3f(point[0], point[1], 0.05)
+            glEnd()
+        glColor3f(1, 1, 1)
+
         glDisable(GL_CULL_FACE)
 
-        mesh = getMesh('ultimaker2_platform.obj')
-        self._shader.bind()
-        glColor3f(1, 1, 1)
-        glEnable(GL_LIGHTING)
-        glEnable(GL_LIGHT0)
-        glEnable(GL_COLOR_MATERIAL)
-        glLightfv(GL_LIGHT0, GL_DIFFUSE, [0.8, 0.8, 0.8, 1])
-        glLightfv(GL_LIGHT0, GL_AMBIENT, [0, 0, 0, 0])
-        glLightfv(GL_LIGHT0, GL_SPECULAR, [0, 0, 0, 0])
-        for v in mesh.getVolumes():
-            if 'VertexRenderer' not in v.metaData:
-                v.metaData['VertexRenderer'] = openGLUtils.VertexRenderer(GL_TRIANGLES, v.vertexData)
-            v.metaData['VertexRenderer'].render()
-        self._shader.unbind()
+        model_name = self.machine.getSettingValueByKey('display_model')
+        if model_name != '':
+            mesh = getMesh(model_name)
+            self._shader.bind()
+            glColor3f(1, 1, 1)
+            glEnable(GL_LIGHTING)
+            glEnable(GL_LIGHT0)
+            glEnable(GL_COLOR_MATERIAL)
+            glLightfv(GL_LIGHT0, GL_DIFFUSE, [0.8, 0.8, 0.8, 1])
+            glLightfv(GL_LIGHT0, GL_AMBIENT, [0, 0, 0, 0])
+            glLightfv(GL_LIGHT0, GL_SPECULAR, [0, 0, 0, 0])
+            for v in mesh.getVolumes():
+                if 'VertexRenderer' not in v.metaData:
+                    v.metaData['VertexRenderer'] = openGLUtils.VertexRenderer(GL_TRIANGLES, v.vertexData)
+                v.metaData['VertexRenderer'].render()
+            self._shader.unbind()

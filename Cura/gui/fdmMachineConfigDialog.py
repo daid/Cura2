@@ -56,6 +56,8 @@ class FDMMachineConfigDialog(wx.Dialog):
         self.Centre()
 
     def addSetting(self, panel, s, x, y=0):
+        if not s.isVisible():
+            return
         flag = wx.EXPAND
         if s.getType() == 'float' or s.getType() == 'int':
             ctrl = wx.TextCtrl(panel, value=s.getValue())

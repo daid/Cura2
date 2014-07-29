@@ -2,6 +2,7 @@ import wx
 import wx.wizard
 from wx.lib.buttons import GenBitmapToggleButton
 
+from Cura.machine.ultimaker2 import Ultimaker2
 from Cura.machine.fdmprinter import FDMPrinter
 from Cura.resources import getBitmap
 
@@ -51,7 +52,7 @@ class MainMachineSelectPage(wx.wizard.PyWizardPage):
 
         self._printers = []
 
-        self._addPrinterButton('ultimaker2.png', self._custom_page)
+        self._addPrinterButton('ultimaker2.png', Ultimaker2Page(self.GetParent()))
         self._addPrinterButton('ultimaker_original.png', self._custom_page)
         self._addPrinterButton('other_printer.png', self._custom_page)
 
@@ -78,6 +79,14 @@ class MainMachineSelectPage(wx.wizard.PyWizardPage):
             if printer.GetValue():
                 return printer.next_page
         return self._custom_page
+
+
+class Ultimaker2Page(WizardPageBase):
+    def __init__(self, parent):
+        super(Ultimaker2Page, self).__init__(parent, _('Ultimaker2'))
+
+    def getMachine(self):
+        return Ultimaker2()
 
 
 class CustomPrinterPage(WizardPageBase):

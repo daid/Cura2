@@ -6,9 +6,10 @@ from Cura.gui.newFDMprinterWizard import NewDFMPrinterWizard
 
 class MachineButton(GradientButton):
     def __init__(self, parent, app):
-        super(MachineButton, self).__init__(parent, 'Machine', 'save_button.png')
+        super(MachineButton, self).__init__(parent, 'Machine', '')
         self._app = app
         self.Bind(wx.EVT_BUTTON, self._onMachine)
+        self.updateButton()
 
     def _onMachine(self, e):
         self._id_base = wx.NewId()
@@ -37,8 +38,14 @@ class MachineButton(GradientButton):
         if machine is not None:
             self._app.addMachine(machine)
             self._app.setMachine(machine)
+            self.updateButton()
 
     def _onSwitchMachine(self, e):
         machine = self._app.getMachineList()[e.GetId() - self._id_base]
         if machine != self._app.getMachine():
             self._app.setMachine(machine)
+            self.updateButton()
+
+    def updateButton(self):
+        self.SetLabel(self._app.getMachine().getSettingValueByKey('machine_name'))
+        self.setIcon(self._app.getMachine().getSettingValueByKey('machine_icon'))
