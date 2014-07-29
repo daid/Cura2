@@ -115,6 +115,9 @@ class Setting(object):
         self._default = value
         return self
 
+    def getDefault(self):
+        return self._default
+
     def getVisibleProperty(self):
         return self._visible
 

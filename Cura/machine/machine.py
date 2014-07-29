@@ -23,7 +23,7 @@ class Machine(object):
         self.addSetting('machine', Setting('machine_depth', 200, 'float').setRange(0.0001).setLabel(_('Machine height'), _('Build area size of the machine along the Z axis')))
         self.addSetting('machine', Setting('machine_name', 'Machine', 'string').setLabel('Machine name'))
         self.addSetting('machine', Setting('machine_icon', '', 'string').setLabel('Machine icon', 'Used for the machine button.'))
-        self.addSetting('machine', Setting('display_model', '', 'string').setLabel('Display model', 'Used in the 3D screen to possible show a 3D model of the machine.'))
+        self.addSetting('machine', Setting('display_model', '', 'filename').setLabel('Display model', 'Used in the 3D screen to possible show a 3D model of the machine.'))
 
         self._machine_shape = numpy.zeros((0, 2), numpy.float32)  # Polygon that forms the 'box' around the machine
 
@@ -108,7 +108,8 @@ class Machine(object):
         config_parser.set(section_name, 'machine_class', '%s.%s' % (type(self).__module__, type(self).__name__))
         for cat in self._setting_category_list:
             for setting in cat.getSettings():
-                config_parser.set(section_name, setting.getKey(), setting.getValue())
+                if setting.getValue() != setting.getDefault():
+                    config_parser.set(section_name, setting.getKey(), setting.getValue())
 
     def loadSettingsFromConfigParser(self, config_parser, section_name):
         if config_parser.has_section(section_name):

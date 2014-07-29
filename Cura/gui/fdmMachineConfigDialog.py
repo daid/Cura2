@@ -1,5 +1,6 @@
 
 import wx
+from Cura.meshLoaders import meshLoader
 from Cura.gui.widgets.gcodeTextArea import GcodeTextArea
 
 
@@ -37,6 +38,7 @@ class FDMMachineConfigDialog(wx.Dialog):
 
         self.addSetting(self._main_panel, self._app.getMachine().getSettingByKey('machine_center_is_zero'), 7)
         self.addSetting(self._main_panel, self._app.getMachine().getSettingByKey('machine_build_area_shape'), 8)
+        self.addSetting(self._main_panel, self._app.getMachine().getSettingByKey('display_model'), 10)
 
         sizer = wx.GridBagSizer(2, 2)
         self._head_panel.SetSizer(sizer)
@@ -61,19 +63,22 @@ class FDMMachineConfigDialog(wx.Dialog):
         flag = wx.EXPAND
         if s.getType() == 'float' or s.getType() == 'int':
             ctrl = wx.TextCtrl(panel, value=s.getValue())
-            ctrl.Bind(wx.EVT_TEXT, self.OnSettingChange)
+            ctrl.Bind(wx.EVT_TEXT, self.onSettingChange)
         elif s.getType() == 'bool':
             ctrl = wx.CheckBox(panel, style=wx.ALIGN_RIGHT)
             ctrl.SetValue(s.getValue() == 'True')
-            ctrl.Bind(wx.EVT_CHECKBOX, self.OnSettingChange)
+            ctrl.Bind(wx.EVT_CHECKBOX, self.onSettingChange)
             flag = 0
+        elif s.getType() == 'filename':
+            ctrl = wx.Button(panel, -1, _('Browse'))
+            ctrl.Bind(wx.EVT_BUTTON, self.onBrowse)
         elif isinstance(s.getType(), dict):
             try:
                 value = s.getType()[s.getValue()]
             except KeyError:
                 value = s.getType().values()[0]
             ctrl = wx.ComboBox(panel, value=value, choices=s.getType().values(), style=wx.CB_DROPDOWN|wx.CB_READONLY)
-            ctrl.Bind(wx.EVT_COMBOBOX, self.OnComboSettingChange)
+            ctrl.Bind(wx.EVT_COMBOBOX, self.onComboSettingChange)
             ctrl.Bind(wx.EVT_LEFT_DOWN, self.OnMouseExit)
         else:
             print 'Unknown settings type:', s.getType()
@@ -95,19 +100,36 @@ class FDMMachineConfigDialog(wx.Dialog):
         textArea = GcodeTextArea(self._tabs)
         textArea.SetValue(setting.getValue())
         textArea.setting = setting
-        textArea.Bind(wx.EVT_KILL_FOCUS, self.OnSettingChange, textArea)
-        textArea.Bind(wx.stc.EVT_STC_CHANGE, self.OnSettingChange, textArea)
+        textArea.Bind(wx.EVT_KILL_FOCUS, self.onSettingChange, textArea)
+        textArea.Bind(wx.stc.EVT_STC_CHANGE, self.onSettingChange, textArea)
         self._tabs.AddPage(textArea, setting.getLabel())
 
-    def OnSettingChange(self, e):
+    def onSettingChange(self, e):
         ctrl = e.GetEventObject()
         ctrl.setting.setValue(ctrl.GetValue())
 
-    def OnComboSettingChange(self, e):
+    def onComboSettingChange(self, e):
         ctrl = e.GetEventObject()
         for k, v in ctrl.setting.getType().items():
             if v == ctrl.GetValue():
                 ctrl.setting.setValue(k)
+
+    def onBrowse(self, e):
+        ctrl = e.GetEventObject()
+
+        dlg = wx.FileDialog(self, _("Open 3D model"), style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+
+        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
+        wildcardFilter = "All (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
+        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
+        wildcardFilter += "|Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
+
+        dlg.SetWildcard(wildcardFilter)
+        if dlg.ShowModal() != wx.ID_OK:
+            dlg.Destroy()
+            return
+        ctrl.setting.setValue(dlg.GetPath())
+        dlg.Destroy()
 
     def onCloseButton(self, e):
         self.Close()
