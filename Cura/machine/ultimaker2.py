@@ -28,6 +28,9 @@ class Ultimaker2(FDMPrinter):
         self.getSettingByKey('machine_nozzle_offset_x_1').setDefault('18.0')
         self.getSettingByKey('machine_nozzle_offset_y_1').setDefault('0.0')
 
+        self.getSettingByKey('machine_start_gcode').setDefault('; On the Ultimaker 2 the start and end sequence is controlled by the firmware.\n; You can add your own custom GCode here which is ran after the firmware start code.')
+        self.getSettingByKey('machine_end_gcode').setDefault('; On the Ultimaker 2 the start and end sequence is controlled by the firmware.\n; You can add your own custom GCode here which is ran before the firmware end code.')
+
         self._updateMachineShape()
 
     def _updateMachineShape(self):

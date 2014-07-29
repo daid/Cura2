@@ -145,6 +145,9 @@ class FDMPrinter(printer3D.Printer3D):
         self.addSettingCategory(SettingCategory('blackmagic', order=100).setLabel('Black Magic'))
         self.addSetting('blackmagic', Setting('magic_spiralize', False, 'bool').setLabel(_("Spiralize the outer contour"), _("Spiralize is smoothing out the Z move of the outer edge. This will create a steady Z increase over the whole print. This feature turns a solid object into a single walled print with a solid bottom.\nThis feature used to be called Joris in older versions.")))
 
+        self.getSettingByKey('machine_start_gcode').setDefault('G28 ; Home\nG1 Z15.0 F{travel_speed} ;move the platform down 15mm\n;Prime the extruder\nG92 E0\nG1 F200 E3\nG92 E0')
+        self.getSettingByKey('machine_end_gcode').setDefault('M104 S0\nM140 S0\n;Retract the filament\nG92 E1\nG1 E-1 F300\nG28 X0 Y0\nM84')
+
     def getMaxNozzles(self):
         return 8
 

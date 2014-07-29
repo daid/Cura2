@@ -84,6 +84,8 @@ class MainMachineSelectPage(wx.wizard.PyWizardPage):
 class Ultimaker2Page(WizardPageBase):
     def __init__(self, parent):
         super(Ultimaker2Page, self).__init__(parent, _('Ultimaker2'))
+        self._addText('Thank you for buying an Ultimaker2')
+        self._addText('Cura is now configured to be used with the Ultimaker2')
 
     def getMachine(self):
         return Ultimaker2()
