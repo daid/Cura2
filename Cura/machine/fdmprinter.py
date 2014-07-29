@@ -47,6 +47,7 @@ class FDMPrinter(printer3D.Printer3D):
             self.addSetting('machine', Setting('machine_nozzle_offset_y_' + str(n), 0.0, 'float').setLabel(_('Nozzle %d offset Y') % (n + 1)))
         self.addSetting('machine', Setting('machine_start_gcode', '', 'string').setLabel(_('Start GCode')))
         self.addSetting('machine', Setting('machine_end_gcode', '', 'string').setLabel(_('End GCode')))
+        self.addSetting('machine', Setting('machine_gcode_flavor', '5D', 'string').setLabel(_('GCode flavor')))
 
         # Profile settings
         self.getSettingByKey('layer_height').setAlwaysVisible()

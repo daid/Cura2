@@ -358,4 +358,18 @@ class FDMPrinterTranslator(Printer3DTranslator):
             settings['sparseInfillLineDistance'] = int(100 * fbk('wall_line_width_x') * 1000 / fbk('fill_sparse_density'))
         settings['sparseInfillCombineCount'] = int(round(fbk('fill_sparse_combine')))
 
+        if vbk('machine_gcode_flavor') == 'UltiGCode':
+            settings['gcodeFlavor'] = 1
+        elif vbk('machine_gcode_flavor') == 'Makerbot':
+            settings['gcodeFlavor'] = 2
+        elif vbk('machine_gcode_flavor') == 'BFB':
+            settings['gcodeFlavor'] = 3
+        elif vbk('machine_gcode_flavor') == 'Mach3':
+            settings['gcodeFlavor'] = 4
+        elif vbk('machine_gcode_flavor') == 'Volumetric':
+            settings['gcodeFlavor'] = 5
+
+        settings['startCode'] = vbk('machine_start_gcode')
+        settings['endCode'] = vbk('machine_end_gcode')
+
         return settings

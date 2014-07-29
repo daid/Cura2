@@ -30,7 +30,11 @@ def getMesh(name):
     global _mesh_cache
 
     if name not in _mesh_cache:
-        _mesh_cache[name] = meshLoader.loadMeshes(os.path.join(getResourcePath('meshes'), name))[-1]
+        full_filename = os.path.join(getResourcePath('meshes'), name)
+        if os.path.isfile(full_filename):
+            _mesh_cache[name] = meshLoader.loadMeshes(os.path.join(getResourcePath('meshes'), name))[-1]
+        else:
+            _mesh_cache[name] = None
     return _mesh_cache[name]
 
 

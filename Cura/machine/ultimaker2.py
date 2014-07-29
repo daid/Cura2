@@ -30,6 +30,7 @@ class Ultimaker2(FDMPrinter):
 
         self.getSettingByKey('machine_start_gcode').setDefault('; On the Ultimaker 2 the start and end sequence is controlled by the firmware.\n; You can add your own custom GCode here which is ran after the firmware start code.')
         self.getSettingByKey('machine_end_gcode').setDefault('; On the Ultimaker 2 the start and end sequence is controlled by the firmware.\n; You can add your own custom GCode here which is ran before the firmware end code.')
+        self.getSettingByKey('machine_gcode_flavor').setDefault('UltiGCode')
 
         self._updateMachineShape()
 

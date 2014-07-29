@@ -67,8 +67,8 @@ class MachineRenderer(Renderer):
         glDisable(GL_CULL_FACE)
 
         model_name = self.machine.getSettingValueByKey('display_model')
-        if model_name != '':
-            mesh = getMesh(model_name)
+        mesh = getMesh(model_name)
+        if mesh is not None:
             self._shader.bind()
             glColor3f(1, 1, 1)
             glEnable(GL_LIGHTING)
@@ -82,3 +82,17 @@ class MachineRenderer(Renderer):
                     v.metaData['VertexRenderer'] = openGLUtils.VertexRenderer(GL_TRIANGLES, v.vertexData)
                 v.metaData['VertexRenderer'].render()
             self._shader.unbind()
+        else:
+            size = self.machine.getSize()
+            glColor3f(0, 0, 0)
+            glPushMatrix()
+            glTranslatef(-size[0] / 2, -size[1] / 2, 0)
+            glBegin(GL_LINES)
+            glVertex3f(0, 0, 5)
+            glVertex3f(0, 0, 0)
+            glVertex3f(0, 0, 5)
+            glVertex3f(0, 10, 0)
+            glVertex3f(0, 0, 5)
+            glVertex3f(10, 0, 0)
+            glEnd()
+            glPopMatrix()
