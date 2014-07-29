@@ -8,6 +8,7 @@ from ConfigParser import ConfigParser
 from Cura.resources import getDefaultPreferenceStoragePath
 from Cura.resources import getResourcePath
 from Cura.gui.mainWindow import MainWindow
+from Cura.gui.newFDMprinterWizard import NewDFMPrinterWizard
 from Cura.scene.printer3DScene import Printer3DScene
 from Cura.machine.settingsViewPreset import SettingsViewPreset
 from Cura.machine.settingsViewPreset import loadSettingViewPresets
@@ -124,6 +125,15 @@ class CuraFDMApp(CuraApp):
             self.addMachine(machine)
             n += 1
 
+        if len(self._machine_list) < 1:
+            wizard = NewDFMPrinterWizard()
+            machine = wizard.run()
+            if machine is not None:
+                self.addMachine(machine)
+
+        if len(self._machine_list) < 1:
+            return False
+
         self._toolbox.append(RotateTool(self))
         self._toolbox.append(ScaleTool(self))
         self._toolbox.append(MirrorTool(self))
@@ -146,7 +156,7 @@ class CuraFDMApp(CuraApp):
     def finished(self):
         machine_storage = ConfigParser()
         for machine in self._machine_list:
-            self._machine.saveSettingsToConfigParser(machine_storage, 'machine_%d' % (self._machine_list.index(machine)))
+            machine.saveSettingsToConfigParser(machine_storage, 'machine_%d' % (self._machine_list.index(machine)))
         with open(getDefaultPreferenceStoragePath('machines.ini'), "w") as f:
             machine_storage.write(f)
         saveSettingViewPresets(getDefaultPreferenceStoragePath('view_presets.ini'), self._settings_view_presets)

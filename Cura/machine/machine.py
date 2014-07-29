@@ -61,7 +61,7 @@ class Machine(object):
         return self._machine_shape
 
     def getSize(self):
-        return numpy.array([self.getSettingValueByKeyFloat('machine_width'),self.getSettingValueByKeyFloat('machine_height'),self.getSettingValueByKeyFloat('machine_depth')])
+        return numpy.array([self.getSettingValueByKeyFloat('machine_width'),self.getSettingValueByKeyFloat('machine_depth'),self.getSettingValueByKeyFloat('machine_height')])
 
     def getSettingByKey(self, key):
         for c in self._setting_category_list:

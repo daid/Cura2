@@ -13,12 +13,15 @@ class PrintSaveButton(GradientButton):
         super(PrintSaveButton, self).__init__(parent, label='Save on', icon='save_button.png', icon_align=wx.ALIGN_RIGHT)
         self.Bind(wx.EVT_BUTTON, self._onSaveClick)
         self._updateButton()
-        app.getTranslator().addProgressCallback(self._onProgressUpdate)
         self._timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self._updateButton)
         self._timer.Start(2000)
+        app.getTranslator().addProgressCallback(self._onProgressUpdate)
 
     def _onProgressUpdate(self, progress, ready):
+        wx.CallAfter(self.__onProgressUpdate, progress, ready)
+
+    def __onProgressUpdate(self, progress, ready):
         self.setFillAmount(progress)
         self.Enable(ready)
         if ready:

@@ -145,10 +145,6 @@ class FDMPrinter(printer3D.Printer3D):
         self.addSettingCategory(SettingCategory('blackmagic', order=100).setLabel('Black Magic'))
         self.addSetting('blackmagic', Setting('magic_spiralize', False, 'bool').setLabel(_("Spiralize the outer contour"), _("Spiralize is smoothing out the Z move of the outer edge. This will create a steady Z increase over the whole print. This feature turns a solid object into a single walled print with a solid bottom.\nThis feature used to be called Joris in older versions.")))
 
-        size = self.getSize()
-        ret = numpy.array([[-size[0]/2,-size[1]/2],[size[0]/2,-size[1]/2],[size[0]/2, size[1]/2], [-size[0]/2, size[1]/2]], numpy.float32)
-        self._machine_shape = ret
-
     def getMaxNozzles(self):
         return 8
 

@@ -2,7 +2,7 @@ import wx
 
 from Cura.gui.widgets.gradientButton import GradientButton
 from Cura.gui.fdmMachineConfigDialog import FDMMachineConfigDialog
-
+from Cura.gui.newFDMprinterWizard import NewDFMPrinterWizard
 
 class MachineButton(GradientButton):
     def __init__(self, parent, app):
@@ -24,11 +24,19 @@ class MachineButton(GradientButton):
         popup.AppendSeparator()
         i = popup.Append(-1, _("Edit machine configuration"))
         self.Bind(wx.EVT_MENU, self._onMachineEdit, i)
-        popup.Append(-1, _("Add new machine"))
+        i = popup.Append(-1, _("Add new machine"))
+        self.Bind(wx.EVT_MENU, self._onNewMachine, i)
         self.PopupMenu(popup)
 
     def _onMachineEdit(self, e):
         FDMMachineConfigDialog(self._app).ShowModal()
+
+    def _onNewMachine(self, e):
+        wizard = NewDFMPrinterWizard()
+        machine = wizard.run()
+        if machine is not None:
+            self._app.addMachine(machine)
+            self._app.setMachine(machine)
 
     def _onSwitchMachine(self, e):
         machine = self._app.getMachineList()[e.GetId() - self._id_base]

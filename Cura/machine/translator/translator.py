@@ -167,7 +167,11 @@ class Translator(object):
 
     def progressUpdate(self, progress, ready):
         for callback in self._progress_callbacks:
-            callback(progress, ready)
+            try:
+                callback(progress, ready)
+            except:
+                import traceback
+                traceback.print_exc()
 
     def canTranslate(self):
         """ Override in subclass """

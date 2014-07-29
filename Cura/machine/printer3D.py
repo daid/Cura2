@@ -1,4 +1,4 @@
-__author__ = 'Jaime van Kessel'
+import numpy
 
 from Cura.machine import machine
 from Cura.machine.setting import Setting
@@ -29,6 +29,14 @@ class Printer3D(machine.Machine):
         self.getSettingByKey('support_type').setCopyFromParentFunction(lambda m, v: 'buildplate' if v == 'True' else '')
 
         self._disallowed_zones = []  # List of polys
+
+        self.getSettingByKey('machine_width').addCallback(self._updateMachineShape)
+        self.getSettingByKey('machine_depth').addCallback(self._updateMachineShape)
+
+    def _updateMachineShape(self):
+        size = self.getSize()
+        ret = numpy.array([[-size[0]/2,-size[1]/2],[size[0]/2,-size[1]/2],[size[0]/2, size[1]/2], [-size[0]/2, size[1]/2]], numpy.float32)
+        self._machine_shape = ret
 
     def getDisallowedZones(self):
         return self._disallowed_zones

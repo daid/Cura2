@@ -79,6 +79,7 @@ class Setting(object):
         self._type = type
         self._visible = True
         self._validators = []
+        self._callbacks = []
         self._conditions = []
         self._parent_setting = None
         self._hide_if_all_children_visible = True
@@ -175,6 +176,8 @@ class Setting(object):
     def setValue(self, value):
         if self._value != value:
             self._value = value
+            for callback in self._callbacks:
+                callback()
             self._machine.onSettingUpdated()
 
     def validate(self):
@@ -198,6 +201,9 @@ class Setting(object):
             if not condition():
                 return False
         return True
+
+    def addCallback(self, callback):
+        self._callbacks.append(callback)
 
     def getSettings(self):
         settings = []
