@@ -22,6 +22,7 @@ class Translator(object):
         self._progress_callbacks = []
         self._start_timer = None
         self._start_delay = 0.5
+        self._run_in_debugger = False
 
     def setMachine(self, machine):
         self._machine = machine
@@ -74,7 +75,7 @@ class Translator(object):
             su.wShowWindow = subprocess.SW_HIDE
             kwargs['startupinfo'] = su
             kwargs['creationflags'] = 0x00004000 #BELOW_NORMAL_PRIORITY_CLASS
-        return subprocess.Popen(commandList, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
+        return subprocess.Popen(commandList, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
 
     def start(self):
         self._engine_thread = threading.Thread(target=self._start, args=(self._engine_thread,))
@@ -107,6 +108,8 @@ class Translator(object):
             connection.setup()
 
         commandList = [self.findExecutable()]
+        if self._run_in_debugger:
+            commandList = ['C:/CodeBlocks/MinGW/bin/gdb.exe', '-q', '--args', self.findExecutable(), '-o', 'temp.gcode']
         for connection in self._connections:
             commandList += connection.getCommandParameters()
         commandList += self.getCommandParameters()
@@ -119,6 +122,9 @@ class Translator(object):
         logThread = threading.Thread(target=self._watchStderr, args=(self._engine_process.stderr,))
         logThread.daemon = True
         logThread.start()
+
+        if self._run_in_debugger:
+            self._runDebugCommunication()
 
         data = self._engine_process.stdout.read(4096)
         while len(data) > 0:
@@ -136,6 +142,14 @@ class Translator(object):
         self._engine_process = None
         if returnCode != 0:
             print self._result_log.getvalue()
+
+    def _runDebugCommunication(self):
+        import sys
+        self._debug_frame = None
+        data = self._engine_process.stdout.read(1)
+        while len(data) > 0:
+            sys.stdout.write(data)
+            data = self._engine_process.stdout.read(1)
 
     def _communicate(self):
         for connection in self._connections:

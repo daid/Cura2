@@ -44,6 +44,7 @@ class TooltipWindow(wx.PopupWindow):
         self.SetSizer(self._sizer)
         self.Layout()
         self.owner_ctrl = None
+        self.Bind(wx.EVT_ENTER_WINDOW, lambda e: self.Hide())
 
         global popupWindow
         popupWindow = self

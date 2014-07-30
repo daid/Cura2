@@ -22,6 +22,8 @@ class FDMPrinterTranslator(Printer3DTranslator):
     def findExecutable(self):
         """ Hack to ease development. """
         if platform.system() == 'Windows':
+            if os.path.exists('C:/Software/Cura_SteamEngine/_bin/Debug/Cura_SteamEngine.exe'):
+                return 'C:/Software/Cura_SteamEngine/_bin/Debug/Cura_SteamEngine.exe'
             if os.path.exists('C:/Software/Cura_SteamEngine/_bin/Release/Cura_SteamEngine.exe'):
                 return 'C:/Software/Cura_SteamEngine/_bin/Release/Cura_SteamEngine.exe'
         return super(FDMPrinterTranslator, self).findExecutable()
@@ -168,6 +170,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
             self.progressUpdate(struct.unpack('@f', data)[0], False)
         elif command_nr == self.CMD_OBJECT_PRINT_TIME:
             index, print_time = struct.unpack('@if', data)
+            self._total_print_time += print_time
             if self._object_index_mapping is not None:
                 self._object_index_mapping[index].setInfo('Print time', formatTime(print_time))
             else:
@@ -175,6 +178,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
                     obj.setInfo('Total print time', formatTime(print_time))
         elif command_nr == self.CMD_OBJECT_PRINT_MATERIAL:
             index, extruder_nr, material_amount = struct.unpack('@iif', data)
+            self._total_material[extruder_nr] += material_amount
             if self._object_index_mapping is not None:
                 self._object_index_mapping[index].setInfo('Material', formatMaterial(material_amount))
             else:
@@ -221,6 +225,8 @@ class FDMPrinterTranslator(Printer3DTranslator):
         for obj in self._scene.getObjects():
             obj.updatePrintExtension()
         self._scene.clearResult()
+        self._total_print_time = 0.0
+        self._total_material = [0.0] * self._machine.getMaxNozzles()
 
     def setup(self):
         names = {}
@@ -240,8 +246,10 @@ class FDMPrinterTranslator(Printer3DTranslator):
         self._scene.getResult().setDefaultFilename('%s.%s' % (default_filename.strip(), self._machine.getExportExtension()))
 
     def finish(self, success):
+        result = self._result_output.getvalue()
+        result = ";FLAVOR:%s\n;TIME:%d\n;MATERIAL:%d\n;MATERIAL2:%d\n" % (self._machine.getSettingValueByKey('machine_gcode_flavor'), self._total_print_time, self._total_material[0], self._total_material[1]) + result
         self._scene.getResult().setLog(self._result_log.getvalue())
-        self._scene.getResult().setGCode(self._result_output.getvalue())
+        self._scene.getResult().setGCode(result)
         if success:
             self.progressUpdate(1.0, True)
         else:

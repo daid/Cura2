@@ -33,6 +33,8 @@ class Printer3D(machine.Machine):
         self.getSettingByKey('machine_width').addCallback(self._updateMachineShape)
         self.getSettingByKey('machine_depth').addCallback(self._updateMachineShape)
 
+        self._updateMachineShape()
+
     def _updateMachineShape(self):
         size = self.getSize()
         ret = numpy.array([[-size[0]/2,-size[1]/2],[size[0]/2,-size[1]/2],[size[0]/2, size[1]/2], [-size[0]/2, size[1]/2]], numpy.float32)
