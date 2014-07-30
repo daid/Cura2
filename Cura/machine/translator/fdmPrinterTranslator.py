@@ -247,7 +247,8 @@ class FDMPrinterTranslator(Printer3DTranslator):
 
     def finish(self, success):
         result = self._result_output.getvalue()
-        result = ";FLAVOR:%s\n;TIME:%d\n;MATERIAL:%d\n;MATERIAL2:%d\n" % (self._machine.getSettingValueByKey('machine_gcode_flavor'), self._total_print_time, self._total_material[0], self._total_material[1]) + result
+        if self._machine.getSettingValueByKey('machine_gcode_flavor') == 'UltiGCode':
+            result = ";FLAVOR:%s\n;TIME:%d\n;MATERIAL:%d\n;MATERIAL2:%d\n" % (self._machine.getSettingValueByKey('machine_gcode_flavor'), self._total_print_time, self._total_material[0], self._total_material[1]) + result
         self._scene.getResult().setLog(self._result_log.getvalue())
         self._scene.getResult().setGCode(result)
         if success:
