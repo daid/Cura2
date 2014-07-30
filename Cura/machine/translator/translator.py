@@ -1,4 +1,3 @@
-import platform
 import os
 import subprocess
 import threading

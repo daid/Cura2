@@ -5,6 +5,8 @@ import platform
 import os
 from ConfigParser import ConfigParser
 
+from Cura.preferences import getPreference
+from Cura.preferences import setPreference
 from Cura.resources import getDefaultPreferenceStoragePath
 from Cura.resources import getResourcePath
 from Cura.gui.mainWindow import MainWindow
@@ -144,16 +146,20 @@ class CuraFDMApp(CuraApp):
         svp.importFromFile(getResourcePath('view_presets/normal_view.ini'))
         svp.setBuildIn()
         self.addSettingsViewPreset(svp)
-        self.setActiveSettingsView(svp)
 
         for svp in loadSettingViewPresets(getDefaultPreferenceStoragePath('view_presets.ini')):
             self.addSettingsViewPreset(svp)
+
+        self.setActiveSettingsView(self._settings_view_presets[int(getPreference('active_view_preset', 0))])
+        self.setMachine(self._machine_list[int(getPreference('active_machine', 0))])
 
         wx.CallAfter(self._scene.loadFile, 'C:/Models/D&D/Box.stl')
 
         return True
 
     def finished(self):
+        setPreference('active_view_preset', self._settings_view_presets.index(self._active_setting_view))
+        setPreference('active_machine', self._machine_list.index(self._machine))
         machine_storage = ConfigParser()
         for machine in self._machine_list:
             machine.saveSettingsToConfigParser(machine_storage, 'machine_%d' % (self._machine_list.index(machine)))
