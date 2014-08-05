@@ -26,9 +26,10 @@ class DisplayableObject(object):
     def getPosition(self):
         return self._position
 
-    def setPosition(self, new_pos):
+    def setPosition(self, new_pos, allow_update=True):
         self._position = new_pos
-        self._updated()
+        if allow_update:
+            self._updated()
 
     def getMatrix(self):
         return self._matrix

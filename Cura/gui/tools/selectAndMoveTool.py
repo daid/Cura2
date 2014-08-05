@@ -56,7 +56,7 @@ class SelectAndMoveTool(Tool):
 
             for obj in self._app.getScene().getObjects():
                 if obj.isSelected():
-                    obj.setPosition(obj.getPosition() + delta)
+                    obj.setPosition(obj.getPosition() + delta, False)
 
     def onMouseUp(self, x, y, button):
         if self._state == 'dragObjectOrSelect':
@@ -67,5 +67,9 @@ class SelectAndMoveTool(Tool):
                 obj.setSelected(not obj.isSelected())
                 self._app.getView().refresh()
             self._state = ''
+        if self._state == 'dragObject':
+            for obj in self._app.getScene().getObjects():
+                if obj.isSelected():
+                    obj.setPosition(obj.getPosition())
         if button == 3 and self._state == 'rotateView':
             self._state = ''
