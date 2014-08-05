@@ -124,16 +124,16 @@ class FDMPrinterTranslator(Printer3DTranslator):
             ## Print objects in that order
             self.sendData(self.CMD_OBJECT_COUNT, struct.pack("@i", len(order)))
             for idx in order:
+                mesh = obj.getMesh()
+                self.sendData(self.CMD_OBJECT_LIST, struct.pack("@i", len(mesh.getVolumes())))
                 obj = self._scene.getObjects()[idx]
                 pos = obj.getPosition().copy()
                 if self._machine.getSettingValueByKey('machine_center_is_zero') == 'False':
                     pos[0] += self._machine.getSettingValueByKeyFloat('machine_width') / 2
                     pos[1] += self._machine.getSettingValueByKeyFloat('machine_depth') / 2
-                self.sendData(self.CMD_SETTING, 'posx\x00' + str(pos[0] * 1000))
-                self.sendData(self.CMD_SETTING, 'posy\x00' + str(pos[1] * 1000))
+                self.sendData(self.CMD_SETTING, 'position.X\x00' + str(pos[0] * 1000))
+                self.sendData(self.CMD_SETTING, 'position.Y\x00' + str(pos[1] * 1000))
                 self.sendData(self.CMD_MATRIX, obj.getMatrix().getA1().astype(numpy.float32).tostring())
-                mesh = obj.getMesh()
-                self.sendData(self.CMD_OBJECT_LIST, struct.pack("@i", len(mesh.getVolumes())))
                 for volume in mesh.getVolumes():
                     self.sendData(self.CMD_MESH_LIST, struct.pack("@i", 1))
                     self.sendData(self.CMD_VERTEX_LIST, volume.getVertexPositionData().tostring())
@@ -141,28 +141,22 @@ class FDMPrinterTranslator(Printer3DTranslator):
                 self.sendData(self.CMD_PROCESS)
         else:
             self.sendData(self.CMD_OBJECT_COUNT, struct.pack("@i", 1))
-            mesh_count = 0
             for obj in self._scene.getObjects():
                 if not self._scene.checkPlatform(obj):
                     continue
-                mesh_count += len(obj.getMesh().getVolumes())
-            self.sendData(self.CMD_OBJECT_LIST, struct.pack("@i", mesh_count))
-            for obj in self._scene.getObjects():
-                if not self._scene.checkPlatform(obj):
-                    continue
-                self.sendData(self.CMD_SETTING, 'posx\x00' + str(obj.getPosition()[0] * 1000))
-                self.sendData(self.CMD_SETTING, 'posy\x00' + str(obj.getPosition()[1] * 1000))
+                mesh = obj.getMesh()
+                self.sendData(self.CMD_OBJECT_LIST, struct.pack("@i", len(mesh.getVolumes())))
+                pos = obj.getPosition().copy()
+                if self._machine.getSettingValueByKey('machine_center_is_zero') == 'False':
+                    pos[0] += self._machine.getSettingValueByKeyFloat('machine_width') / 2
+                    pos[1] += self._machine.getSettingValueByKeyFloat('machine_depth') / 2
+                self.sendData(self.CMD_SETTING, 'position.X\x00' + str(pos[0] * 1000))
+                self.sendData(self.CMD_SETTING, 'position.Y\x00' + str(pos[1] * 1000))
                 self.sendData(self.CMD_MATRIX, obj.getMatrix().getA1().astype(numpy.float32).tostring())
-                for volume in obj.getMesh().getVolumes():
+                for volume in mesh.getVolumes():
                     self.sendData(self.CMD_MESH_LIST, struct.pack("@i", 1))
                     self.sendData(self.CMD_VERTEX_LIST, volume.getVertexPositionData().tostring())
                     # self.sendData(self.CMD_NORMAL_LIST + volume.getVertexNormalData().tostring())
-            if self._machine.getSettingValueByKey('machine_center_is_zero') == 'True':
-                self.sendData(self.CMD_SETTING, 'posx\x000')
-                self.sendData(self.CMD_SETTING, 'posy\x000')
-            else:
-                self.sendData(self.CMD_SETTING, 'posx\x00' + str(self._machine.getSettingValueByKeyFloat('machine_width') / 2 * 1000))
-                self.sendData(self.CMD_SETTING, 'posy\x00' + str(self._machine.getSettingValueByKeyFloat('machine_depth') / 2 * 1000))
             self.sendData(self.CMD_PROCESS)
 
     def receivedData(self, command_nr, data):
@@ -248,7 +242,12 @@ class FDMPrinterTranslator(Printer3DTranslator):
     def finish(self, success):
         result = self._result_output.getvalue()
         if self._machine.getSettingValueByKey('machine_gcode_flavor') == 'UltiGCode':
-            result = ";FLAVOR:%s\n;TIME:%d\n;MATERIAL:%d\n;MATERIAL2:%d\n" % (self._machine.getSettingValueByKey('machine_gcode_flavor'), self._total_print_time, self._total_material[0], self._total_material[1]) + result
+            prefix = ";FLAVOR:%s\n;TIME:%d\n" % (self._machine.getSettingValueByKey('machine_gcode_flavor'), self._total_print_time)
+            prefix += ";MATERIAL:%d\n"  % (self._total_material[0])
+            for n in xrange(1, self._machine.getMaxNozzles()):
+                if self._total_material[n] > 0:
+                    prefix += ";MATERIAL%d:%d\n"  % (n, self._total_material[n])
+            result = prefix + result
         self._scene.getResult().setLog(self._result_log.getvalue())
         self._scene.getResult().setGCode(result)
         if success:
@@ -311,16 +310,16 @@ class FDMPrinterTranslator(Printer3DTranslator):
         }
 
         if vbk('top_bottom_pattern') == 'lines':
-            settings['skinPattern'] = 0
+            settings['skinPattern'] = 'SKIN_LINES'
         elif vbk('top_bottom_pattern') == 'concentric':
-            settings['skinPattern'] = 1
+            settings['skinPattern'] = 'SKIN_CONCENTRIC'
 
         if vbk('fill_pattern') == 'grid':
-            settings['infillPattern'] = 0
+            settings['infillPattern'] = 'INFILL_GRID'
         elif vbk('fill_pattern') == 'lines':
-            settings['infillPattern'] = 1
+            settings['infillPattern'] = 'INFILL_LINES'
         elif vbk('fill_pattern') == 'concentric':
-            settings['infillPattern'] = 2
+            settings['infillPattern'] = 'INFILL_CONCENTRIC'
 
         if vbk('adhesion_type') == 'raft':
             settings['raftMargin'] = int(fbk('raft_margin') * 1000)

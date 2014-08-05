@@ -140,6 +140,7 @@ class Translator(object):
         self.finish(returnCode == 0)
         self._engine_process = None
         if returnCode != 0:
+            print 'Engine returned error: %d' % (returnCode)
             print self._result_log.getvalue()
 
     def _runDebugCommunication(self):
