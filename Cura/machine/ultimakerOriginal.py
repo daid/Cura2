@@ -41,4 +41,4 @@ class UltimakerOriginal(FDMPrinter):
         self._disallowed_zones.append(numpy.array([[-size[0]/2+w+2, size[1]/2],[-size[0]/2, size[1]/2], [-size[0]/2, size[1]/2-h],[-size[0]/2+w, size[1]/2-h]], numpy.float32))
         self._disallowed_zones.append(numpy.array([[ size[0]/2, size[1]/2],[ size[0]/2-w-2, size[1]/2], [ size[0]/2-w, size[1]/2-h],[ size[0]/2, size[1]/2-h]], numpy.float32))
 
-        super(Ultimaker2, self)._updateMachineShape()
+        super(UltimakerOriginal, self)._updateMachineShape()
