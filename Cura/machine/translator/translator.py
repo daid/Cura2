@@ -50,9 +50,9 @@ class Translator(object):
         """
         name = self._engine_executable_name
         searchPaths = [
-            os.path.join(os.path.dirname(__file__), '../..'),
+            os.path.join(os.path.dirname(__file__), '../../..'),
             os.path.join(os.path.dirname(__file__), '../../../../..'),
-            os.path.join(os.path.dirname(__file__), '../..', self._engine_executable_name),
+            os.path.join(os.path.dirname(__file__), '../../..', self._engine_executable_name),
             '/usr/bin/',
             '/usr/local/bin/',
         ]
