@@ -37,7 +37,7 @@ class CuraApp(wx.App):
         self._main_window = None
 
         if platform.system() == "Windows" and not 'PYCHARM_HOSTED' in os.environ:
-            super(CuraApp, self).__init__(redirect=True, filename='output.txt')
+            super(CuraApp, self).__init__(redirect=True, filename=getDefaultPreferenceStoragePath('output.log'))
         else:
             super(CuraApp, self).__init__(redirect=False)
 
