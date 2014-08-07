@@ -54,7 +54,7 @@ class MainMachineSelectPage(wx.wizard.PyWizardPage):
         self._printers = []
 
         self._addPrinterButton('ultimaker2.png', Ultimaker2Page(self.GetParent()))
-        self._addPrinterButton('ultimaker_original.png', self._custom_page)
+        self._addPrinterButton('ultimaker_original.png', UltimakerOriginalPage(self.GetParent()))
         self._addPrinterButton('other_printer.png', self._custom_page)
 
         sizer.AddGrowableCol(0)

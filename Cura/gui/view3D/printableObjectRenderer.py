@@ -50,11 +50,12 @@ class PrintableObjectRenderer(Renderer):
                     v.metaData['VertexRenderer'].render()
             else:
                 mesh = getMesh('loading_mesh.stl')
-                for v in mesh.getVolumes():
-                    if 'VertexRenderer' not in v.metaData:
-                        v.metaData['VertexRenderer'] = openGLUtils.VertexRenderer(GL_TRIANGLES, v.vertexData)
-                    glColor3f(color[0], color[1], color[2])
-                    v.metaData['VertexRenderer'].render()
+                if mesh is not None:
+                    for v in mesh.getVolumes():
+                        if 'VertexRenderer' not in v.metaData:
+                            v.metaData['VertexRenderer'] = openGLUtils.VertexRenderer(GL_TRIANGLES, v.vertexData)
+                        glColor3f(color[0], color[1], color[2])
+                        v.metaData['VertexRenderer'].render()
             glPopMatrix()
         self._shader.unbind()
 
