@@ -29,16 +29,3 @@ class UltimakerOriginal(FDMPrinter):
         self.getSettingByKey('machine_nozzle_offset_y_1').setDefault('0.0')
 
         self._updateMachineShape()
-
-    def _updateMachineShape(self):
-        # Update the Ultimaker 2 no-go-zones
-        self._disallowed_zones = []
-        w = 25
-        h = 10
-        size = self.getSize()
-        self._disallowed_zones.append(numpy.array([[-size[0]/2,-size[1]/2],[-size[0]/2+w+2,-size[1]/2], [-size[0]/2+w,-size[1]/2+h], [-size[0]/2,-size[1]/2+h]], numpy.float32))
-        self._disallowed_zones.append(numpy.array([[ size[0]/2-w-2,-size[1]/2],[ size[0]/2,-size[1]/2], [ size[0]/2,-size[1]/2+h],[ size[0]/2-w,-size[1]/2+h]], numpy.float32))
-        self._disallowed_zones.append(numpy.array([[-size[0]/2+w+2, size[1]/2],[-size[0]/2, size[1]/2], [-size[0]/2, size[1]/2-h],[-size[0]/2+w, size[1]/2-h]], numpy.float32))
-        self._disallowed_zones.append(numpy.array([[ size[0]/2, size[1]/2],[ size[0]/2-w-2, size[1]/2], [ size[0]/2-w, size[1]/2-h],[ size[0]/2, size[1]/2-h]], numpy.float32))
-
-        super(UltimakerOriginal, self)._updateMachineShape()
