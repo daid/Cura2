@@ -1,6 +1,7 @@
 import os
 import subprocess
 import threading
+import platform
 from cStringIO import StringIO
 
 
@@ -49,6 +50,8 @@ class Translator(object):
         :return: The full path to the engine executable.
         """
         name = self._engine_executable_name
+        if platform.system().startswith('Windows'):
+            name += ".exe"
         searchPaths = [
             os.path.join(os.path.dirname(__file__), '../../..'),
             os.path.join(os.path.dirname(__file__), '../../../../..'),
