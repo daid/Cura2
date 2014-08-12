@@ -2,6 +2,7 @@ import wx
 import os
 import threading
 
+from Cura.gui.logWindow import LogWindow
 from Cura.removableStorage import getStorageDevices
 from Cura.removableStorage import ejectDrive
 from Cura.gui.widgets.gradientButton import GradientButton
@@ -12,6 +13,7 @@ class PrintSaveButton(GradientButton):
         self._app = app
         super(PrintSaveButton, self).__init__(parent, label='Save on', icon='save_button.png', icon_align=wx.ALIGN_RIGHT)
         self.Bind(wx.EVT_BUTTON, self._onSaveClick)
+        self.Bind(wx.EVT_RIGHT_UP, self._onRightClick)
         self._updateButton()
         self._timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self._updateButton)
@@ -64,6 +66,9 @@ class PrintSaveButton(GradientButton):
 
             with open(filename, "wb") as f:
                 f.write(self._app.getScene().getResult().getGCode())
+
+    def _onRightClick(self, e):
+        LogWindow(self._app.getScene().getResult().getLog()).Show()
 
     def _eject(self, drive):
         ejectDrive(drive)

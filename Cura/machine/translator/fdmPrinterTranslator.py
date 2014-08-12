@@ -276,9 +276,10 @@ class FDMPrinterTranslator(Printer3DTranslator):
             'skirtMinLength': int(fbk('skirt_minimal_length') * 1000),
 
             'retractionAmount': int(fbk('retraction_amount') * 1000),
-            # 'retractionAmountPrime': int(fbk('') * 1000),
+            'retractionAmountPrime': int(0 * 1000),
             # 'retractionAmountExtruderSwitch': int(fbk('') * 1000),
             'retractionSpeed': int(fbk('retraction_speed')),
+            'retractionPrimeSpeed': int(fbk('retraction_speed')),
             'retractionMinimalDistance': int(fbk('retraction_min_travel') * 1000),
             'minimalExtrusionBeforeRetraction': int(fbk('retraction_minimal_extrusion') * 1000),
             'retractionZHop': int(fbk('retraction_hop') * 1000),
