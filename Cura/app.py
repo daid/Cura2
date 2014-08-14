@@ -182,6 +182,7 @@ class CuraFDMApp(CuraApp):
             self._active_setting_view.applyPreset(self._machine)
         if self._main_window is not None:
             self._main_window.refreshProfilePanel()
+        machine.setTranslator(self._translator)
         self._translator.trigger()
 
     def setActiveSettingsView(self, settings_view):

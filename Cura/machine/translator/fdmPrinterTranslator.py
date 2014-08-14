@@ -133,6 +133,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
                     pos[1] += self._machine.getSettingValueByKeyFloat('machine_depth') / 2
                 self.sendData(self.CMD_SETTING, 'position.X\x00' + str(pos[0] * 1000))
                 self.sendData(self.CMD_SETTING, 'position.Y\x00' + str(pos[1] * 1000))
+                self.sendData(self.CMD_SETTING, 'position.Z\x000')
                 self.sendData(self.CMD_MATRIX, obj.getMatrix().getA1().astype(numpy.float32).tostring())
                 for volume in mesh.getVolumes():
                     self.sendData(self.CMD_MESH_LIST, struct.pack("@i", 1))
@@ -152,6 +153,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
                     pos[1] += self._machine.getSettingValueByKeyFloat('machine_depth') / 2
                 self.sendData(self.CMD_SETTING, 'position.X\x00' + str(pos[0] * 1000))
                 self.sendData(self.CMD_SETTING, 'position.Y\x00' + str(pos[1] * 1000))
+                self.sendData(self.CMD_SETTING, 'position.Z\x000')
                 self.sendData(self.CMD_MATRIX, obj.getMatrix().getA1().astype(numpy.float32).tostring())
                 for volume in mesh.getVolumes():
                     self.sendData(self.CMD_MESH_LIST, struct.pack("@i", 1))
@@ -377,8 +379,14 @@ class FDMPrinterTranslator(Printer3DTranslator):
             settings['gcodeFlavor'] = 4
         elif vbk('machine_gcode_flavor') == 'Volumetric':
             settings['gcodeFlavor'] = 5
+        else:
+            settings['gcodeFlavor'] = 0
 
         settings['startCode'] = vbk('machine_start_gcode')
         settings['endCode'] = vbk('machine_end_gcode')
+
+        for n in xrange(1, self._machine.getMaxNozzles()):
+            settings['extruderOffset%d.X' % (n)] = vbk('machine_nozzle_offset_x_%d' % (n))
+            settings['extruderOffset%d.Y' % (n)] = vbk('machine_nozzle_offset_y_%d' % (n))
 
         return settings
