@@ -6,7 +6,6 @@ from Cura.gui.tooltip import showTooltip
 from Cura.gui.tooltip import hideTooltip
 
 
-#class SettingPanel(FloatingPanel):
 class SettingPanel(wx.Panel):
     """
     Panel which contains configuration settings that can be changed.
@@ -17,8 +16,7 @@ class SettingPanel(wx.Panel):
         self._app = app
 
         sizer = wx.GridBagSizer(2, 2)
-        sizer.Add(InnerTitleBar(self, category.getLabel()), pos=(0, 0), span=(1, 4), flag=wx.EXPAND)
-        n = 1
+        n = 0
         for s in category.getSettings():
             if not s.isVisible():
                 continue
@@ -59,6 +57,9 @@ class SettingPanel(wx.Panel):
             n += 1
 
         sizer.Add(wx.Panel(self, size=(3, 3)), pos=(n, 0), span=(1, 4))
+        #sizer.Add(wx.StaticLine(self), pos=(n, 0), span=(1, 4), flag=wx.EXPAND)
+        sizer.AddGrowableCol(1)
+        sizer.AddGrowableCol(2)
         self.SetSizer(sizer)
 
     def OnSettingChange(self, e):
