@@ -5,7 +5,9 @@ from Cura.gui.widgets.innerTitleBar import InnerTitleBar
 from Cura.gui.tooltip import showTooltip
 from Cura.gui.tooltip import hideTooltip
 
-class SettingPanel(FloatingPanel):
+
+#class SettingPanel(FloatingPanel):
+class SettingPanel(wx.Panel):
     """
     Panel which contains configuration settings that can be changed.
     This panel is used in the main window and expanded from the side profilePanel.

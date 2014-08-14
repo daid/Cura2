@@ -263,7 +263,6 @@ class MainWindow(wx.Frame):
         TooltipWindow(self)
 
         self._mainView = MainOpenGLView(self, app)
-        self._settingsPanel = None
         self._topBarLeft = TopBarLeft(self._mainView, app)
         self._topBarRight = TopBarRight(self._mainView, app)
         self._app.getView().setOpenGLWindow(self._mainView)
@@ -294,27 +293,11 @@ class MainWindow(wx.Frame):
 
         self.Bind(wx.EVT_MOVE, self._onMove)
 
-    def closeSettings(self):
-        if self._settingsPanel is not None:
-            self._floatSizer.Detach(self._settingsPanel)
-            self._settingsPanel.Destroy()
-            self._settingsPanel = None
-            self._mainView.Refresh()
-
     def refreshProfilePanel(self):
-        self.closeSettings()
         self._floatSizer.Detach(self._profilePanel)
         self._profilePanel.Destroy()
         self._profilePanel = ProfilePanel(self._mainView, self._app)
         self._floatSizer.Add(self._profilePanel, userData={'right': 0, 'top': 72})
-        self._mainView.Layout()
-
-    def openSettingCategory(self, categoryButton):
-        category = categoryButton.category
-        self.closeSettings()
-
-        self._settingsPanel = SettingPanel(self._mainView, self._app, category)
-        self._floatSizer.Add(self._settingsPanel, userData={'right': self._profilePanel, 'top': 72 + categoryButton.GetPosition()[1]})
         self._mainView.Layout()
 
     def _onMove(self, e):
