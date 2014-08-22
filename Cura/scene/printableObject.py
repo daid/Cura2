@@ -155,10 +155,15 @@ class PrintableObject(DisplayableObject):
     def clearInfo(self):
         self._info = {}
         if self._mesh is not None:
-            cnt = 0
-            for volume in self._mesh._volumes:
-                cnt += volume.vertexCount / 3
-            self._info['Polygon count'] = cnt
+            total = 0
+            for volume in self._mesh.getVolumes():
+                total += volume.vertexCount / 3
+            self._info['Polygon count'] = str(total)
+            if len(self._mesh.getVolumes()) > 1:
+                self._info['Polygon count'] += " ("
+                for volume in self._mesh.getVolumes():
+                    self._info['Polygon count'] += str(volume.vertexCount / 3) + ", "
+                self._info['Polygon count'] = self._info['Polygon count'][:-2] + ")"
         self._toolpath_layers = []
 
     def setInfo(self, key, value):

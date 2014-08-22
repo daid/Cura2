@@ -160,7 +160,7 @@ class GCodeLayerRenderer(object):
         return openGLUtils.VertexRenderer(GL_QUADS, numpy.array(verts, numpy.float32).reshape((len(verts) * 8, 3)), False)
 
     def finalize(self):
-        filamentRadius = 2.95 / 2.0
+        filamentRadius = 2.85 / 2.0
         filamentArea = math.pi * filamentRadius * filamentRadius
         self._layer_height = self._last_extrusion_z - self._prev_last_extrusion_z
         if self._layer_height <= 0.0:

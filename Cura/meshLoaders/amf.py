@@ -81,6 +81,10 @@ def loadMeshes(filename):
                             v3 = vertexList[int(t.text)]
                             v._addFace(v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2])
                 v.calculateNormals()
+
+                material_id = int(volume.get('materialid', 1))
+                if material_id > 1:
+                    v.metaData['setting_extruder_nr'] = material_id - 1
         ret.append(mesh)
 
     return ret
@@ -141,9 +145,9 @@ def saveSceneStream(s, filename, objects):
         xml.write('  <material id="%i">\n' % (n + 1))
         xml.write('    <metadata type="Name">Material %i</metadata>\n' % (n + 1))
         if n == 0:
-            col = profile.getPreferenceColour('model_colour')
+            col = [1, 0, 0]
         else:
-            col = profile.getPreferenceColour('model_colour%i' % (n + 1))
+            col = [0, 1, 0]
         xml.write('    <color><r>%.2f</r><g>%.2f</g><b>%.2f</b></color>\n' % (col[0], col[1], col[2]))
         xml.write('  </material>\n')
     xml.write('</amf>\n')

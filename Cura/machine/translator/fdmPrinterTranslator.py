@@ -105,60 +105,64 @@ class FDMPrinterTranslator(Printer3DTranslator):
         return False
 
     def communicate(self):
-        for k, v in self.getEngineSettings().items():
+        main_settings = self.getEngineSettings()
+        for k, v in main_settings.items():
             self.sendData(self.CMD_SETTING, str(k) + '\x00' + str(v))
         one_at_a_time = self._scene.getOneAtATimeActive()
         if one_at_a_time:
             ## Find out printing order
             order = self._findPrintOrder()
+            if not order:
+                one_at_a_time = False
 
         for obj in self._scene.getObjects():
             obj.clearInfo()
         self._object_index_mapping = None
 
-        if one_at_a_time and order:
+        if one_at_a_time:
             self._object_index_mapping = []
             for idx in order:
                 self._object_index_mapping.append(self._scene.getObjects()[idx])
                 self._scene.getObjects()[idx].setInfo('Order', '%d' % (order.index(idx) + 1))
-            ## Print objects in that order
             self.sendData(self.CMD_OBJECT_COUNT, struct.pack("@i", len(order)))
-            for idx in order:
-                mesh = obj.getMesh()
-                self.sendData(self.CMD_OBJECT_LIST, struct.pack("@i", len(mesh.getVolumes())))
-                obj = self._scene.getObjects()[idx]
-                pos = obj.getPosition().copy()
-                if self._machine.getSettingValueByKey('machine_center_is_zero') == 'False':
-                    pos[0] += self._machine.getSettingValueByKeyFloat('machine_width') / 2
-                    pos[1] += self._machine.getSettingValueByKeyFloat('machine_depth') / 2
-                self.sendData(self.CMD_SETTING, 'position.X\x00' + str(pos[0] * 1000))
-                self.sendData(self.CMD_SETTING, 'position.Y\x00' + str(pos[1] * 1000))
-                self.sendData(self.CMD_SETTING, 'position.Z\x000')
-                self.sendData(self.CMD_MATRIX, obj.getMatrix().getA1().astype(numpy.float32).tostring())
-                for volume in mesh.getVolumes():
-                    self.sendData(self.CMD_MESH_LIST, struct.pack("@i", 1))
-                    self.sendData(self.CMD_VERTEX_LIST, volume.getVertexPositionData().tostring())
-                    # self.sendData(self.CMD_NORMAL_LIST, volume.getVertexNormalData().tostring())
-                self.sendData(self.CMD_PROCESS)
         else:
+            order = []
+            volume_count = 0
             self.sendData(self.CMD_OBJECT_COUNT, struct.pack("@i", 1))
-            for obj in self._scene.getObjects():
-                if not self._scene.checkPlatform(obj):
+            for idx in xrange(0, len(self._scene.getObjects())):
+                if not self._scene.checkPlatform(self._scene.getObjects()[idx]):
                     continue
-                mesh = obj.getMesh()
+                order.append(idx)
+                volume_count += len(obj.getMesh().getVolumes())
+            self.sendData(self.CMD_OBJECT_LIST, struct.pack("@i", volume_count))
+
+        for idx in order:
+            mesh = obj.getMesh()
+            if one_at_a_time:
                 self.sendData(self.CMD_OBJECT_LIST, struct.pack("@i", len(mesh.getVolumes())))
-                pos = obj.getPosition().copy()
-                if self._machine.getSettingValueByKey('machine_center_is_zero') == 'False':
-                    pos[0] += self._machine.getSettingValueByKeyFloat('machine_width') / 2
-                    pos[1] += self._machine.getSettingValueByKeyFloat('machine_depth') / 2
-                self.sendData(self.CMD_SETTING, 'position.X\x00' + str(pos[0] * 1000))
-                self.sendData(self.CMD_SETTING, 'position.Y\x00' + str(pos[1] * 1000))
-                self.sendData(self.CMD_SETTING, 'position.Z\x000')
-                self.sendData(self.CMD_MATRIX, obj.getMatrix().getA1().astype(numpy.float32).tostring())
-                for volume in mesh.getVolumes():
-                    self.sendData(self.CMD_MESH_LIST, struct.pack("@i", 1))
-                    self.sendData(self.CMD_VERTEX_LIST, volume.getVertexPositionData().tostring())
-                    # self.sendData(self.CMD_NORMAL_LIST + volume.getVertexNormalData().tostring())
+            obj = self._scene.getObjects()[idx]
+            pos = obj.getPosition().copy()
+            if self._machine.getSettingValueByKey('machine_center_is_zero') == 'False':
+                pos[0] += self._machine.getSettingValueByKeyFloat('machine_width') / 2
+                pos[1] += self._machine.getSettingValueByKeyFloat('machine_depth') / 2
+            self.sendData(self.CMD_SETTING, 'position.X\x00' + str(pos[0] * 1000))
+            self.sendData(self.CMD_SETTING, 'position.Y\x00' + str(pos[1] * 1000))
+            self.sendData(self.CMD_SETTING, 'position.Z\x000')
+            self.sendData(self.CMD_MATRIX, obj.getMatrix().getA1().astype(numpy.float32).tostring())
+            object_settings = self.getEngineSettings(obj)
+            for k, v in object_settings.items():
+                if main_settings[k] != v:
+                    self.sendData(self.CMD_SETTING, str(k) + '\x00' + str(v))
+            for volume in mesh.getVolumes():
+                self.sendData(self.CMD_MESH_LIST, struct.pack("@i", 1))
+                self.sendData(self.CMD_VERTEX_LIST, volume.getVertexPositionData().tostring())
+                # self.sendData(self.CMD_NORMAL_LIST, volume.getVertexNormalData().tostring())
+                for k, v in self.getEngineSettings(obj, volume).items():
+                    if object_settings[k] != v:
+                        self.sendData(self.CMD_SETTING, str(k) + '\x00' + str(v))
+            if one_at_a_time:
+                self.sendData(self.CMD_PROCESS)
+        if not one_at_a_time:
             self.sendData(self.CMD_PROCESS)
 
     def receivedData(self, command_nr, data):
@@ -260,10 +264,27 @@ class FDMPrinterTranslator(Printer3DTranslator):
     def getCommandParameters(self):
         return ['-v', '--command-socket']
 
-    def getEngineSettings(self):
-        vbk = self._machine.getSettingValueByKey
-        fbk = self._machine.getSettingValueByKeyFloat
+    def _getSettingValue(self, key):
+        return self._machine.getSettingValueByKey(key)
+
+    def _convertToFloat(self, value):
+        try:
+            value = value.replace(',', '.')
+            return float(eval(value, {}, {}))
+        except:
+            return 0.0
+
+    def getEngineSettings(self, obj=None, volume=None):
+        extruder_nr = 0
+        if obj is not None and 'setting_extruder_nr' in obj.getMesh().metaData:
+            extruder_nr = int(obj.getMesh().metaData['setting_extruder_nr'])
+        if volume is not None and 'setting_extruder_nr' in volume.metaData:
+            extruder_nr = int(volume.metaData['setting_extruder_nr'])
+        vbk = self._getSettingValue
+        fbk = lambda k: self._convertToFloat(vbk(k))
+
         settings = {
+            'extruderNr': extruder_nr,
             'layerThickness': int(fbk('layer_height') * 1000),
             'initialLayerThickness': int(fbk('layer_height_0') * 1000),
             'filamentDiameter': int(fbk('material_diameter') * 1000),
@@ -310,6 +331,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
             'fanSpeedMax': int(fbk('cool_fan_speed_max')),
 
             'spiralizeMode': 1 if vbk('magic_spiralize') == 'True' else 0,
+
         }
 
         if vbk('top_bottom_pattern') == 'lines':
@@ -386,7 +408,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
         settings['endCode'] = vbk('machine_end_gcode')
 
         for n in xrange(1, self._machine.getMaxNozzles()):
-            settings['extruderOffset%d.X' % (n)] = vbk('machine_nozzle_offset_x_%d' % (n))
-            settings['extruderOffset%d.Y' % (n)] = vbk('machine_nozzle_offset_y_%d' % (n))
+            settings['extruderOffset%d.X' % (n)] = int(fbk('machine_nozzle_offset_x_%d' % (n)) * 1000)
+            settings['extruderOffset%d.Y' % (n)] = int(fbk('machine_nozzle_offset_y_%d' % (n)) * 1000)
 
         return settings

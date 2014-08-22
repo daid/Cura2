@@ -37,13 +37,17 @@ class PrintableObjectRenderer(Renderer):
             openGLUtils.glMultiplyMatrix(obj.getTempMatrix())
             glTranslatef(offset[0], offset[1], offset[2] - obj.getSize()[2] / 2.0)
             openGLUtils.glMultiplyMatrix(obj.getMatrix())
-            color = [1.0, 0.1, 0.6]
-            if not self.scene.checkPlatform(obj):
-                color = [0.4, 0.4, 0.4]
-            if not obj.isSelected():
-                color = map(lambda n: n * 0.8, color)
             if mesh is not None:
                 for v in mesh.getVolumes():
+                    color = [1.0, 0.4, 0.6]
+                    if 'setting_extruder_nr' in v.metaData:
+                        extruder = int(v.metaData['setting_extruder_nr'])
+                        if extruder == 1:
+                            color = [1.0, 0.1, 0.6]
+                    if not self.scene.checkPlatform(obj):
+                        color = [0.4, 0.4, 0.4]
+                    if not obj.isSelected():
+                        color = map(lambda n: n * 0.8, color)
                     if 'VertexRenderer' not in v.metaData:
                         v.metaData['VertexRenderer'] = openGLUtils.VertexRenderer(GL_TRIANGLES, v.vertexData)
                     glColor3f(color[0], color[1], color[2])
@@ -54,7 +58,7 @@ class PrintableObjectRenderer(Renderer):
                     for v in mesh.getVolumes():
                         if 'VertexRenderer' not in v.metaData:
                             v.metaData['VertexRenderer'] = openGLUtils.VertexRenderer(GL_TRIANGLES, v.vertexData)
-                        glColor3f(color[0], color[1], color[2])
+                        glColor3f(0.5, 0.5, 0.5)
                         v.metaData['VertexRenderer'].render()
             glPopMatrix()
         self._shader.unbind()
@@ -81,10 +85,11 @@ class PrintableObjectRenderer(Renderer):
             else:
                 volumeIdx = 0
                 mesh = getMesh('loading_mesh.stl')
-                for v in mesh.getVolumes():
-                    if 'VertexRenderer' not in v.metaData:
-                        v.metaData['VertexRenderer'] = openGLUtils.VertexRenderer(GL_TRIANGLES, v.vertexData)
-                    v.metaData['VertexRenderer'].render()
-                    volumeIdx += 1
+                if mesh is not None:
+                    for v in mesh.getVolumes():
+                        if 'VertexRenderer' not in v.metaData:
+                            v.metaData['VertexRenderer'] = openGLUtils.VertexRenderer(GL_TRIANGLES, v.vertexData)
+                        v.metaData['VertexRenderer'].render()
+                        volumeIdx += 1
             objIdx += 1
             glPopMatrix()
