@@ -45,8 +45,9 @@ class RotateTool(ToolboxTool):
         self._renderer._axisInfo = None
 
     def calculateMatrix(self, x, y):
-        objectCenterPos = numpy.append(self._renderer._axisInfo.getObject().getPosition(), [self._renderer._axisInfo.getObject().getSize()[2] / 2.0])
-        plane = Plane(self._renderer._axisInfo.getAxis(), 0)
+        obj = self._renderer._axisInfo.getObject()
+        objectCenterPos = numpy.append(obj.getPosition(), [obj.getSize()[2] / 2.0])
+        plane = Plane(self._renderer._axisInfo.getAxis(), numpy.dot(self._renderer._axisInfo.getAxis(), objectCenterPos))
         mousePoint0 = plane.intersectRay(self._app.getView().projectScreenPositionToRay(*self._mouse_start))
         mousePoint1 = plane.intersectRay(self._app.getView().projectScreenPositionToRay(x, y))
         centerPoint = plane.pointOnPlane(objectCenterPos)

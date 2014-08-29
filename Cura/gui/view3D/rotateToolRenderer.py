@@ -49,6 +49,7 @@ class RotateFocusObject(object):
     def getName(self):
         return 'Rotate around %s' % (self._axis_name)
 
+
 class RotateToolRenderer(Renderer):
     def __init__(self):
         super(RotateToolRenderer,self).__init__()
