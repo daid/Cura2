@@ -171,8 +171,10 @@ class PrintableObject(DisplayableObject):
 
     def getInfoString(self):
         ret = ''
-        for k, v in self._info.items():
-            ret += '%s: %s\n' % (k, v)
+        keys = self._info.keys()
+        keys.sort()
+        for k in keys:
+            ret += '%s: %s\n' % (k, self._info[k])
         return ret
 
     def addToolpathLayer(self, layer_nr, z_height, layer_height):

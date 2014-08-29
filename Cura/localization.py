@@ -14,6 +14,8 @@ def setup():
 
 
 def formatMaterial(amount_in_mm):
+    if amount_in_mm < 1000:
+        return '%0.2fm' % (amount_in_mm / 1000.0)
     return '%0.1fm' % (amount_in_mm / 1000.0)
 
 

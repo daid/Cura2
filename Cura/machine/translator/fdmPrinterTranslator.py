@@ -180,10 +180,16 @@ class FDMPrinterTranslator(Printer3DTranslator):
             index, extruder_nr, material_amount = struct.unpack('@iif', data)
             self._total_material[extruder_nr] += material_amount
             if self._object_index_mapping is not None:
-                self._object_index_mapping[index].setInfo('Material', formatMaterial(material_amount))
+                if extruder_nr == 0:
+                    self._object_index_mapping[index].setInfo('Material', formatMaterial(material_amount))
+                else:
+                    self._object_index_mapping[index].setInfo('Material %d' % (extruder_nr + 1), formatMaterial(material_amount))
             else:
                 for obj in self._scene.getObjects():
-                    obj.setInfo('Total material', formatMaterial(material_amount))
+                    if extruder_nr == 0:
+                        obj.setInfo('Total material', formatMaterial(material_amount))
+                    else:
+                        obj.setInfo('Total material %d' % (extruder_nr + 1), formatMaterial(material_amount))
         elif command_nr == self.CMD_LAYER_INFO:
             object_index, layer_nr, z_height, layer_height = struct.unpack("@iiii", data)
             z_height /= 1000.0
