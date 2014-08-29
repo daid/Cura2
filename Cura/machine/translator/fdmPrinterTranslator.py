@@ -367,20 +367,20 @@ class FDMPrinterTranslator(Printer3DTranslator):
             settings['skirtDistance'] = 0
             settings['skirtLineCount'] = int(fbk('brim_line_count'))
         if vbk('support_type') == '':
-            settings['supportType'] = 0
+            settings['supportType'] = ''
             settings['supportAngle'] = -1
         else:
-            settings['supportType'] = 0
+            settings['supportType'] = 'GRID'
             settings['supportAngle'] = int(fbk('support_angle'))
             settings['supportEverywhere'] = 1 if vbk('support_type') == 'everywhere' else 0
-            settings['supportLineDistance'] = int(100 * fbk('wall_line_width_x') * 1000 / fbk('support_fill_rate')),
+            settings['supportLineDistance'] = int(100 * fbk('wall_line_width_x') * 1000 / fbk('support_fill_rate'))
             settings['supportXYDistance'] = int(fbk('support_xy_distance') * 1000)
             settings['supportZDistance'] = int(fbk('support_z_distance') * 1000)
             settings['supportExtruder'] = -1
             if vbk('support_pattern') == 'grid':
-                settings['supportType'] = 0
+                settings['supportType'] = 'GRID'
             elif vbk('support_pattern') == 'lines':
-                settings['supportType'] = 1
+                settings['supportType'] = 'LINES'
 
         settings['sparseInfillLineDistance'] = -1
         if fbk('fill_sparse_density') >= 100:
