@@ -27,7 +27,7 @@ class View3D(object):
         self._pitch = 60
         self._zoom = 300
         self._projection = 'perspective'
-        self._viewTarget = [0.0, 0.0, 0.0]
+        self._view_target = [0.0, 0.0, 0.0]
 
         self._min_pitch = 10
         self._max_pitch = 170
@@ -68,6 +68,10 @@ class View3D(object):
             self._pitch = 0
             self._zoom = 300
             self._projection = 'orthogonal'
+        self.refresh()
+
+    def setViewTarget(self, point):
+        self._view_target = point
         self.refresh()
 
     def addRenderer(self, renderer):
@@ -218,7 +222,7 @@ class View3D(object):
         glTranslate(0,0,-self._zoom)
         glRotate(-self._pitch, 1,0,0)
         glRotate(self._yaw, 0,0,1)
-        glTranslate(-self._viewTarget[0], -self._viewTarget[1], -self._viewTarget[2])
+        glTranslate(-self._view_target[0], -self._view_target[1], -self._view_target[2])
 
         self._viewport = glGetIntegerv(GL_VIEWPORT)
         self._modelMatrix = glGetDoublev(GL_MODELVIEW_MATRIX)
@@ -240,7 +244,7 @@ class View3D(object):
         return self._mousePos3D
 
     def _unproject(self, x, y, f):
-        return openGLUtils.unproject(x, self._viewport[1] + self._viewport[3] - y, f, self._modelMatrix, self._projMatrix, self._viewport) - self._viewTarget
+        return openGLUtils.unproject(x, self._viewport[1] + self._viewport[3] - y, f, self._modelMatrix, self._projMatrix, self._viewport) - self._view_target
 
     def projectScreenPositionToRay(self, x, y):
         if self._viewport is None:

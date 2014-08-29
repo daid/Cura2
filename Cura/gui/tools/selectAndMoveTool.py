@@ -65,6 +65,8 @@ class SelectAndMoveTool(Tool):
                 if not wx.GetKeyState(wx.WXK_CONTROL):
                     self._app.getScene().deselectAll()
                 obj.setSelected(not obj.isSelected())
+                if obj.isSelected():
+                    self._app.getView().setViewTarget(numpy.append(obj.getPosition(), [obj.getSize()[2] / 2.0]))
                 self._app.getView().refresh()
             self._state = ''
         if self._state == 'dragObject':
