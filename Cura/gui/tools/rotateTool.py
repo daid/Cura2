@@ -13,12 +13,16 @@ class RotateTool(ToolboxTool):
     """
     def __init__(self, app):
         super(RotateTool, self).__init__(app, RotateToolRenderer())
+        self._tooltip_angle = 0.0
 
     def getButtonIconName(self):
         return 'rotate_button.png'
 
     def getName(self):
         return "Rotate"
+
+    def getTooltip(self):
+        return '%d' % (self._tooltip_angle / math.pi * 180)
 
     def onKeyDown(self, key_code):
         return False
@@ -61,6 +65,7 @@ class RotateTool(ToolboxTool):
         angle = round(angle / math.pi * 180.0 / angleStepSize) * math.pi / 180.0 * angleStepSize
         if numpy.dot(mouseVector1, numpy.cross(mouseVector0, plane.normal)) > 0:
             angle = -angle
+        self._tooltip_angle = angle
 
         d = numpy.array(self._renderer._axisInfo.getAxis(), dtype=numpy.float64)
         d /= numpy.linalg.norm(d)

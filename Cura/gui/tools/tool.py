@@ -21,6 +21,9 @@ class Tool(object):
     def onMouseUp(self, x, y, button):
         pass
 
+    def getTooltip(self):
+        return None
+
     def hasActiveButton(self):
         return False
 

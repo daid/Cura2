@@ -59,7 +59,10 @@ class MainOpenGLView(OpenGLPanel):
             else:
                 showTooltip(focusObj.getName())
         else:
-            hideTooltip()
+            if self._activeTool is not None and self._activeTool.getTooltip() is not None:
+                showTooltip(self._activeTool.getTooltip())
+            else:
+                hideTooltip()
         self._mousePos = (e.GetX(), e.GetY())
 
     def onMouseUp(self, e):
