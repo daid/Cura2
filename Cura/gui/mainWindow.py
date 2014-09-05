@@ -70,6 +70,17 @@ class MainOpenGLView(OpenGLPanel):
             self._activeTool.onMouseUp(e.GetX(), e.GetY(), e.GetButton())
         if not e.LeftIsDown() and not e.RightIsDown() and not e.MiddleIsDown():
             self._activeTool = None
+            if e.GetButton() == 3:
+                focusObj = self._app.getView().getFocusObject()
+                if focusObj is not None and hasattr(focusObj, 'getContextMenu'):
+                    menu = wx.Menu()
+                    menu.function_map = {}
+                    for name, function in focusObj.getContextMenu():
+                        id_nr = wx.NewId()
+                        menu.function_map[id_nr] = function
+                        item = menu.Append(id_nr, name)
+                        self.Bind(wx.EVT_MENU, lambda e: e.GetEventObject().function_map[e.GetId()](), item)
+                    self.PopupMenu(menu)
 
     def OnMouseWheel(self, e):
         delta = float(e.GetWheelRotation()) / float(e.GetWheelDelta())

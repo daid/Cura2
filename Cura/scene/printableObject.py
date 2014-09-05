@@ -194,3 +194,9 @@ class PrintableObject(DisplayableObject):
         if layer_nr < len(self._toolpath_layers):
             return self._toolpath_layers[layer_nr]
         return None
+
+    def getContextMenu(self):
+        return [("Delete", self.onDelete)]
+
+    def onDelete(self):
+        self._scene.removeObject(self)
