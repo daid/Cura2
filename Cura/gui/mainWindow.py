@@ -78,7 +78,12 @@ class MainOpenGLView(OpenGLPanel):
                     for name, function in focusObj.getContextMenu():
                         id_nr = wx.NewId()
                         menu.function_map[id_nr] = function
-                        item = menu.Append(id_nr, name)
+                        if name.startswith('*') or name.startswith('_'):
+                            item = menu.AppendCheckItem(id_nr, name[1:])
+                            if name.startswith('*'):
+                                item.Check(True)
+                        else:
+                            item = menu.Append(id_nr, name)
                         self.Bind(wx.EVT_MENU, lambda e: e.GetEventObject().function_map[e.GetId()](), item)
                     self.PopupMenu(menu)
 

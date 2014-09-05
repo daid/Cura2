@@ -196,7 +196,21 @@ class PrintableObject(DisplayableObject):
         return None
 
     def getContextMenu(self):
-        return [("Delete", self.onDelete)]
+        options = []
+        extruder_count = int(self._scene.getMachine().getSettingValueByKey('machine_nozzle_count'))
+        if extruder_count > 1:
+            object_extruder = int(self._mesh.getMetaData('setting_extruder_nr', 0))
+            for n in xrange(0, extruder_count):
+                prefix = "_"
+                if n == object_extruder:
+                    prefix = "*"
+                options += [(prefix + _("Print with extruder %d") % (n + 1), lambda e=n: self.onSetMainExtruder(e))]
+        options += [("Delete", self.onDelete)]
+        return options
 
     def onDelete(self):
         self._scene.removeObject(self)
+
+    def onSetMainExtruder(self, extruder):
+        self._mesh.metaData['setting_extruder_nr'] = extruder
+        self._updated()

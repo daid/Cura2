@@ -55,3 +55,8 @@ class MeshVolume(object):
 
     def getVertexNormalData(self):
         return self.vertexData[::,3:6]
+
+    def getMetaData(self, key, default_value = None):
+        if key in self.metaData:
+            return self.metaData[key]
+        return default_value

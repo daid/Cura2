@@ -137,10 +137,10 @@ class FDMPrinterTranslator(Printer3DTranslator):
             self.sendData(self.CMD_OBJECT_LIST, struct.pack("@i", volume_count))
 
         for idx in order:
+            obj = self._scene.getObjects()[idx]
             mesh = obj.getMesh()
             if one_at_a_time:
                 self.sendData(self.CMD_OBJECT_LIST, struct.pack("@i", len(mesh.getVolumes())))
-            obj = self._scene.getObjects()[idx]
             pos = obj.getPosition().copy()
             if self._machine.getSettingValueByKey('machine_center_is_zero') == 'False':
                 pos[0] += self._machine.getSettingValueByKeyFloat('machine_width') / 2
@@ -282,10 +282,10 @@ class FDMPrinterTranslator(Printer3DTranslator):
 
     def getEngineSettings(self, obj=None, volume=None):
         extruder_nr = 0
-        if obj is not None and 'setting_extruder_nr' in obj.getMesh().metaData:
-            extruder_nr = int(obj.getMesh().metaData['setting_extruder_nr'])
-        if volume is not None and 'setting_extruder_nr' in volume.metaData:
-            extruder_nr = int(volume.metaData['setting_extruder_nr'])
+        if obj is not None:
+            extruder_nr = int(obj.getMesh().getMetaData('setting_extruder_nr', extruder_nr))
+        if volume is not None:
+            extruder_nr = int(volume.getMetaData('setting_extruder_nr', extruder_nr))
         vbk = self._getSettingValue
         fbk = lambda k: self._convertToFloat(vbk(k))
 

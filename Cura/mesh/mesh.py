@@ -15,3 +15,8 @@ class Mesh(object):
 
     def getVolumes(self):
         return self._volumes
+
+    def getMetaData(self, key, default_value = None):
+        if key in self.metaData:
+            return self.metaData[key]
+        return default_value

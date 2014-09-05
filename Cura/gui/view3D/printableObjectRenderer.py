@@ -40,10 +40,10 @@ class PrintableObjectRenderer(Renderer):
             if mesh is not None:
                 for v in mesh.getVolumes():
                     color = [1.0, 0.4, 0.6]
-                    if 'setting_extruder_nr' in v.metaData:
-                        extruder = int(v.metaData['setting_extruder_nr'])
-                        if extruder == 1:
-                            color = [1.0, 0.1, 0.6]
+                    extruder = mesh.getMetaData('setting_extruder_nr', 0)
+                    extruder = int(v.getMetaData('setting_extruder_nr', extruder))
+                    if extruder == 1:
+                        color = [1.0, 0.1, 0.6]
                     if not self.scene.checkPlatform(obj):
                         color = [0.4, 0.4, 0.4]
                     if not obj.isSelected():
