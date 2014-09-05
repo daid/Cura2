@@ -20,11 +20,11 @@ class ScaleFocusObject(object):
 
     def getName(self):
         if self._axis == 'X':
-            return 'Scale X: %0.2f (%0.1fmm)' % (self._obj.getScale()[0], self._obj.getSize()[0])
+            return 'Scale X: %d%% (%0.1fmm)' % (self._obj.getScale()[0] * 100, self._obj.getSize()[0])
         if self._axis == 'Y':
-            return 'Scale Y: %0.2f (%0.1fmm)' % (self._obj.getScale()[1], self._obj.getSize()[1])
+            return 'Scale Y: %d%% (%0.1fmm)' % (self._obj.getScale()[1] * 100, self._obj.getSize()[1])
         if self._axis == 'Z':
-            return 'Scale Z: %0.2f (%0.1fmm)' % (self._obj.getScale()[2], self._obj.getSize()[2])
+            return 'Scale Z: %d%% (%0.1fmm)' % (self._obj.getScale()[2] * 100, self._obj.getSize()[2])
         scale = self._obj.getScale()
         if scale[0] == scale[1] and scale[0] == scale[2]:
             return 'Scale: %0.2f (%0.1fmm, %0.1fmm, %0.1fmm)' % (self._obj.getScale()[0], self._obj.getSize()[0], self._obj.getSize()[1], self._obj.getSize()[2])

@@ -9,12 +9,16 @@ from Cura.gui.view3D.scaleToolRenderer import ScaleToolRenderer
 class ScaleTool(ToolboxTool):
     def __init__(self, app):
         super(ScaleTool, self).__init__(app, ScaleToolRenderer())
+        self._tooltip_scale = 0.0
 
     def getButtonIconName(self):
         return 'scale_button.png'
 
     def getName(self):
         return "Scale"
+
+    def getTooltip(self):
+        return '%d%%' % (self._tooltip_scale * 100)
 
     def onKeyDown(self, key_code):
         return False
@@ -71,5 +75,6 @@ class ScaleTool(ToolboxTool):
         else:
             matrix = numpy.eye(3, dtype=numpy.float64)
             matrix[axisNr, axisNr] = scale
+        self._tooltip_scale = objScale * scale
 
         return matrix
