@@ -199,12 +199,23 @@ class PrintableObject(DisplayableObject):
         options = []
         extruder_count = int(self._scene.getMachine().getSettingValueByKey('machine_nozzle_count'))
         if extruder_count > 1:
-            object_extruder = int(self._mesh.getMetaData('setting_extruder_nr', 0))
-            for n in xrange(0, extruder_count):
-                prefix = "_"
-                if n == object_extruder:
-                    prefix = "*"
-                options += [(prefix + _("Print with extruder %d") % (n + 1), lambda e=n: self.onSetMainExtruder(e))]
+            extruders = {}
+            for volume in self._mesh.getVolumes():
+                extruder = int(volume.getMetaData('setting_extruder_nr', self._mesh.getMetaData('setting_extruder_nr', 0)))
+                extruders[extruder] = True
+            if len(extruders) == 1:
+                object_extruder = int(self._mesh.getMetaData('setting_extruder_nr', 0))
+                for n in xrange(0, extruder_count):
+                    prefix = "_"
+                    if n == object_extruder:
+                        prefix = "*"
+                    options += [(prefix + _("Print with extruder %d") % (n + 1), lambda e=n: self.onSetMainExtruder(e))]
+                for n in xrange(0, extruder_count):
+                    options += [('Select for dual-extrusion merge with extruder %d' % (n + 1), lambda e=n: self.onSetDualExtrusionMerge(e))]
+            else:
+                for n in xrange(0, extruder_count):
+                    for m in xrange(n + 1, extruder_count):
+                        options += [(_('Swap extruder %d and %d') % (n + 1, m + 1), lambda e1=n, e2=m: self.onSwapExtruders(e1, e2))]
         options += [("Delete", self.onDelete)]
         return options
 
@@ -213,4 +224,16 @@ class PrintableObject(DisplayableObject):
 
     def onSetMainExtruder(self, extruder):
         self._mesh.metaData['setting_extruder_nr'] = extruder
+        self._updated()
+
+    def onSetDualExtrusionMerge(self, extruder):
+        pass
+
+    def onSwapExtruders(self, extruder1, extruder2):
+        for volume in self._mesh.getVolumes():
+            extruder = int(volume.getMetaData('setting_extruder_nr', self._mesh.getMetaData('setting_extruder_nr', 0)))
+            if extruder == extruder1:
+                volume.metaData['setting_extruder_nr'] = extruder2
+            if extruder == extruder2:
+                volume.metaData['setting_extruder_nr'] = extruder1
         self._updated()

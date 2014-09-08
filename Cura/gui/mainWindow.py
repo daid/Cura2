@@ -29,6 +29,7 @@ class MainOpenGLView(OpenGLPanel):
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self._activeTool = None
         self._mousePos = (0, 0)
+        self._next_click_is_invalid = False
 
     def onRender(self):
         self._app.getView().render(self)
@@ -39,6 +40,8 @@ class MainOpenGLView(OpenGLPanel):
                 return
 
     def onMouseDown(self, e):
+        if self._next_click_is_invalid:
+            return
         if self._activeTool is None:
             for tool in self._app.getTools():
                 if tool.isActive() and tool.onMouseDown(e.GetX(), e.GetY(), e.GetButton()):
@@ -47,6 +50,9 @@ class MainOpenGLView(OpenGLPanel):
         self._mousePos = (e.GetX(), e.GetY())
 
     def onMouseMotion(self, e):
+        if self._next_click_is_invalid:
+            self._next_click_is_invalid = False
+            return
         self._app.getView().updateMousePos(e.GetX(), e.GetY())
         if self._activeTool is not None:
             dx, dy = (e.GetX() - self._mousePos[0], e.GetY() - self._mousePos[1])
@@ -66,6 +72,8 @@ class MainOpenGLView(OpenGLPanel):
         self._mousePos = (e.GetX(), e.GetY())
 
     def onMouseUp(self, e):
+        if self._next_click_is_invalid:
+            return
         if self._activeTool is not None:
             self._activeTool.onMouseUp(e.GetX(), e.GetY(), e.GetButton())
         if not e.LeftIsDown() and not e.RightIsDown() and not e.MiddleIsDown():
@@ -85,6 +93,9 @@ class MainOpenGLView(OpenGLPanel):
                         else:
                             item = menu.Append(id_nr, name)
                         self.Bind(wx.EVT_MENU, lambda e: e.GetEventObject().function_map[e.GetId()](), item)
+                    self._next_click_is_invalid = True
+                    hideTooltip()
+                    self._app.getView().clearFocusObject()
                     self.PopupMenu(menu)
 
     def OnMouseWheel(self, e):

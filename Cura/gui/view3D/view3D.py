@@ -240,6 +240,9 @@ class View3D(object):
     def getFocusObject(self):
         return self._focusObject
 
+    def clearFocusObject(self):
+        self._focusObject = None
+
     def getMousePos3D(self):
         return self._mousePos3D
 
