@@ -44,6 +44,10 @@ class PrintableObjectRenderer(Renderer):
                     extruder = int(v.getMetaData('setting_extruder_nr', extruder))
                     if extruder == 1:
                         color = [1.0, 0.1, 0.6]
+                    elif extruder == 2:
+                        color = [1.0, 0.6, 0.1]
+                    elif extruder == 2:
+                        color = [0.6, 1.0, 0.1]
                     if not self.scene.checkPlatform(obj):
                         color = map(lambda n: 0.3 + n * 0.3, color)
                     if not obj.isSelected():

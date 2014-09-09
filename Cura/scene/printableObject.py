@@ -198,11 +198,11 @@ class PrintableObject(DisplayableObject):
         options = []
         extruder_count = int(self._scene.getMachine().getSettingValueByKey('machine_nozzle_count'))
         if extruder_count > 1:
-            extruders = {}
+            extruder_options = {}
             for volume in self._mesh.getVolumes():
                 extruder = int(volume.getMetaData('setting_extruder_nr', self._mesh.getMetaData('setting_extruder_nr', 0)))
-                extruders[extruder] = True
-            if len(extruders) == 1:
+                extruder_options[extruder] = True
+            if len(extruder_options) == 1:
                 object_extruder = int(self._mesh.getMetaData('setting_extruder_nr', 0))
                 for n in xrange(0, extruder_count):
                     prefix = "_"
@@ -215,7 +215,12 @@ class PrintableObject(DisplayableObject):
             else:
                 for n in xrange(0, extruder_count):
                     for m in xrange(n + 1, extruder_count):
-                        options += [(_('Swap extruder %d and %d') % (n + 1, m + 1), lambda e1=n, e2=m: self.onSwapExtruders(e1, e2))]
+                        if n in extruder_options and m in extruder_options:
+                            options += [(_('Swap extruder %d and %d') % (n + 1, m + 1), lambda e1=n, e2=m: self.onSwapExtruders(e1, e2))]
+                        elif n in extruder_options:
+                            options += [(_('Set extruder %d to %d') % (n + 1, m + 1), lambda e1=n, e2=m: self.onSwapExtruders(e1, e2))]
+                        elif m in extruder_options:
+                            options += [(_('Set extruder %d to %d') % (m + 1, n + 1), lambda e1=n, e2=m: self.onSwapExtruders(e1, e2))]
         options += [("Delete", self.onDelete)]
         return options
 
@@ -238,12 +243,15 @@ class PrintableObject(DisplayableObject):
         for volume in self.getMesh().getVolumes():
             extruder = max(extruder, int(volume.getMetaData('setting_extruder_nr', self._mesh.getMetaData('setting_extruder_nr', 0))))
         extruder_count = int(self._scene.getMachine().getSettingValueByKey('machine_nozzle_count'))
-        extruder = (extruder + 1) % extruder_count
         for volume in other.getMesh().getVolumes():
-            volume.metaData['setting_extruder_nr'] = extruder
+            other_extruder = int(volume.getMetaData('setting_extruder_nr', other.getMesh().getMetaData('setting_extruder_nr', 0)))
+            volume.metaData['setting_extruder_nr'] = (extruder + 1 + other_extruder) % extruder_count
             self._mesh.getVolumes().append(volume)
         self._scene.removeObject(other)
         self._updated()
+        self._thread = threading.Thread(target=self._updateMeshInfo)
+        self._thread.daemon = True
+        self._thread.start()
 
     def onSwapExtruders(self, extruder1, extruder2):
         for volume in self._mesh.getVolumes():
