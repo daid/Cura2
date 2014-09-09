@@ -45,7 +45,7 @@ class PrintableObjectRenderer(Renderer):
                     if extruder == 1:
                         color = [1.0, 0.1, 0.6]
                     if not self.scene.checkPlatform(obj):
-                        color = [0.4, 0.4, 0.4]
+                        color = map(lambda n: 0.3 + n * 0.3, color)
                     if not obj.isSelected():
                         color = map(lambda n: n * 0.8, color)
                     if 'VertexRenderer' not in v.metaData:

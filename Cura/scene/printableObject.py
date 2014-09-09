@@ -12,7 +12,6 @@ from Cura.scene.displayableObject import DisplayableObject
 import numpy
 numpy.seterr(all='ignore')
 
-
 class ToolpathLayer(object):
     def __init__(self, z_height, layer_height):
         self._z_height = z_height
@@ -210,8 +209,9 @@ class PrintableObject(DisplayableObject):
                     if n == object_extruder:
                         prefix = "*"
                     options += [(prefix + _("Print with extruder %d") % (n + 1), lambda e=n: self.onSetMainExtruder(e))]
-                for n in xrange(0, extruder_count):
-                    options += [('Select for dual-extrusion merge with extruder %d' % (n + 1), lambda e=n: self.onSetDualExtrusionMerge(e))]
+                object_count = len(self._scene.getObjects())
+                if object_count == 2:
+                    options += [('Dual extrusion merge', self.onDualExtrusionMerge)]
             else:
                 for n in xrange(0, extruder_count):
                     for m in xrange(n + 1, extruder_count):
@@ -226,8 +226,24 @@ class PrintableObject(DisplayableObject):
         self._mesh.metaData['setting_extruder_nr'] = extruder
         self._updated()
 
-    def onSetDualExtrusionMerge(self, extruder):
-        pass
+    def onDualExtrusionMerge(self):
+        objects = self._scene.getObjects()
+        if len(objects) != 2:
+            return
+        other = None
+        for obj in objects:
+            if obj != self:
+                other = obj
+        extruder = 0
+        for volume in self.getMesh().getVolumes():
+            extruder = max(extruder, int(volume.getMetaData('setting_extruder_nr', self._mesh.getMetaData('setting_extruder_nr', 0))))
+        extruder_count = int(self._scene.getMachine().getSettingValueByKey('machine_nozzle_count'))
+        extruder = (extruder + 1) % extruder_count
+        for volume in other.getMesh().getVolumes():
+            volume.metaData['setting_extruder_nr'] = extruder
+            self._mesh.getVolumes().append(volume)
+        self._scene.removeObject(other)
+        self._updated()
 
     def onSwapExtruders(self, extruder1, extruder2):
         for volume in self._mesh.getVolumes():
