@@ -15,6 +15,7 @@ class GCodeLayerRenderer(object):
         self._y = 0
         self._z = 0
         self._e = 0
+        self._extruder = 0
         self._last_extrusion_z = 0
         self._prev_last_extrusion_z = 0
         self._feedrate = 0
@@ -35,6 +36,8 @@ class GCodeLayerRenderer(object):
         self._active_extrude_points = self._support_extrude_points
         self._active_extrude_amounts = self._support_extrude_amounts
 
+        self._extruder_offset = [[0.0, 0.0], [-18.0, 0.0]]
+
         if prev_layer is not None:
             self._x = prev_layer._x
             self._y = prev_layer._y
@@ -42,6 +45,7 @@ class GCodeLayerRenderer(object):
             self._e = prev_layer._e
             self._feedrate = prev_layer._feedrate
             self._retracted = prev_layer._retracted
+            self._extruder = prev_layer._extruder
 
     def setPosition(self, x, y, z, e):
         if x is not None:
@@ -54,6 +58,7 @@ class GCodeLayerRenderer(object):
             self._e = e
 
     def addMove(self, x, y, z, e, f):
+
         new_x = self._x
         new_y = self._y
         new_z = self._z
@@ -61,8 +66,10 @@ class GCodeLayerRenderer(object):
         if f is not None:
             self._feedrate = f
         if x is not None:
+            x -= self._extruder_offset[self._extruder][0]
             new_x = x
         if y is not None:
+            y -= self._extruder_offset[self._extruder][1]
             new_y = y
         if z is not None:
             new_z = z
@@ -94,6 +101,9 @@ class GCodeLayerRenderer(object):
         self._y = new_y
         self._z = new_z
         self._e = new_e
+
+    def setExtruder(self, extruder):
+        self._extruder = extruder
 
     def setFanSpeed(self, speed):
         pass
@@ -220,6 +230,7 @@ class GCodeRenderer(object):
         E = re.compile('E([0-9\\.]+)')
         F = re.compile('F([0-9\\.]+)')
         S = re.compile('S([0-9]+)')
+        T = re.compile('T([0-9]+)')
 
         current_layer = GCodeLayerRenderer()
         for line in gcode.split('\n'):
@@ -314,6 +325,10 @@ class GCodeRenderer(object):
                             pass # Steppers off
                         else:
                             print 'M', m
+                    else:
+                        t = T.search(line)
+                        if t:
+                            current_layer.setExtruder(int(t.group(1)))
         current_layer.finalize()
         self._layers.append(current_layer)
 
