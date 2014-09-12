@@ -8,7 +8,7 @@ class Ultimaker2(FDMPrinter):
         super(Ultimaker2, self).__init__()
 
         self.getSettingByKey('machine_name').setDefault('Ultimaker2').setVisible(False)
-        self.getSettingByKey('machine_icon').setDefault('save_button.png').setVisible(False)
+        self.getSettingByKey('machine_icon').setDefault('icon_ultimaker2.png').setVisible(False)
         self.getSettingByKey('display_model').setDefault('ultimaker2_platform.obj').setVisible(False)
         self.getSettingByKey('machine_width').setDefault('230').setVisible(False)
         self.getSettingByKey('machine_depth').setDefault('225').setVisible(False)
