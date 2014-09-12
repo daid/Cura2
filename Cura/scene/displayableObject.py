@@ -6,6 +6,7 @@ class DisplayableObject(object):
     #  Base class for any object (save platform) in the scene.
     def __init__(self):
         self._position = numpy.zeros((2,))
+        self._position_frozen = False
         self._matrix = numpy.matrix(numpy.identity(3, numpy.float64))
         self._temp_matrix = numpy.matrix(numpy.identity(3, numpy.float64))
         self._selected = False
@@ -27,9 +28,17 @@ class DisplayableObject(object):
         return self._position
 
     def setPosition(self, new_pos, allow_update=True):
+        if self._position_frozen:
+            return
         self._position = new_pos
         if allow_update:
             self._updated()
+
+    def setPositionFrozen(self, frozen):
+        self._position_frozen = frozen
+
+    def isPositionFrozen(self):
+        return self._position_frozen
 
     def getMatrix(self):
         return self._matrix

@@ -211,7 +211,7 @@ class PrintableObject(DisplayableObject):
                     options += [(prefix + _("Print with extruder %d") % (n + 1), lambda e=n: self.onSetMainExtruder(e))]
                 object_count = len(self._scene.getObjects())
                 if object_count == 2:
-                    options += [('Dual extrusion merge', self.onDualExtrusionMerge)]
+                    options += [(_('Dual extrusion merge'), self.onDualExtrusionMerge)]
             else:
                 for n in xrange(0, extruder_count):
                     for m in xrange(n + 1, extruder_count):
@@ -221,7 +221,8 @@ class PrintableObject(DisplayableObject):
                             options += [(_('Set extruder %d to %d') % (n + 1, m + 1), lambda e1=n, e2=m: self.onSwapExtruders(e1, e2))]
                         elif m in extruder_options:
                             options += [(_('Set extruder %d to %d') % (m + 1, n + 1), lambda e1=n, e2=m: self.onSwapExtruders(e1, e2))]
-        options += [("Delete", self.onDelete)]
+        options += [(("*" if self.isPositionFrozen() else "_") + _("Freeze position"), self.onFreeze)]
+        options += [(_("Delete"), self.onDelete)]
         return options
 
     def onDelete(self):
@@ -261,3 +262,6 @@ class PrintableObject(DisplayableObject):
             if extruder == extruder2:
                 volume.metaData['setting_extruder_nr'] = extruder1
         self._updated()
+
+    def onFreeze(self):
+        self.setPositionFrozen(not self.isPositionFrozen())

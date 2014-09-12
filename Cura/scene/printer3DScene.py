@@ -88,7 +88,10 @@ class Printer3DScene(Scene):
                 posDiff = obj.getPosition() - updatedObject.getPosition()
                 if numpy.dot(posDiff, v) < 0:
                     v = -v
-                wx.CallAfter(obj.setPosition, obj.getPosition() + v * 1.01)
+                if obj.isPositionFrozen():
+                    updatedObject.setPosition(updatedObject.getPosition() - v * 1.01, False)
+                else:
+                    wx.CallAfter(obj.setPosition, obj.getPosition() + v * 1.01)
             self._move_object_lock.release()
 
     def getOneAtATimeActive(self):
