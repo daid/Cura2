@@ -73,15 +73,18 @@ class PrintableObject(DisplayableObject):
         mesh = loadMeshes(filename)[0]
         self._mesh = mesh
         self._updated()
-        self._updateMeshInfo()
+        self._updateMeshInfoThreadFunction()
 
     def setMatrix(self, matrix):
         super(PrintableObject, self).setMatrix(matrix)
-        self._thread = threading.Thread(target=self._updateMeshInfo)
+        self._updateMeshInfo()
+
+    def _updateMeshInfo(self):
+        self._thread = threading.Thread(target=self._updateMeshInfoThreadFunction)
         self._thread.daemon = True
         self._thread.start()
 
-    def _updateMeshInfo(self):
+    def _updateMeshInfoThreadFunction(self):
         transformedMin = numpy.array([999999999999,999999999999,999999999999], numpy.float64)
         transformedMax = numpy.array([-999999999999,-999999999999,-999999999999], numpy.float64)
         boundarySphere = 0.0
@@ -110,10 +113,26 @@ class PrintableObject(DisplayableObject):
 
         head_shape = self._scene.getMachine().getHeadShape()
         head_min_x, head_min_y = self._scene.getMachine().getHeadSizeMin()
-        self._head_hit_shape = polygon.minkowskiHull(self._convex2dBoundary, head_shape)
+        nozzle_active_map = 0
+        for volume in self.getMesh().getVolumes():
+            nozzle_active_map |= 1 << (volume.getMetaData('setting_extruder_nr', self.getMesh().getMetaData('setting_extruder_nr', 0)))
+        head_hit_shape = None
+        for n in xrange(0, self._scene.getMachine().getMaxNozzles()):
+            if nozzle_active_map & (1 << n):
+                offset = self._scene.getMachine().getNozzleOffset(n)
+                if head_hit_shape is None:
+                    head_hit_shape = polygon.minkowskiHull(self._convex2dBoundary, head_shape - offset)
+                else:
+                    head_hit_shape = polygon.convexHull(numpy.concatenate((head_hit_shape, polygon.minkowskiHull(self._convex2dBoundary, head_shape - offset))))
+        self._head_hit_shape = head_hit_shape
         square_x = head_min_x + size[0] / 2.0 + 1
         square_y = head_min_y + size[1] / 2.0 + 1
-        square = numpy.array([[square_x, square_y], [square_x, -square_y], [-square_x, -square_y], [-square_x, square_y]])
+        square = []
+        for n in xrange(0, self._scene.getMachine().getMaxNozzles()):
+            if nozzle_active_map & (1 << n):
+                offset = self._scene.getMachine().getNozzleOffset(n)
+                square += [[square_x - offset[0], square_y - offset[1]], [square_x - offset[0], -square_y - offset[1]], [-square_x - offset[0], -square_y - offset[1]], [-square_x - offset[0], square_y - offset[1]]]
+        square = polygon.convexHull(square)
         self._head_hit_shape_min_no_extension = polygon.clipConvex(self._head_hit_shape, square)
         self.updatePrintExtension()
         self._updated()
@@ -230,7 +249,7 @@ class PrintableObject(DisplayableObject):
 
     def onSetMainExtruder(self, extruder):
         self._mesh.metaData['setting_extruder_nr'] = extruder
-        self._updated()
+        self._updateMeshInfo()
 
     def onDualExtrusionMerge(self):
         objects = self._scene.getObjects()
@@ -249,10 +268,7 @@ class PrintableObject(DisplayableObject):
             volume.metaData['setting_extruder_nr'] = (extruder + 1 + other_extruder) % extruder_count
             self._mesh.getVolumes().append(volume)
         self._scene.removeObject(other)
-        self._updated()
-        self._thread = threading.Thread(target=self._updateMeshInfo)
-        self._thread.daemon = True
-        self._thread.start()
+        self._updateMeshInfo()
 
     def onSwapExtruders(self, extruder1, extruder2):
         for volume in self._mesh.getVolumes():
@@ -261,7 +277,7 @@ class PrintableObject(DisplayableObject):
                 volume.metaData['setting_extruder_nr'] = extruder2
             if extruder == extruder2:
                 volume.metaData['setting_extruder_nr'] = extruder1
-        self._updated()
+        self._updateMeshInfo()
 
     def onFreeze(self):
         self.setPositionFrozen(not self.isPositionFrozen())

@@ -159,6 +159,14 @@ class FDMPrinter(printer3D.Printer3D):
         y_max = self.getSettingValueByKeyFloat('machine_head_shape_max_y')
         return numpy.array([[-x_min,-y_min],[x_max,-y_min],[x_max, y_max], [-x_min, y_max]], numpy.float32)
 
+    def getNozzleOffset(self, nozzle_nr):
+        if nozzle_nr < 1:
+            x, y = 0.0, 0.0
+        else:
+            x = self.getSettingValueByKeyFloat('machine_nozzle_offset_x_%d' % (nozzle_nr))
+            y = self.getSettingValueByKeyFloat('machine_nozzle_offset_y_%d' % (nozzle_nr))
+        return numpy.array([x, y], numpy.float32)
+
     def getExtraPrintAreaShape(self):
         if self.getSettingValueByKey('adhesion_type') == 'brim':
             x = y = self.getSettingValueByKeyFloat('brim_line_count') * self.getSettingValueByKeyFloat('wall_line_width_0')
