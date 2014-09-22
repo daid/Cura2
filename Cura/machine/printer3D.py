@@ -11,11 +11,11 @@ class Printer3D(machine.Machine):
     """
     def __init__(self):
         super(Printer3D,self).__init__()
-        self.addSettingCategory(SettingCategory('resolution', order=0).setLabel('Resolution'))
+        self.addSettingCategory(SettingCategory('resolution', order=0).setLabel(_('Resolution')))
         self.addSetting('resolution', Setting('layer_height', 0.2, 'float').setRange(0.0001).setLabel(_("Layer height (mm)"), _("Layer height in millimeters.\nThis is the most important setting to determine the quality of your print. Normal quality prints are 0.1mm, high quality is 0.06mm. You can go up to 0.25mm with an Ultimaker for very fast prints at low quality.")))
-        self.getSettingByKey('machine_width').setLabel('Print area width (mm)')
-        self.getSettingByKey('machine_depth').setLabel('Print area depth (mm)')
-        self.getSettingByKey('machine_height').setLabel('Print area height (mm)')
+        self.getSettingByKey('machine_width').setLabel(_('Print area width (mm)'))
+        self.getSettingByKey('machine_depth').setLabel(_('Print area depth (mm)'))
+        self.getSettingByKey('machine_height').setLabel(_('Print area height (mm)'))
 
         self.addSettingCategory(SettingCategory('support', order=5).setLabel('Support Material', 'Exterior support material to support models that are otherwise unprintable.'))
         self.addSetting('support', Setting('support_enable', False, 'bool').setLabel(_("Enable exterior support"), _("Enable exterior support material. This will build up structures below the model to prevent the model from sacking.")))
@@ -28,8 +28,6 @@ class Printer3D(machine.Machine):
 
         self.getSettingByKey('support_type').setCopyFromParentFunction(lambda m, v: 'buildplate' if v == 'True' else '')
 
-        self._disallowed_zones = []  # List of polys
-
         self.getSettingByKey('machine_width').addCallback(self._updateMachineShape)
         self.getSettingByKey('machine_depth').addCallback(self._updateMachineShape)
 
@@ -39,6 +37,3 @@ class Printer3D(machine.Machine):
         size = self.getSize()
         ret = numpy.array([[-size[0]/2,-size[1]/2],[size[0]/2,-size[1]/2],[size[0]/2, size[1]/2], [-size[0]/2, size[1]/2]], numpy.float32)
         self._machine_shape = ret
-
-    def getDisallowedZones(self):
-        return self._disallowed_zones

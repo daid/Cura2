@@ -47,3 +47,6 @@ class Scene(object):
 
     def setTranslator(self, translator):
         self._translator = translator
+
+    def getSupportedLoadExtensions(self):
+        return []

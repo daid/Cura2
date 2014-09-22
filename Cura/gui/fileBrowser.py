@@ -44,9 +44,10 @@ class FileBrowserPanel(FloatingPanel):
     def _onLoadFile(self, e):
         dlg = wx.FileDialog(self, _("Open 3D model"), style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST|wx.FD_MULTIPLE)
 
-        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
+        extensions = self._app.getScene().getSupportedLoadExtensions()
+        wildcardList = ';'.join(map(lambda s: '*' + s, extensions))
         wildcardFilter = "All (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
-        wildcardList = ';'.join(map(lambda s: '*' + s, meshLoader.loadSupportedExtensions()))
+        wildcardList = ';'.join(map(lambda s: '*' + s, extensions))
         wildcardFilter += "|Mesh files (%s)|%s;%s" % (wildcardList, wildcardList, wildcardList.upper())
 
         dlg.SetWildcard(wildcardFilter)
@@ -75,7 +76,7 @@ class FileBrowserPanel(FloatingPanel):
         self._local_file_list.SetSelection(selection)
 
     def _watchPathsThread(self):
-        supported_extensions = meshLoader.loadSupportedExtensions()
+        supported_extensions = self._app.getScene().getSupportedLoadExtensions()
         while True:
             path = getPreference('last_file_path', '')
             fileList = []

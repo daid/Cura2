@@ -4,6 +4,7 @@ import os
 import numpy
 import threading
 
+from Cura.meshLoaders import meshLoader
 from Cura.geometry import polygon
 from Cura.scene.scene import Scene
 from Cura.scene.printableObject import PrintableObject
@@ -52,6 +53,9 @@ class Printer3DScene(Scene):
         self.addObject(obj)
         self.deselectAll()
         obj.setSelected(True)
+
+    def getSupportedLoadExtensions(self):
+        return meshLoader.loadSupportedExtensions()
 
     def sceneUpdated(self, updatedObject=None):
         super(Printer3DScene, self).sceneUpdated(updatedObject)

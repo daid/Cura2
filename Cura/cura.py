@@ -25,7 +25,7 @@ def main():
 
     (options, args) = parser.parse_args()
 
-    from app import CuraFDMApp
+    from Cura.fdmApp import CuraFDMApp
     app = CuraFDMApp()
     app.MainLoop()
     app.finished()

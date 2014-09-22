@@ -26,6 +26,7 @@ class Machine(object):
         self.addSetting('machine', Setting('display_model', '', 'filename').setLabel('Display model', 'Used in the 3D screen to possible show a 3D model of the machine.'))
 
         self._machine_shape = numpy.zeros((0, 2), numpy.float32)  # Polygon that forms the 'box' around the machine
+        self._disallowed_zones = []  # List of polys
 
     def addSettingCategory(self, category):
         assert(self.getSettingCategory(category.getKey()) is None)
@@ -59,6 +60,9 @@ class Machine(object):
 
     def getShape(self):
         return self._machine_shape
+
+    def getDisallowedZones(self):
+        return self._disallowed_zones
 
     def getSize(self):
         return numpy.array([self.getSettingValueByKeyFloat('machine_width'),self.getSettingValueByKeyFloat('machine_depth'),self.getSettingValueByKeyFloat('machine_height')])
