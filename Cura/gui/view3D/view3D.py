@@ -25,7 +25,7 @@ class View3D(object):
 
         self._yaw = 30
         self._pitch = 60
-        self._zoom = 300
+        self._zoom = -1
         self._projection = 'perspective'
         self._view_target = [0.0, 0.0, 0.0]
 
@@ -48,25 +48,26 @@ class View3D(object):
         self.addRenderer(machineRenderer)
 
     def setViewDirection(self, direction):
+        machine_size = numpy.max(self._machine.getSize())
         if direction == '3D':
             self._yaw = 30
             self._pitch = 60
-            self._zoom = 300
+            self._zoom = machine_size * 1.5
             self._projection = 'perspective'
         elif direction == 'Right':
             self._yaw = -90
             self._pitch = 90
-            self._zoom = 300
+            self._zoom = machine_size * 1.5
             self._projection = 'orthogonal'
         elif direction == 'Front':
             self._yaw = 0
             self._pitch = 90
-            self._zoom = 300
+            self._zoom = machine_size * 1.5
             self._projection = 'orthogonal'
         elif direction == 'Top':
             self._yaw = 0
             self._pitch = 0
-            self._zoom = 300
+            self._zoom = machine_size * 1.5
             self._projection = 'orthogonal'
         self.refresh()
 
@@ -91,11 +92,13 @@ class View3D(object):
         return self._scene
 
     def setMachine(self,machine):
-        assert(isinstance(machine,Machine))
+        assert(isinstance(machine, Machine))
         self._machine = machine
         self._max_zoom = numpy.max(machine.getSize()) * 3
         for renderer in self._renderer_list:
             renderer.machine = machine
+        if self._zoom < 0:
+            self._zoom = numpy.max(self._machine.getSize()) * 1.5
 
     def getMachine(self):
         return self._machine

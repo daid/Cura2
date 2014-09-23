@@ -1,4 +1,4 @@
-__author__ = 'Jaime van Kessel'
+import numpy
 
 from Cura.gui.view3D.renderer import Renderer
 from Cura.resources import getMesh
@@ -50,8 +50,11 @@ class MachineRenderer(Renderer):
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         self._platformTexture.bind()
         glBegin(GL_TRIANGLE_FAN)
+        texture_scale = 20.0
+        if numpy.max(shape.flatten()) - numpy.min(shape.flatten()) > 500.0:
+            texture_scale *= 10.0
         for point in shape:
-            glTexCoord2f(point[0] / 20.0, point[1] / 20.0)
+            glTexCoord2f(point[0] / texture_scale, point[1] / texture_scale)
             glVertex3f(point[0], point[1], 0.02)
         glEnd()
         self._platformTexture.unbind()
@@ -88,11 +91,11 @@ class MachineRenderer(Renderer):
             glPushMatrix()
             glTranslatef(-size[0] / 2, -size[1] / 2, 0)
             glBegin(GL_LINES)
-            glVertex3f(0, 0, 5)
+            glVertex3f(0, 0, texture_scale * 0.25)
             glVertex3f(0, 0, 0)
-            glVertex3f(0, 0, 5)
-            glVertex3f(0, 10, 0)
-            glVertex3f(0, 0, 5)
-            glVertex3f(10, 0, 0)
+            glVertex3f(0, 0, texture_scale * 0.25)
+            glVertex3f(0, texture_scale * 0.5, 0)
+            glVertex3f(0, 0, texture_scale * 0.25)
+            glVertex3f(texture_scale * 0.5, 0, 0)
             glEnd()
             glPopMatrix()
