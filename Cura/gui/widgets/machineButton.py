@@ -1,8 +1,8 @@
 import wx
 
 from Cura.gui.widgets.gradientButton import GradientButton
-from Cura.gui.fdmMachineConfigDialog import FDMMachineConfigDialog
 from Cura.gui.newFDMprinterWizard import NewDFMPrinterWizard
+
 
 class MachineButton(GradientButton):
     def __init__(self, parent, app):
@@ -30,7 +30,7 @@ class MachineButton(GradientButton):
         self.PopupMenu(popup)
 
     def _onMachineEdit(self, e):
-        FDMMachineConfigDialog(self._app).ShowModal()
+        self._app.getMachine().openMachineConfigDialog(self._app)
 
     def _onNewMachine(self, e):
         wizard = NewDFMPrinterWizard()

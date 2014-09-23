@@ -29,6 +29,7 @@ class MainOpenGLView(OpenGLPanel):
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self._activeTool = None
         self._mousePos = (0, 0)
+        self._mouse_click_is_drag = False
         self._next_click_is_invalid = False
 
     def onRender(self):
@@ -48,11 +49,13 @@ class MainOpenGLView(OpenGLPanel):
                     self._activeTool = tool
                     break
         self._mousePos = (e.GetX(), e.GetY())
+        self._mouse_click_is_drag = False
 
     def onMouseMotion(self, e):
         if self._next_click_is_invalid:
             self._next_click_is_invalid = False
             return
+        self._mouse_click_is_drag = True
         self._app.getView().updateMousePos(e.GetX(), e.GetY())
         if self._activeTool is not None:
             dx, dy = (e.GetX() - self._mousePos[0], e.GetY() - self._mousePos[1])
@@ -78,7 +81,7 @@ class MainOpenGLView(OpenGLPanel):
             self._activeTool.onMouseUp(e.GetX(), e.GetY(), e.GetButton())
         if not e.LeftIsDown() and not e.RightIsDown() and not e.MiddleIsDown():
             self._activeTool = None
-            if e.GetButton() == 3:
+            if e.GetButton() == 3 and not self._mouse_click_is_drag:
                 focusObj = self._app.getView().getFocusObject()
                 if focusObj is not None and hasattr(focusObj, 'getContextMenu'):
                     menu = wx.Menu()

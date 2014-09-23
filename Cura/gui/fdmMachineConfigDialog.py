@@ -9,6 +9,7 @@ class FDMMachineConfigDialog(wx.Dialog):
         self._app = app
         super(FDMMachineConfigDialog, self).__init__(app.getMainWindow(), title='Machine Settings')
         self._tabs = wx.Notebook(self)
+        self._tabs.SetMinSize((500, -1))
         self._main_panel = wx.Panel(self._tabs)
         self._head_panel = wx.Panel(self._tabs)
         self._bottom_panel = wx.Panel(self)
@@ -33,7 +34,7 @@ class FDMMachineConfigDialog(wx.Dialog):
         self.addSetting(self._main_panel, self._app.getMachine().getSettingByKey('machine_width'), 1)
         self.addSetting(self._main_panel, self._app.getMachine().getSettingByKey('machine_depth'), 2)
         self.addSetting(self._main_panel, self._app.getMachine().getSettingByKey('machine_height'), 3)
-        self.addSetting(self._main_panel, self._app.getMachine().getSettingByKey('machine_nozzle_count'), 4)
+        nozzle_count_ctrl = self.addSetting(self._main_panel, self._app.getMachine().getSettingByKey('machine_nozzle_count'), 4)
         self.addSetting(self._main_panel, self._app.getMachine().getSettingByKey('machine_heated_bed'), 5)
 
         self.addSetting(self._main_panel, self._app.getMachine().getSettingByKey('machine_center_is_zero'), 7)
@@ -47,15 +48,31 @@ class FDMMachineConfigDialog(wx.Dialog):
         self.addSetting(self._head_panel, self._app.getMachine().getSettingByKey('machine_head_shape_max_x'), 2)
         self.addSetting(self._head_panel, self._app.getMachine().getSettingByKey('machine_head_shape_max_y'), 3)
         self.addSetting(self._head_panel, self._app.getMachine().getSettingByKey('machine_nozzle_gantry_distance'), 4)
+        self._nozzle_controls = []
         for n in xrange(1, self._app.getMachine().getMaxNozzles()):
-            self.addSetting(self._head_panel, self._app.getMachine().getSettingByKey('machine_nozzle_offset_x_%d' % (n)), n * 2 - 2, 1)
-            self.addSetting(self._head_panel, self._app.getMachine().getSettingByKey('machine_nozzle_offset_y_%d' % (n)), n * 2 - 1, 1)
+            controls = []
+            controls.append(self.addSetting(self._head_panel, self._app.getMachine().getSettingByKey('machine_nozzle_offset_x_%d' % (n)), n * 2 - 2, 1))
+            controls.append(self.addSetting(self._head_panel, self._app.getMachine().getSettingByKey('machine_nozzle_offset_y_%d' % (n)), n * 2 - 1, 1))
+            self._nozzle_controls.append(controls)
 
         self.addGCodeTab(self._app.getMachine().getSettingByKey('machine_start_gcode'))
         self.addGCodeTab(self._app.getMachine().getSettingByKey('machine_end_gcode'))
 
         self.Fit()
         self.Centre()
+
+        self._onNozzleCountChange()
+
+        nozzle_count_ctrl.Bind(wx.EVT_COMBOBOX, self._onNozzleCountChange)
+
+    def _onNozzleCountChange(self, e=None):
+        if e is not None:
+            self.onComboSettingChange(e)
+        nozzle_count = int(self._app.getMachine().getSettingValueByKey('machine_nozzle_count'))
+        for n in xrange(0, len(self._nozzle_controls)):
+            for ctrl in self._nozzle_controls[n]:
+                ctrl.label.Show((n + 1) < nozzle_count)
+                ctrl.Show((n + 1) < nozzle_count)
 
     def addSetting(self, panel, s, x, y=0):
         if not s.isVisible():
@@ -77,18 +94,22 @@ class FDMMachineConfigDialog(wx.Dialog):
                 value = s.getType()[s.getValue()]
             except KeyError:
                 value = s.getType().values()[0]
-            ctrl = wx.ComboBox(panel, value=value, choices=s.getType().values(), style=wx.CB_DROPDOWN|wx.CB_READONLY)
+            choices = s.getType().values()
+            choices.sort()
+            ctrl = wx.ComboBox(panel, value=value, choices=choices, style=wx.CB_DROPDOWN|wx.CB_READONLY)
             ctrl.Bind(wx.EVT_COMBOBOX, self.onComboSettingChange)
             ctrl.Bind(wx.EVT_LEFT_DOWN, self.OnMouseExit)
         else:
             print 'Unknown settings type:', s.getType()
             ctrl = wx.TextCtrl(panel, value=s.getValue())
 
+        label = wx.StaticText(panel, label=s.getLabel())
+        ctrl.label = label
         ctrl.setting = s
         sizer = panel.GetSizer()
         if y == 0:
             sizer.Add(wx.Panel(panel, size=(10, 10)), pos=(x, 0), span=(1, 1))
-        sizer.Add(wx.StaticText(panel, label=s.getLabel()), pos=(x, y * 3 + 1), span=(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(label, pos=(x, y * 3 + 1), span=(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(ctrl, pos=(x, y * 3 + 2), span=(1, 1), flag=flag)
         sizer.Add(wx.Panel(panel, size=(10, 10)), pos=(x, y * 3 + 3), span=(1, 1))
 
@@ -113,6 +134,7 @@ class FDMMachineConfigDialog(wx.Dialog):
         for k, v in ctrl.setting.getType().items():
             if v == ctrl.GetValue():
                 ctrl.setting.setValue(k)
+                return
 
     def onBrowse(self, e):
         ctrl = e.GetEventObject()

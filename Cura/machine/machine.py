@@ -131,3 +131,8 @@ class Machine(object):
 
     def setTranslator(self, translator):
         self._translator = translator
+
+    def openMachineConfigDialog(self, app):
+        import traceback
+        traceback.print_stack()
+        print "Error, should be called in subclass!"

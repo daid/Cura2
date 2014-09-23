@@ -5,6 +5,7 @@ import math
 from Cura.machine import printer3D
 from Cura.machine.setting import Setting
 from Cura.machine.setting import SettingCategory
+from Cura.gui.fdmMachineConfigDialog import FDMMachineConfigDialog
 
 
 def _calculateLineInfo(machine, value):
@@ -183,3 +184,6 @@ class FDMPrinter(printer3D.Printer3D):
 
     def getExportExtension(self):
         return 'gcode'
+
+    def openMachineConfigDialog(self, app):
+        FDMMachineConfigDialog(app).ShowModal()
