@@ -25,8 +25,12 @@ def main():
 
     (options, args) = parser.parse_args()
 
-    from Cura.fdmApp import CuraFDMApp
-    app = CuraFDMApp()
+    if True:
+        from Cura.fdmApp import CuraFDMApp
+        app = CuraFDMApp()
+    else:
+        from Cura.cutApp import CuraCutApp
+        app = CuraCutApp()
     app.MainLoop()
     app.finished()
     preferences.savePreferences(getDefaultPreferenceStoragePath('preferences.ini'))

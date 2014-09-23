@@ -32,13 +32,22 @@ class SelectAndMoveTool(Tool):
             if obj is not None and isinstance(obj, DisplayableObject):
                 self._state = 'dragObjectOrSelect'
             else:
-                self._state = ''
+                self._state = 'panView'
         return True
 
     def onMouseMove(self, x, y, dx, dy):
         if self._state == 'rotateView':
             self._app.getView().setYaw(self._app.getView().getYaw() + dx)
             self._app.getView().setPitch(self._app.getView().getPitch() - dy)
+        if self._state == 'panView':
+            mouse_ray0 = self._app.getView().projectScreenPositionToRay(x - dx, y - dy)
+            mouse_ray1 = self._app.getView().projectScreenPositionToRay(x, y)
+            plane_z = Plane(numpy.array([0, 0, 1], numpy.float32), 0)
+            cursor0_on_plane = plane_z.intersectRay(mouse_ray0)
+            cursor1_on_plane = plane_z.intersectRay(mouse_ray1)
+            pan_amount = cursor0_on_plane - cursor1_on_plane
+            pan_amount[2] = 0.0
+            self._app.getView().setViewTarget(self._app.getView().getViewTarget() + pan_amount)
         if self._state == 'dragObjectOrSelect':
             obj = self._app.getView().getFocusObject()
             if obj is not None and isinstance(obj, DisplayableObject) and not obj.isSelected():

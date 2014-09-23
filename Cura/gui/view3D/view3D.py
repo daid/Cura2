@@ -75,6 +75,9 @@ class View3D(object):
         self._view_target = point
         self.refresh()
 
+    def getViewTarget(self):
+        return self._view_target
+
     def addRenderer(self, renderer):
         assert(isinstance(renderer, Renderer))
         self._renderer_list.append(renderer)
