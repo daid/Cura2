@@ -17,5 +17,5 @@ class Renderer(object):
     def render(self):
         pass
 
-    def setCurrentFocusRenderObject(self, obj):
-        self.view.setCurrentFocusRenderObject(obj)
+    def setCurrentFocusRenderObject(self, obj, sub_section=None):
+        self.view.setCurrentFocusRenderObject(obj, sub_section)

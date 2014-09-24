@@ -40,7 +40,8 @@ class View3D(object):
 
         self._mousePos = None
         self._mousePos3D = numpy.zeros((3,), numpy.float32)
-        self._focusObject = None
+        self._focus_object = None
+        self._focus_sub_object = None
         self._focusIdx = None
         self._focusObjectList = None
 
@@ -166,9 +167,10 @@ class View3D(object):
             f = glReadPixels(self._mousePos[0], self._viewport[1] + self._viewport[3] - 1 - self._mousePos[1], 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)[0][0]
             self._mousePos3D = self._unproject(self._mousePos[0], self._mousePos[1], f)
             if (n & 0xFF) == 0xFF and (n >> 8) < len(self._focusObjectList):   # If the Alpha is is not 0xFF we have read a pixel not on the rendering buffer.
-                self._focusObject = self._focusObjectList[n >> 8]
+                self._focus_object = self._focusObjectList[n >> 8][0]
+                self._focus_sub_object = self._focusObjectList[n >> 8][1]
             else:
-                self._focusObject = None
+                self.clearFocusObject()
 
             self._mousePos = None
 
@@ -234,20 +236,24 @@ class View3D(object):
         self._modelMatrix = glGetDoublev(GL_MODELVIEW_MATRIX)
         self._projMatrix = glGetDoublev(GL_PROJECTION_MATRIX)
 
-    def setCurrentFocusRenderObject(self, obj):
+    def setCurrentFocusRenderObject(self, obj, sub_section=None):
         assert self._focusIdx is not None
         glColor4ub((self._focusIdx >> 16) & 0xFF, (self._focusIdx >> 8) & 0xFF, self._focusIdx & 0xFF, 0xFF)
-        self._focusObjectList.append(obj)
+        self._focusObjectList.append((obj, sub_section))
         if self._focus_debug:
             self._focusIdx += 64
         else:
             self._focusIdx += 1
 
     def getFocusObject(self):
-        return self._focusObject
+        return self._focus_object
+
+    def getFocusSubObject(self):
+        return self._focus_sub_object
 
     def clearFocusObject(self):
-        self._focusObject = None
+        self._focus_object = None
+        self._focus_sub_object = None
 
     def getMousePos3D(self):
         return self._mousePos3D

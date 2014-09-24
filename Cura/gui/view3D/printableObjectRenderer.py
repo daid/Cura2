@@ -68,7 +68,6 @@ class PrintableObjectRenderer(Renderer):
         self._shader.unbind()
 
     def focusRender(self):
-        objIdx = 0
         for obj in self.scene.getObjects():
             glPushMatrix()
             offset = obj.getDrawOffset()
@@ -76,24 +75,20 @@ class PrintableObjectRenderer(Renderer):
             openGLUtils.glMultiplyMatrix(obj.getTempMatrix())
             glTranslatef(offset[0], offset[1], offset[2] - obj.getSize()[2] / 2.0)
             openGLUtils.glMultiplyMatrix(obj.getMatrix())
-            self.setCurrentFocusRenderObject(obj)
 
             mesh = obj.getMesh()
             if mesh is not None:
-                volumeIdx = 0
                 for v in mesh.getVolumes():
+                    self.setCurrentFocusRenderObject(obj, v)
                     if 'VertexRenderer' not in v.metaData:
                         v.metaData['VertexRenderer'] = openGLUtils.VertexRenderer(GL_TRIANGLES, v.vertexData)
                     v.metaData['VertexRenderer'].render()
-                    volumeIdx += 1
             else:
-                volumeIdx = 0
+                self.setCurrentFocusRenderObject(obj)
                 mesh = getMesh('loading_mesh.stl')
                 if mesh is not None:
                     for v in mesh.getVolumes():
                         if 'VertexRenderer' not in v.metaData:
                             v.metaData['VertexRenderer'] = openGLUtils.VertexRenderer(GL_TRIANGLES, v.vertexData)
                         v.metaData['VertexRenderer'].render()
-                        volumeIdx += 1
-            objIdx += 1
             glPopMatrix()
