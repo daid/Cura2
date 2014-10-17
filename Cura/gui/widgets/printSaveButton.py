@@ -56,8 +56,9 @@ class PrintSaveButton(GradientButton):
             self._app.showNotification('Saved', 'Saved as %s' % (filename), lambda : threading.Thread(target=self._eject, args=(path,)).start())
         else:
             dlg = wx.FileDialog(self, _("Save toolpath"), style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            ext = self._app.getMachine().getExportExtension()
             dlg.SetFilename(self._app.getScene().getResult().getDefaultFilename())
-            dlg.SetWildcard('Toolpath (*.gcode)|*.gcode')
+            dlg.SetWildcard('Toolpath (*.%s)|*.%s' % (ext, ext))
             if dlg.ShowModal() != wx.ID_OK:
                 dlg.Destroy()
                 return

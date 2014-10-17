@@ -113,7 +113,7 @@ class CutTranslator(Translator):
             if obj.getMesh() and 'filename' in obj.getMesh().metaData:
                 name = obj.getMesh().metaData['filename']
             if obj.getVector() and 'filename' in obj.getVector().metaData:
-                name = obj.getMesh().metaData['filename']
+                name = obj.getVector().metaData['filename']
             if name is not None:
                 name = os.path.splitext(os.path.basename(name))[0]
                 if not name in names:
@@ -155,9 +155,14 @@ class CutTranslator(Translator):
         vbk = self._getSettingValue
         fbk = lambda k: self._convertToFloat(vbk(k))
 
-        settings = {}
-
-        settings['startCode'] = vbk('machine_start_gcode')
-        settings['endCode'] = vbk('machine_end_gcode')
+        settings = {
+            'tool_diameter': int(fbk('tool_diameter') * 1000.0),
+            'cut_depth': int(fbk('cut_depth') * 1000.0),
+            'cut_depth_step': int(fbk('cut_depth_step') * 1000.0),
+            'feedrate': int(fbk('feedrate') * 60.0),
+            'move_clearance': int(4000),
+            'startCode': vbk('machine_start_gcode'),
+            'endCode': vbk('machine_end_gcode'),
+        }
 
         return settings

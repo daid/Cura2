@@ -14,6 +14,7 @@ class DXF(Vector):
         self._last_polyline_point = None
         self._blocks = {}
         self._active_block = None
+        self.metaData['filename'] = filename
 
         entityType = 'NONE'
         sectionName = 'NONE'
@@ -132,6 +133,7 @@ class DXF(Vector):
                 y1 = cy + math.sin(a0 + float(n+1) / point_count * a_diff) * r
                 self.addLine(x0, y0, x1, y1)
         elif type == 'INSERT':
+            block = self._blocks[obj[2][0]]
             for typeName, objInfo in block:
                 self._checkForNewPath(typeName, objInfo)
         else:

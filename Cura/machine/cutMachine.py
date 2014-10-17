@@ -13,7 +13,7 @@ class CutMachine(machine.Machine):
         super(CutMachine,self).__init__()
         self.addSettingCategory(SettingCategory('tool', order=0).setLabel('Tool'))
         self.addSetting('tool', Setting('tool_diameter', 8.0, 'float').setRange(0.0001).setLabel(_("Tool diameter (mm)"), _("?")))
-        self.addSetting('tool', Setting('feedrate', 600.0, 'float').setRange(0.0001).setLabel(_("Feedrate (mm/min)"), _("?")))
+        self.addSetting('tool', Setting('feedrate', 10.0, 'float').setRange(0.0001).setLabel(_("Feedrate (mm/sec)"), _("?")))
         self.addSetting('tool', Setting('cut_depth_step', 3, 'float').setRange(0.0001).setLabel(_("Cut step size (mm)"), _("Maximum depth the tool cuts at once")))
         self.addSettingCategory(SettingCategory('cutting', order=1).setLabel('Cut'))
         self.addSetting('cutting', Setting('cut_depth', 18, 'float').setRange(0.0001).setLabel(_("Cut depth (mm)"), _("?")))

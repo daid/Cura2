@@ -2,7 +2,6 @@ import numpy
 from OpenGL.GL import *
 
 from Cura.gui import openGLUtils
-from Cura.resources import getMesh
 from Cura.gui.view3D.renderer import Renderer
 
 

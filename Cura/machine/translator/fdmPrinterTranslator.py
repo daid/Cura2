@@ -293,6 +293,7 @@ class FDMPrinterTranslator(Printer3DTranslator):
             'extruderNr': extruder_nr,
             'layerThickness': int(fbk('layer_height') * 1000),
             'initialLayerThickness': int(fbk('layer_height_0') * 1000),
+            'printTemperature': int(fbk('material_print_temperature')),
             'filamentDiameter': int(fbk('material_diameter') * 1000),
             'filamentFlow': int(fbk('material_flow')),
             'layer0extrusionWidth': int(fbk('wall_line_width_0') * 1000),
