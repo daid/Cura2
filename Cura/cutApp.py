@@ -13,7 +13,8 @@ from Cura.gui.tools.rotateTool import RotateTool
 from Cura.gui.tools.mirrorTool import MirrorTool
 from Cura.gui.tools.selectAndMoveTool import SelectAndMoveTool
 
-
+## Subclass of Cura Application intended for a CnC machine.
+#  TODO: Decide what to do with this.
 class CuraCutApp(CuraApp):
     def __init__(self):
         super(CuraCutApp, self).__init__()
