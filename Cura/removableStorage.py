@@ -25,11 +25,11 @@ _removable_cache_update_thread = None
 _removable_cache = []
 
 
+##  Return the known list of removable storage devices. Start the monitoring thread if it does not exists yet.
+#   The returned list contains a tuple with (human-name, path)
+#
+#   TODO: Remove globals and split into platform specific implementations.
 def getStorageDevices():
-    """
-    Return the known list of removable storage devices. Start the monitoring thread if it does not exists yet.
-    The returned list contains a tuple with (human-name, path)
-    """
     global _removable_cache, _removable_cache_update_thread
 
     if _removable_cache_update_thread is None:
@@ -38,7 +38,8 @@ def getStorageDevices():
         _removable_cache_update_thread.start()
     return _removable_cache
 
-
+##  Helper function for parsing MacOSX plist files.
+#   TODO: Use python native plist handling
 def _parseStupidPListXML(e):
     if e.tag == 'plist':
         return _parseStupidPListXML(list(e)[0])
@@ -63,7 +64,8 @@ def _parseStupidPListXML(e):
         return False
     return e.text
 
-
+##  Helper function for finding certain values in dictionaries and/or lists
+#   TODO: Use python native plist handling
 def _findInTree(t, n):
     ret = []
     if type(t) is dict:
@@ -77,6 +79,8 @@ def _findInTree(t, n):
     return ret
 
 
+##  Function for updating the cached device list. It is started in a thread and will
+#   periodically check to see if the device list has changed.
 def _updateCache():
     global _removable_cache
 
@@ -87,6 +91,9 @@ def _updateCache():
             from ctypes import windll
             import ctypes
             bitmask = windll.kernel32.GetLogicalDrives()
+
+            # Check possible drive letters, from A to Z
+            # Note: using ascii_uppercase because we do not want this to change with locale!
             for letter in string.uppercase:
                 if letter != 'A' and letter != 'B' and bitmask & 1 and windll.kernel32.GetDriveTypeA(letter + ':/') == 2:
                     volume_name = ''
@@ -132,6 +139,7 @@ def _updateCache():
                                         volume = vol['mount_point']
                                         drives.append((os.path.basename(volume), volume + '/'))
         else:
+            #TODO: We should use UDisks2 on Linux, it is the standard interface by now and we can always fall back to scanning directories.
             for volume in glob.glob('/media/*'):
                 if os.path.ismount(volume):
                     drives.append((os.path.basename(volume), volume + '/'))
@@ -139,12 +147,21 @@ def _updateCache():
                     for volume in glob.glob('/media/'+os.getenv('USER')+'/*'):
                         if os.path.ismount(volume):
                             drives.append((os.path.basename(volume), volume + '/'))
+            for volume in glob.glob('/run/media/' + os.getenv('USER') + '/*'):
+                if os.path.ismount(volume):
+                    drives.append((os.path.basename(volume), volume + '/'))
 
         _removable_cache = drives
 
-
+##  Eject a removable drive
+#   \param driveName The name of the drive to eject.
 def ejectDrive(driveName):
     if platform.system() == "Windows":
+        #TODO: This really should not be calling magic external executables that are not contained in the source
+        #or properly documented. Since we have WinAPI stuff here anyway, we could just use the WinAPI functions for
+        #ejecting.
+        #
+        #See http://support2.microsoft.com/?scid=kb%3Ben-us%3B165721&x=18&y=13 for how to do it with just WinAPI
         cmd = [os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'EjectMedia.exe')), driveName]
     elif platform.system() == "Darwin":
         cmd = ["diskutil", "eject", driveName]
