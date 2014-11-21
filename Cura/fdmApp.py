@@ -21,11 +21,12 @@ from Cura.gui.tools.scaleTool import ScaleTool
 from Cura.gui.tools.mirrorTool import MirrorTool
 from Cura.gui.tools.selectAndMoveTool import SelectAndMoveTool
 
-
+## Subclass of Cura Application providing an FDM application.
 class CuraFDMApp(CuraApp):
     def __init__(self):
         super(CuraFDMApp, self).__init__()
 
+    ## Called by WxWidgets after application init
     def OnInit(self):
         self._settings_view_presets = []
         self._active_setting_view = None
@@ -34,6 +35,7 @@ class CuraFDMApp(CuraApp):
         self._view = PrinterView3D()
         self._translator = FDMPrinterTranslator()
 
+        #TODO: Move this to its own class and split things into one config file per machine
         machine_storage = ConfigParser()
         machine_storage.read(getDefaultPreferenceStoragePath('machines.ini'))
         n = 0
@@ -62,6 +64,7 @@ class CuraFDMApp(CuraApp):
             if machine is not None:
                 self.addMachine(machine)
 
+        #TODO: This should probably be a bit more verbose
         if len(self._machine_list) < 1:
             return False
 
@@ -82,6 +85,7 @@ class CuraFDMApp(CuraApp):
         self.setActiveSettingsView(self._settings_view_presets[int(getPreference('active_view_preset', 0))])
         self.setMachine(self._machine_list[int(getPreference('active_machine', 0))])
 
+        #TODO: Change to an actual available file.
         wx.CallAfter(self._scene.loadFile, 'C:/Models/D&D/Box.stl')
 
         return True
@@ -96,15 +100,20 @@ class CuraFDMApp(CuraApp):
             machine_storage.write(f)
         saveSettingViewPresets(getDefaultPreferenceStoragePath('view_presets.ini'), self._settings_view_presets)
 
+    ## Return all settings view presets.
     def getSettingsViewPresets(self):
         return self._settings_view_presets
 
+    ## Add a settings view preset.
     def addSettingsViewPreset(self, svp):
         self._settings_view_presets.append(svp)
 
+    ##  Get the current active settings view preset.
+    #   It can be used to determine which machine settings should be exposed.
     def getActiveSettingsViewPreset(self):
         return self._active_setting_view
 
+    ## Set the active machine configuration.
     def setMachine(self, machine):
         super(CuraFDMApp, self).setMachine(machine)
         if self._active_setting_view is not None:
@@ -115,13 +124,15 @@ class CuraFDMApp(CuraApp):
         self._view.refresh()
         self._translator.trigger()
 
+    ## Set the active settings view.
     def setActiveSettingsView(self, settings_view):
         self._active_setting_view = settings_view
         settings_view.applyPreset(self._machine)
         if self._main_window is not None:
             self._main_window.refreshProfilePanel()
-        self._translator.trigger()
+        self._translator.trigger() #Why? This should only change UI
 
+    ## Set the active view mode, like Solid or Layers.
     def setViewMode(self, mode):
         self.getView().setViewMode(mode)
         self._main_window.setViewMode(mode)
