@@ -3,7 +3,10 @@ import gettext
 
 from Cura.resources import getResourcePath
 
-
+##  Handle translations and locale-based formatting.
+#
+#   TODO: Implement additional languages and locales. It would probably also help if things were moved to a
+#   Locale class.
 def setup():
     languages = ['en']
 
